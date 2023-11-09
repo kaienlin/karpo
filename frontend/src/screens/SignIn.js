@@ -40,8 +40,8 @@ export default function SignInScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, justifyContent: "space-evenly" }}>
-      <View style={{ paddingHorizontal: 45 }}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 45, marginVertical: 50 }}>
         <Text category="h1">登入</Text>
       </View>
       <View style={{ paddingHorizontal: 40, gap: 30 }}>
