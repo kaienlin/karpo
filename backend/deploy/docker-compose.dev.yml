@@ -2,14 +2,72 @@ version: '3.9'
 
 services:
   api:
+    build:
+      tags:
+      - karpo_backend-api:dev
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: dev
+    image: karpo_backend-api:dev
     ports:
       # Exposes application port.
     - "8000:8000"
-    build:
-      target: dev
     volumes:
       # Adds current directory as volume.
     - .:/app/src/
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       # Enables autoreload.
       KARPO_BACKEND_RELOAD: "True"
+      KARPO_BACKEND_HOST: 0.0.0.0
+      KARPO_BACKEND_DB_HOST: karpo_backend-db
+      KARPO_BACKEND_DB_PORT: 5432
+      KARPO_BACKEND_DB_USER: karpo_backend
+      KARPO_BACKEND_DB_PASS: karpo_backend
+      KARPO_BACKEND_DB_BASE: karpo_backend
+      KARPO_BACKEND_REDIS_HOST: karpo_backend-redis
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: karpo_backend-db
+    environment:
+      POSTGRES_PASSWORD: "karpo_backend"
+      POSTGRES_USER: "karpo_backend"
+      POSTGRES_DB: "karpo_backend"
+    restart: always
+    healthcheck:
+      test: pg_isready -U karpo_backend
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: karpo_backend-api:dev
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      KARPO_BACKEND_DB_HOST: karpo_backend-db
+      KARPO_BACKEND_DB_PORT: 5432
+      KARPO_BACKEND_DB_USER: karpo_backend
+      KARPO_BACKEND_DB_PASS: karpo_backend
+      KARPO_BACKEND_DB_BASE: karpo_backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "karpo_backend-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
