@@ -14,7 +14,8 @@ const CustomTheme = {
 export default function AppNavigator() {
   return (
     <NavigationContainer theme={CustomTheme}>
-      <AuthStack />
+      {/* <AuthStack /> */}
+      <HomeStack />
     </NavigationContainer>
   );
 }
