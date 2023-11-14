@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-const emptyWaypoint: Waypoint = { title: '', latitude: null, longitude: null }
+export const emptyWaypoint: Waypoint = { title: '', latitude: null, longitude: null }
 
 export const waypointSlice = createSlice({
   name: 'waypoints',
