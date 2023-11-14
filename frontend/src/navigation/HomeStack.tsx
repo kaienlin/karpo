@@ -1,12 +1,12 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
-import BottomTab from "./BottomTab";
-import HomeScreen from "../screens/Home";
-import SelectLocation from "../screens/SelectLocation";
+import BottomTab from './BottomTab'
+import HomeScreen from '../screens/Home'
+import SelectLocation from '../screens/SelectLocation'
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<HomeStackParamList>()
 
-export default function HomeStack() {
+export default function HomeStack () {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
@@ -21,5 +21,5 @@ export default function HomeStack() {
       />
       <Stack.Screen name="SelectLocationScreen" component={SelectLocation} />
     </Stack.Navigator>
-  );
+  )
 }

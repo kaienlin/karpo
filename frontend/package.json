@@ -17,6 +17,7 @@
     "@react-navigation/native-stack": "^6.9.17",
     "@react-navigation/stack": "^6.3.20",
     "@reduxjs/toolkit": "^1.9.7",
+    "@types/google.maps": "^3.54.7",
     "@ui-kitten/components": "^5.3.1",
     "@ui-kitten/eva-icons": "^5.3.1",
     "add": "^2.0.6",
@@ -36,12 +37,23 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "eslint": "^7.32.0 || ^8.2.0",
+    "@tsconfig/react-native": "^3.0.2",
+    "@types/jest": "^29.5.8",
+    "@types/react": "^18.2.37",
+    "@types/react-test-renderer": "^18.0.6",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^8.0.1",
     "eslint-config-airbnb": "^19.0.4",
-    "eslint-plugin-import": "^2.25.3",
+    "eslint-config-standard-with-typescript": "^39.1.1",
+    "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-jsx-a11y": "^6.5.1",
-    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.3.0",
-    "react-native-dotenv": "^3.4.9"
+    "eslint-plugin-react-native": "^4.1.0",
+    "react-native-dotenv": "^3.4.9",
+    "typescript": "*"
   }
 }
