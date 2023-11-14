@@ -74,6 +74,7 @@ const getPlaceTitle = async (key: string, coordinate: LatLng) => {
         streetNumber.long_name.endsWith('號') === true ? '' : '號'
       }`
     }
+    return '未命名的道路'
   } catch (error) {
     console.log(error)
   }
