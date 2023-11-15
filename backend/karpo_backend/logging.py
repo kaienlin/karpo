@@ -32,9 +32,12 @@ class InterceptHandler(logging.Handler):
 
         # Find caller from where originated the logged message
         frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__ or (
-            frame.f_code.co_filename == __file__ and frame.f_code.co_name == "emit"
-        ):
+        check_frame = (
+            lambda frame: frame.f_code.co_filename == logging.__file__
+            or frame.f_code.co_filename == __file__
+            and frame.f_code.co_name == "emit"
+        )
+        while check_frame(frame):
             frame = frame.f_back  # type: ignore
             depth += 1
 
