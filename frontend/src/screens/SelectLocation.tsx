@@ -184,7 +184,7 @@ export default function SelectLocationScreen ({ navigation, route }: SelectLocat
           selectOnMapItem,
           ...autocompleteData.predictions.map((item: google.maps.places.AutocompletePrediction) => ({
             title: item.structured_formatting.main_text,
-            address: item.structured_formatting.secondary_text,
+            address: item.structured_formatting.secondary_text ?? '',
             placeId: item.place_id
           }))
         ])
