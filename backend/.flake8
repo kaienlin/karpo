@@ -8,12 +8,8 @@ docstring_style=sphinx
 ignore =
   ; Found `f` string
   WPS305,
-  ; Missing docstring in public module
-  D100,
-  ; Missing docstring in magic method
-  D105,
-  ; Missing docstring in __init__
-  D107,
+  ; docstring
+  D,
   ; Found `__init__.py` module with logic
   WPS412,
   ; Found class without a base class
@@ -72,6 +68,8 @@ ignore =
   WPS473,
   ; too many no-cover comments.
   WPS403,
+  ; Docstring
+  DAR,
 
 per-file-ignores =
   ; all tests
