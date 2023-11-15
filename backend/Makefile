@@ -18,6 +18,7 @@ lint:
 .PHONY: format
 #format: @ run auto formatters like black
 format:
+	poetry run isort $(PROJ_NAME)
 	poetry run black $(PROJ_NAME)
 
 .PHONY: build
