@@ -1,5 +1,6 @@
 # type: ignore
 import uuid
+from typing import Optional
 
 from fastapi import Depends
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, schemas
@@ -9,7 +10,9 @@ from fastapi_users.authentication import (
     JWTStrategy,
 )
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
+from pydantic import Base64Str, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing_extensions import Annotated
 
 from karpo_backend.db.base import Base
 from karpo_backend.db.dependencies import get_db_session
@@ -23,13 +26,34 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 class UserRead(schemas.BaseUser[uuid.UUID]):
     """Represents a read command for a user."""
 
+    name: str
+    phone_number: Optional[str] = None
+    rating: Optional[
+        Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
+    ] = None
+    avatar: Optional[Base64Str] = None
+
 
 class UserCreate(schemas.BaseUserCreate):
     """Represents a create command for a user."""
 
+    name: str
+    phone_number: Optional[str] = None
+    rating: Optional[
+        Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
+    ] = None
+    avatar: Optional[Base64Str] = None
+
 
 class UserUpdate(schemas.BaseUserUpdate):
     """Represents an update command for a user."""
+
+    name: str
+    phone_number: Optional[str] = None
+    rating: Optional[
+        Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
+    ] = None
+    avatar: Optional[Base64Str] = None
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
