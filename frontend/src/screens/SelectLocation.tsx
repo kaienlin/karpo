@@ -35,7 +35,9 @@ const getPlaceLatLng = async (key: string, placeId: string) => {
     )
     const {
       result: {
-        geometry: { location: { lat, lng } }
+        geometry: {
+          location: { lat, lng }
+        }
       }
     } = await response.json()
     return { latitude: lat, longitude: lng }
@@ -108,17 +110,18 @@ interface AutocompleteItemProps extends ListItemProps {
   address: string
 }
 
-function AutocompleteItem ({ title, address, ...props }: AutocompleteItemProps) {
+function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
   return (
     <ListItem
       {...props}
       style={{ paddingHorizontal: 20, height: 55 }}
-      title={(evaProps) => (
-        <Text style={[evaProps?.style, { fontSize: 14 }]}>{title}</Text>
-      )}
-      description={(address.length === 0)
-        ? undefined
-        : (evaProps) => (<Text style={[evaProps?.style, { fontSize: 13, marginTop: 3 }]}>{address}</Text>)
+      title={(evaProps) => <Text style={[evaProps?.style, { fontSize: 14 }]}>{title}</Text>}
+      description={
+        address.length === 0
+          ? undefined
+          : (evaProps) => (
+              <Text style={[evaProps?.style, { fontSize: 13, marginTop: 3 }]}>{address}</Text>
+            )
       }
       accessoryLeft={() => <LocIcon style={{ width: 20, height: 20 }} />}
     />
@@ -127,10 +130,9 @@ function AutocompleteItem ({ title, address, ...props }: AutocompleteItemProps) 
 
 type SelectLocationScreenProps = NativeStackScreenProps<HomeStackParamList, 'SelectLocationScreen'>
 
-export default function SelectLocationScreen ({ navigation, route }: SelectLocationScreenProps) {
+export default function SelectLocationScreen({ navigation, route }: SelectLocationScreenProps) {
   const { waypointIndex } = route.params
   const defaultSearchInput = useSelector((state: RootState) => state.waypoints[waypointIndex].title)
-  const selectOnMapItem: AutocompleteItem = { title: '在地圖上設定地點', address: '', placeId: '' }
 
   const dispatch = useDispatch()
   const inputRef = useRef<Input>(null)
@@ -139,7 +141,7 @@ export default function SelectLocationScreen ({ navigation, route }: SelectLocat
 
   const [searchInput, setSearchInput] = useState<string>('')
   const [center, setCenter] = useState<Region | null>(null)
-  const [autocompleteResult, setAutocompleteResult] = useState<AutocompleteItem[]>([selectOnMapItem])
+  const [autocompleteResult, setAutocompleteResult] = useState<AutocompleteItem[]>([])
 
   useEffect(() => {
     if (inputRef.current !== null) {
@@ -180,14 +182,13 @@ export default function SelectLocationScreen ({ navigation, route }: SelectLocat
     void (async () => {
       const autocompleteData = await getPlaceAutoComplete(GOOGLE_MAPS_API_KEY, text)
       if (autocompleteData.status === 'OK') {
-        setAutocompleteResult([
-          selectOnMapItem,
-          ...autocompleteData.predictions.map((item: google.maps.places.AutocompletePrediction) => ({
+        setAutocompleteResult(
+          autocompleteData.predictions.map((item: google.maps.places.AutocompletePrediction) => ({
             title: item.structured_formatting.main_text,
             address: item.structured_formatting.secondary_text ?? '',
             placeId: item.place_id
           }))
-        ])
+        )
       }
     })()
   }
@@ -234,26 +235,20 @@ export default function SelectLocationScreen ({ navigation, route }: SelectLocat
     <TouchableWithoutFeedback
       onPress={() => {
         setSearchInput('')
-        setAutocompleteResult([selectOnMapItem])
+        setAutocompleteResult([])
       }}
     >
       <Icon {...props} name="close-circle-outline" />
     </TouchableWithoutFeedback>
   )
 
-  const renderLocationItem = ({ item, index }: { item: AutocompleteItem, index: number }) => (
+  const renderLocationItem = ({ item, index }: { item: AutocompleteItem; index: number }) => (
     <>
       <AutocompleteItem
         title={item.title}
         address={item.address}
         onPress={() => {
-          if (item.title === '在地圖上設定地點') {
-            if (bottomSheetRef.current !== null) {
-              bottomSheetRef.current.collapse()
-            }
-          } else {
-            handlePressLocationItem(autocompleteResult[index])
-          }
+          handlePressLocationItem(autocompleteResult[index])
         }}
       />
       <Divider />
@@ -299,13 +294,23 @@ export default function SelectLocationScreen ({ navigation, route }: SelectLocat
             data={autocompleteResult}
             renderItem={renderLocationItem}
             keyboardShouldPersistTaps="always"
+            ListEmptyComponent={
+              <AutocompleteItem
+                title="在地圖上設定地點"
+                address=""
+                onPress={() => {
+                  if (bottomSheetRef.current !== null) {
+                    bottomSheetRef.current.collapse()
+                  }
+                }}
+              />
+            }
           />
         </View>
       </BottomSheet>
 
       <View style={{ flex: 1, zIndex: -1 }}>
-        {center !== null
-          ? (
+        {center !== null ? (
           <MapView
             style={{ flex: 1, width: '100%', height: '100%' }}
             provider="google"
@@ -318,17 +323,12 @@ export default function SelectLocationScreen ({ navigation, route }: SelectLocat
             onRegionChangeComplete={handleRegionChangeComplete}
             initialRegion={center}
           ></MapView>
-            )
-          : null}
+        ) : null}
         <View style={styles.centerPinContainer}>
           <PinIcon style={styles.centerPin} />
         </View>
         <View style={styles.confirmButtonContainer}>
-          <Button
-            size="large"
-            style={styles.confirmButton}
-            onPress={handlePressConfirm}
-          >
+          <Button size="large" style={styles.confirmButton} onPress={handlePressConfirm}>
             完成
           </Button>
         </View>
