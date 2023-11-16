@@ -11,22 +11,20 @@ interface RouteProps {
   onRouteChange: (coordinates: LatLng[]) => void
 }
 
-export default function Route ({ query, polylineStyle, onRouteChange }: RouteProps) {
+export default function Route({ query, polylineStyle, onRouteChange }: RouteProps) {
   const { key, coordinates } = query
   const [polyline, setPolyline] = useState<string | null>(null)
   const [viewport, setViewport] = useState<Viewport | null>(null)
 
-  const steps = useMemo(
-    () => {
-      if (polyline !== null) {
-        return decodePolyline(polyline).map(([lat, lng]: number[]) => ({
-          latitude: lat,
-          longitude: lng
-        }))
-      }
-    },
-    [polyline]
-  )
+  const steps = useMemo(() => {
+    if (polyline !== null) {
+      return decodePolyline(polyline).map(([lat, lng]: number[]) => ({
+        latitude: lat,
+        longitude: lng
+      }))
+    }
+    return null
+  }, [polyline])
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -38,50 +36,47 @@ export default function Route ({ query, polylineStyle, onRouteChange }: RoutePro
       }
 
       try {
-        const response = await fetch(
-          'https://routes.googleapis.com/directions/v2:computeRoutes',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Goog-Api-Key': key,
-              'X-Goog-FieldMask':
-                'routes.duration,routes.distanceMeters,routes.legs,routes.polyline,routes.viewport'
+        const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': key,
+            'X-Goog-FieldMask':
+              'routes.duration,routes.distanceMeters,routes.legs,routes.polyline,routes.viewport'
+          },
+          body: JSON.stringify({
+            travelMode: 'DRIVE',
+            routingPreference: 'TRAFFIC_AWARE',
+            computeAlternativeRoutes: false,
+            languageCode: 'zh-TW',
+            origin: {
+              location: {
+                latLng: {
+                  latitude: origin.latitude,
+                  longitude: origin.longitude
+                }
+              }
             },
-            body: JSON.stringify({
-              travelMode: 'DRIVE',
-              routingPreference: 'TRAFFIC_AWARE',
-              computeAlternativeRoutes: false,
-              languageCode: 'zh-TW',
-              origin: {
+            destination: {
+              location: {
+                latLng: {
+                  latitude: destination?.latitude,
+                  longitude: destination?.longitude
+                }
+              }
+            },
+            intermediates: [
+              intermediates.map((waypoint) => ({
                 location: {
                   latLng: {
-                    latitude: origin.latitude,
-                    longitude: origin.longitude
+                    latitude: waypoint.latitude,
+                    longitude: waypoint.longitude
                   }
                 }
-              },
-              destination: {
-                location: {
-                  latLng: {
-                    latitude: destination?.latitude,
-                    longitude: destination?.longitude
-                  }
-                }
-              },
-              intermediates: [
-                intermediates.map((waypoint) => ({
-                  location: {
-                    latLng: {
-                      latitude: waypoint.latitude,
-                      longitude: waypoint.longitude
-                    }
-                  }
-                }))
-              ]
-            })
-          }
-        )
+              }))
+            ]
+          })
+        })
         const data = await response.json()
 
         setPolyline(data.routes[0].polyline.encodedPolyline)
@@ -104,5 +99,5 @@ export default function Route ({ query, polylineStyle, onRouteChange }: RoutePro
     }
   }, [viewport])
 
-  return <Polyline coordinates={steps} {...polylineStyle} />
+  return steps && <Polyline coordinates={steps} {...polylineStyle} />
 }
