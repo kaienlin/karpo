@@ -45,5 +45,6 @@
     "color-danger-800": "#932244",
     "color-danger-900": "#7A143B",
     "color-primary-transparent-100": "#fff",
-    "color-primary-transparent-300": "$color-primary-100"
+    "color-primary-transparent-300": "$color-primary-100",
+    "border-basic-color-4": "rgba(255, 255, 255, 0)"
   }
