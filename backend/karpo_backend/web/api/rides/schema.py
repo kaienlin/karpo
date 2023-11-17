@@ -51,33 +51,32 @@ class JoinDTO(BaseModel):
     price: int
 
 
-class GetRideMessagesResponseModel(BaseModel):
+class GetRideMessagesResponse(BaseModel):
     chat_records: List[ChatRecordDTO]
 
 
-class PostRideMessagesRequestModel(BaseModel):
+class PostRideMessagesRequest(BaseModel):
     chat_record: ChatRecordDTO
 
 
-class PostRidesRequestModel(BaseModel):
+class PostRidesRequest(BaseModel):
     ride: RideDTO
 
 
-class PostRidesResponseModel(BaseModel):
+class PostRidesResponse(BaseModel):
     status: str
 
 
-class PostCommentsRequestModel(BaseModel):
-    ride_id: uuid.UUID
+class PostCommentsRequest(BaseModel):
     user_id: uuid.UUID
     rate: int
     comment: str
 
 
-class GetRideSavedRidesResponseModel(BaseModel):
+class GetRideSavedRidesResponse(BaseModel):
     saved_rides: List[RideDTO]
 
 
-class GetRideJoinsResponseModel(BaseModel):
+class GetRideJoinsResponse(BaseModel):
     vacant_seat: int
     joins: List[JoinDTO]
