@@ -133,7 +133,7 @@ type SelectLocationScreenProps = NativeStackScreenProps<HomeStackParamList, 'Sel
 
 export default function SelectLocationScreen({ navigation, route }: SelectLocationScreenProps) {
   const { waypointIndex } = route.params
-  const defaultSearchInput = useSelector((state: RootState) => state.waypoints[waypointIndex].title)
+  const defaultCenter = useSelector((state: RootState) => state.waypoints[waypointIndex])
 
   const dispatch = useDispatch()
   const inputRef = useRef<Input>(null)
@@ -145,37 +145,40 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
   const [autocompleteResult, setAutocompleteResult] = useState<AutocompleteItem[]>([])
 
   useEffect(() => {
-    if (inputRef.current !== null) {
-      inputRef.current.focus()
-    }
-    setSearchInput(defaultSearchInput)
-  }, [])
+    if (defaultCenter.latitude !== null && defaultCenter.longitude !== null) {
+      setSearchInput(defaultCenter.title)
+      setCenter({
+        latitude: defaultCenter.latitude,
+        longitude: defaultCenter.longitude,
+        latitudeDelta: 0.002,
+        longitudeDelta: 0.005
+      })
+    } else {
+      const getCurrentPosition = async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync()
+        if (status !== 'granted') {
+          return
+        }
 
-  useEffect(() => {
-    const getCurrentPosition = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') {
-        return
+        const deltas = { latitudeDelta: 0.002, longitudeDelta: 0.005 }
+        const last = await Location.getLastKnownPositionAsync()
+        if (last !== null) {
+          setCenter({
+            latitude: last.coords.latitude,
+            longitude: last.coords.longitude,
+            ...deltas
+          })
+        } else {
+          const current = await Location.getCurrentPositionAsync()
+          setCenter({
+            latitude: current.coords.latitude,
+            longitude: current.coords.longitude,
+            ...deltas
+          })
+        }
       }
-
-      const deltas = { latitudeDelta: 0.002, longitudeDelta: 0.005 }
-      const last = await Location.getLastKnownPositionAsync()
-      if (last !== null) {
-        setCenter({
-          latitude: last.coords.latitude,
-          longitude: last.coords.longitude,
-          ...deltas
-        })
-      } else {
-        const current = await Location.getCurrentPositionAsync()
-        setCenter({
-          latitude: current.coords.latitude,
-          longitude: current.coords.longitude,
-          ...deltas
-        })
-      }
+      getCurrentPosition().catch(console.error)
     }
-    getCurrentPosition().catch(console.error)
   }, [])
 
   const handleChangeSearchInput = (text: string) => {
@@ -263,6 +266,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
         <Input
           ref={inputRef}
           style={{ flex: 1 }}
+          autoFocus={true}
           placeholder="要去哪裡？"
           accessoryRight={searchInput.length > 0 ? renderClearIcon : undefined}
           value={searchInput}
@@ -291,7 +295,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
             data={autocompleteResult}
             renderItem={renderLocationItem}
             keyboardShouldPersistTaps="always"
-            ListEmptyComponent={
+            ListHeaderComponent={
               <AutocompleteItem
                 title="在地圖上設定地點"
                 address=""
