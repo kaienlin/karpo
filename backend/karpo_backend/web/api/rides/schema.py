@@ -80,3 +80,26 @@ class GetRideSavedRidesResponse(BaseModel):
 class GetRideJoinsResponse(BaseModel):
     vacant_seat: int
     joins: List[JoinDTO]
+
+
+class StopoverDTO(BaseModel):
+    request_id: uuid.UUID
+    time: datetime.datetime
+    location: LocationDTO
+    status: Literal["get_on", "get_off"]
+
+
+class PutRideIdStatusRequest(BaseModel):
+    next_stopover_index: NonNegativeInt
+
+
+class PutRideIdStatusResponse(BaseModel):
+    next_stopover: StopoverDTO
+
+
+class PutRideIdPositionRequest(BaseModel):
+    position: LocationDTO
+
+
+class GetRideIdScheduleResponse(BaseModel):
+    schedule: List[StopoverDTO]
