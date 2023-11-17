@@ -8,7 +8,6 @@ from karpo_backend.web.api.utils import LocationDTO, RouteDTO
 
 
 class PostRideIdJoinsRequest(BaseModel):
-    ride_id: uuid.UUID
     request_id: uuid.UUID
 
 
