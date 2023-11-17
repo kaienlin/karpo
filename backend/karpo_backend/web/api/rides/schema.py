@@ -6,19 +6,19 @@ from pydantic import BaseModel, NonNegativeInt
 from karpo_backend.web.api.utils import LocationDTO
 
 
-class PostRideIdJoinsRequestModel(BaseModel):
+class PostRideIdJoinsRequest(BaseModel):
     ride_id: uuid.UUID
     request_id: uuid.UUID
 
 
-class PostRideIdJoinsResponseModel(BaseModel):
+class PostRideIdJoinsResponse(BaseModel):
     join_id: uuid.UUID
 
 
-class GetRideIdJoinIdStatusResponseModel(BaseModel):
+class GetRideIdJoinIdStatusResponse(BaseModel):
     driver_response: Literal["accepted", "rejected", "pending"]
 
 
-class GetRideIdStatusResponseModel(BaseModel):
+class GetRideIdStatusResponse(BaseModel):
     driver_position: LocationDTO
     driver_phase: NonNegativeInt
