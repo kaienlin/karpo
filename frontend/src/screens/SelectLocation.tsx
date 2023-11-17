@@ -12,7 +12,8 @@ import {
   Text,
   TopNavigationAction,
   type IconProps,
-  type ListItemProps
+  type ListItemProps,
+  Spinner
 } from '@ui-kitten/components'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -267,9 +268,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
           value={searchInput}
           onChangeText={handleChangeSearchInput}
           onFocus={() => {
-            if (bottomSheetRef.current !== null) {
-              bottomSheetRef.current.expand()
-            }
+            bottomSheetRef.current?.expand()
           }}
         />
       </View>
@@ -280,12 +279,10 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
         topInset={30}
         snapPoints={snapPoints}
         onChange={(index) => {
-          if (inputRef.current !== null) {
-            if (index === 1) {
-              inputRef.current.focus()
-            } else {
-              inputRef.current.blur()
-            }
+          if (index === 1) {
+            inputRef.current?.focus()
+          } else {
+            inputRef.current?.blur()
           }
         }}
       >
@@ -299,9 +296,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
                 title="在地圖上設定地點"
                 address=""
                 onPress={() => {
-                  if (bottomSheetRef.current !== null) {
-                    bottomSheetRef.current.collapse()
-                  }
+                  bottomSheetRef.current?.collapse()
                 }}
               />
             }
@@ -316,14 +311,15 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
             provider="google"
             showsUserLocation={true}
             onRegionChange={() => {
-              if (bottomSheetRef.current !== null) {
-                bottomSheetRef.current.close()
-              }
+              inputRef.current?.blur()
+              bottomSheetRef.current?.close()
             }}
             onRegionChangeComplete={handleRegionChangeComplete}
             initialRegion={center}
           ></MapView>
-        ) : null}
+        ) : (
+          <Spinner />
+        )}
         <View style={styles.centerPinContainer}>
           <PinIcon style={styles.centerPin} />
         </View>
