@@ -29,7 +29,7 @@ class MatchDTO(BaseModel):
     join_id: Optional[uuid.UUID] = None
 
 
-class PostRequestsRequestModel(BaseModel):
+class PostRequestsRequest(BaseModel):
     time: datetime.datetime
     source: LocationDTO
     source_description: Optional[str] = None
@@ -38,15 +38,15 @@ class PostRequestsRequestModel(BaseModel):
     num_people: PositiveInt
 
 
-class PostRequestsResponseModel(BaseModel):
+class PostRequestsResponse(BaseModel):
     request_id: uuid.UUID
     matches: List[MatchDTO]
 
 
-class GetRequestIdResponseModel(PostRequestsRequestModel):
+class GetRequestIdResponse(PostRequestsRequest):
     create_time: datetime.datetime
     is_active: bool
 
 
-class GetRequestIdMatchesResponseModel(BaseModel):
+class GetRequestIdMatchesResponse(BaseModel):
     matches: List[MatchDTO]
