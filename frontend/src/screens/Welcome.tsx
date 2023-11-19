@@ -1,8 +1,12 @@
 import { View, Image } from "react-native";
 import { Button } from "@ui-kitten/components";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { type NativeStackScreenProps } from "@react-navigation/native-stack";
+import { type AuthStackParamList } from "../navigation/AuthStack";
 
-export default function Login({ navigation }) {
+type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, "Welcome">;
+
+export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   return (
     <SafeAreaView style={{ flex: 1, justifyContent: "space-evenly" }}>
       <View style={{ alignItems: "center" }}>
@@ -14,14 +18,14 @@ export default function Login({ navigation }) {
       <View style={{ marginHorizontal: 40 }}>
         <View style={{ flex: 1, gap: 10 }}>
           <Button
-            style={{ borderRadius: "12%" }}
+            style={{ borderRadius: 12 }}
             size="large"
             onPress={() => navigation.navigate("SignIn")}
           >
             登入
           </Button>
           <Button
-            style={{ borderRadius: "12%" }}
+            style={{ borderRadius: 12 }}
             size="large"
             appearance="outline"
             onPress={() => navigation.navigate("SignUp")}

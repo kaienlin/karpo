@@ -1,19 +1,24 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button, Input, Icon, Text } from "@ui-kitten/components";
+import { Button, Input, Icon, Text, type IconProps } from "@ui-kitten/components";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { type NativeStackScreenProps } from "@react-navigation/native-stack";
+import { type AuthStackParamList } from "../navigation/AuthStack";
 
-const EmailIcon = (props) => <Icon {...props} name="email-outline" />;
-const LockIcon = (props) => <Icon {...props} name="lock-outline" />;
+const EmailIcon = (props: IconProps) => <Icon {...props} name="email-outline" />;
+const LockIcon = (props: IconProps) => <Icon {...props} name="lock-outline" />;
 
-export default function SignInScreen({ navigation }) {
+type SignUpScreenProps = NativeStackScreenProps<AuthStackParamList, "SignUp">;
+
+export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     validateForm();
-  }, [email, password]);
+  }, [email, password, passwordConfirm]);
 
   const validateForm = () => {
     let errors = {};
@@ -30,10 +35,14 @@ export default function SignInScreen({ navigation }) {
       errors.password = "Password is required.";
     }
 
+    if (password !== passwordConfirm) {
+      errors.passwordConfirm = "Password not the same";
+    }
+
     setIsFormValid(Object.keys(errors).length === 0);
   };
 
-  const handleSignInPress = () => {
+  const handleSignUpPress = () => {
     if (isFormValid) {
       // TODO: request backend for auth
     }
@@ -42,7 +51,7 @@ export default function SignInScreen({ navigation }) {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 45, marginVertical: 50 }}>
-        <Text category="h1">登入</Text>
+        <Text category="h1">建立帳戶</Text>
       </View>
       <View style={{ paddingHorizontal: 40, gap: 30 }}>
         <View style={{ gap: 10 }}>
@@ -64,13 +73,22 @@ export default function SignInScreen({ navigation }) {
             secureTextEntry={true}
             onChangeText={setPassword}
           />
+          <Input
+            size="large"
+            style={styles.input}
+            placeholder="確認密碼"
+            autoCapitalize="none"
+            accessoryLeft={LockIcon}
+            secureTextEntry={true}
+            onChangeText={setPasswordConfirm}
+          />
         </View>
         <Button
-          style={{ borderRadius: "12%" }}
+          style={{ borderRadius: 12 }}
           size="large"
-          onPress={handleSignInPress}
+          onPress={handleSignUpPress}
         >
-          登入
+          註冊
         </Button>
       </View>
     </SafeAreaView>
@@ -79,7 +97,7 @@ export default function SignInScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   input: {
-    borderRadius: "12%",
+    borderRadius: 12,
     backgroundColor: "#FFF",
   },
 });
