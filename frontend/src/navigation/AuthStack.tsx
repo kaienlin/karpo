@@ -1,42 +1,46 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
-  Icon,
-  TopNavigationAction,
-  TopNavigation,
-} from "@ui-kitten/components";
+  createNativeStackNavigator,
+  type NativeStackScreenProps
+} from '@react-navigation/native-stack'
+import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
-import WelcomeScreen from "../screens/Welcome";
-import SignInScreen from "../screens/SignIn";
-import SignUpScreen from "../screens/SignUp";
+import SignInScreen from '../screens/SignIn'
+import SignUpScreen from '../screens/SignUp'
+import WelcomeScreen from '../screens/Welcome'
 
-const Stack = createNativeStackNavigator();
+export type AuthStackParamList = {
+  WelcomeScreen: undefined
+  SignInScreen: undefined
+  SignUpScreen: undefined
+}
 
-const BackIcon = (props) => <Icon {...props} name="arrow-back" />;
+const Stack = createNativeStackNavigator<AuthStackParamList>()
 
-function TopHeader({ navigation }) {
-  const BackAction = () => (
-    <TopNavigationAction icon={BackIcon} onPress={navigation.goBack} />
-  );
-
-  return <TopNavigation accessoryLeft={BackAction} />;
+const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
+const TopHeader = ({ navigation }: NativeStackScreenProps<AuthStackParamList>) => {
+  return (
+    <TopNavigation
+      accessoryLeft={() => <TopNavigationAction icon={BackIcon} onPress={navigation.goBack} />}
+    />
+  )
 }
 
 export default function AuthStack() {
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
-      screenOptions={({ navigation }) => ({
-        headerLeft: () => <TopHeader navigation={navigation} />,
-        headerShadowVisible: false,
+      initialRouteName="WelcomeScreen"
+      screenOptions={({ navigation, route }) => ({
+        headerLeft: () => <TopHeader navigation={navigation} route={route} />,
+        headerShadowVisible: false
       })}
     >
       <Stack.Screen
-        name="Welcome"
+        name="WelcomeScreen"
         component={WelcomeScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="SignIn" component={SignInScreen} />
-      <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="SignInScreen" component={SignInScreen} />
+      <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
     </Stack.Navigator>
-  );
+  )
 }
