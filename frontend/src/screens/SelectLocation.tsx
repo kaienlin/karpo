@@ -1,110 +1,31 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { View, StyleSheet, TouchableWithoutFeedback } from 'react-native'
-import { useSelector, useDispatch } from 'react-redux'
-import * as Location from 'expo-location'
-import Qs from 'qs'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
   Button,
   Divider,
   Icon,
   Input,
   ListItem,
+  Spinner,
   Text,
   TopNavigationAction,
   type IconProps,
-  type ListItemProps,
-  Spinner
+  type ListItemProps
 } from '@ui-kitten/components'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
+import * as Location from 'expo-location'
 import MapView, { type Details, type Region } from 'react-native-maps'
-import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useDispatch, useSelector } from 'react-redux'
 
-import { GOOGLE_MAPS_API_KEY } from '@env'
-import { updateWaypoint } from '../redux/waypoints'
 import { type RootState } from '../redux/store'
+import { updateWaypoint } from '../redux/waypoints'
+import { MapsAPI } from '../services/maps'
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 const LocIcon = (props: IconProps) => <Icon {...props} name="pin-outline" />
 const PinIcon = (props: IconProps) => <Icon {...props} name="pin" />
-
-const getPlaceLatLng = async (key: string, placeId: string) => {
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${key}&language=zh-TW`,
-      { method: 'GET' }
-    )
-    const {
-      result: {
-        geometry: {
-          location: { lat, lng }
-        }
-      }
-    } = await response.json()
-    return { latitude: lat, longitude: lng }
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-const getPlaceTitle = async (key: string, coordinate: LatLng) => {
-  try {
-    const { latitude, longitude } = coordinate
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${key}&language=zh-TW&location_type=ROOFTOP`,
-      { method: 'GET' }
-    )
-
-    const data = await response.json()
-
-    if (data.status === 'OK') {
-      const addressComponents = data.results[0].address_components
-      const premise = addressComponents.find((comp: google.maps.GeocoderAddressComponent) =>
-        comp.types.includes('premise')
-      )
-      if (premise !== undefined) {
-        return premise.long_name
-      }
-
-      const streetNumber = addressComponents.find((comp: google.maps.GeocoderAddressComponent) =>
-        comp.types.includes('street_number')
-      )
-      const route = addressComponents.find((comp: google.maps.GeocoderAddressComponent) =>
-        comp.types.includes('route')
-      )
-
-      return `${route.long_name}${streetNumber.long_name}${
-        streetNumber.long_name.endsWith('號') === true ? '' : '號'
-      }`
-    }
-    return '未命名的道路'
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-const getPlaceAutoComplete = async (key: string, input: string) => {
-  try {
-    const query = {
-      key,
-      language: 'zh-TW',
-      components: 'country:tw',
-      type: ['address', 'establishment']
-    }
-
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-        input
-      )}&${Qs.stringify(query)}`,
-      { method: 'GET' }
-    )
-    const data = await response.json()
-
-    return data
-  } catch (error) {
-    console.log(error)
-  }
-}
 
 interface AutocompleteItemProps extends ListItemProps {
   title: string
@@ -184,22 +105,14 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
   const handleChangeSearchInput = (text: string) => {
     setSearchInput(text)
     void (async () => {
-      const autocompleteData = await getPlaceAutoComplete(GOOGLE_MAPS_API_KEY, text)
-      if (autocompleteData.status === 'OK') {
-        setAutocompleteResult(
-          autocompleteData.predictions.map((item: google.maps.places.AutocompletePrediction) => ({
-            title: item.structured_formatting.main_text,
-            address: item.structured_formatting.secondary_text ?? '',
-            placeId: item.place_id
-          }))
-        )
-      }
+      const result = await MapsAPI.getPlaceAutocomplete(text)
+      setAutocompleteResult(result)
     })()
   }
 
   const handlePressLocationItem = (item: AutocompleteItem) => {
     void (async () => {
-      const latlng = await getPlaceLatLng(GOOGLE_MAPS_API_KEY, item.placeId)
+      const latlng = await MapsAPI.getPlaceLatLng(item.placeId)
       dispatch(
         updateWaypoint({
           index: waypointIndex,
@@ -214,7 +127,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
   const handleRegionChangeComplete = (region: Region, details: Details) => {
     if (details.isGesture === true) {
       void (async () => {
-        const title = await getPlaceTitle(GOOGLE_MAPS_API_KEY, region)
+        const title = await MapsAPI.getPlaceTitle(region)
         setSearchInput(title)
       })()
       setCenter(region)
