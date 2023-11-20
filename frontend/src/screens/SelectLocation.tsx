@@ -19,6 +19,7 @@ import MapView, { type Details, type Region } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 
+import { type HomeStackParamList } from '../navigation/HomeStack'
 import { type RootState } from '../redux/store'
 import { updateWaypoint } from '../redux/waypoints'
 import { MapsAPI } from '../services/maps'

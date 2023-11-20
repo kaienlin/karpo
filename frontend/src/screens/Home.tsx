@@ -1,15 +1,16 @@
 import { useRef } from 'react'
 import { FlatList, View } from 'react-native'
-import { useSelector, useDispatch } from 'react-redux'
-import { Text, Input, Icon, type IconProps, Button, useTheme } from '@ui-kitten/components'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import MapView from 'react-native-maps'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
-
 import { GOOGLE_MAPS_API_KEY } from '@env'
-import { addWaypoint, removeWaypoint } from '../redux/waypoints'
+import { type NativeStackScreenProps } from '@react-navigation/native-stack'
+import { Button, Icon, Input, Text, useTheme, type IconProps } from '@ui-kitten/components'
+import MapView from 'react-native-maps'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useDispatch, useSelector } from 'react-redux'
+
 import Route from '../components/MapViewRoute'
+import { type HomeStackParamList } from '../navigation/HomeStack'
 import { type RootState } from '../redux/store'
+import { addWaypoint, removeWaypoint } from '../redux/waypoints'
 
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
 

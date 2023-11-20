@@ -1,12 +1,8 @@
-import {
-  BottomNavigation,
-  BottomNavigationTab,
-  Icon,
-  type IconProps
-} from '@ui-kitten/components'
 import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs'
+import { BottomNavigation, BottomNavigationTab, Icon, type IconProps } from '@ui-kitten/components'
 
-import HomeScreen from '../screens/Home'
+import AccountStack from './AccountStack'
+import HomeStack from './HomeStack'
 
 const HomeIcon = (props: IconProps) => <Icon {...props} name="home-outline" />
 const ArchiveIcon = (props: IconProps) => <Icon {...props} name="archive-outline" />
@@ -14,11 +10,13 @@ const PersonIcon = (props: IconProps) => <Icon {...props} name="person-outline" 
 
 const Tab = createBottomTabNavigator()
 
-function BottomTabBar ({ navigation, state }: BottomTabBarProps) {
+function BottomTabBar({ navigation, state }: BottomTabBarProps) {
   return (
     <BottomNavigation
       selectedIndex={state.index}
-      onSelect={(index) => { navigation.navigate(state.routeNames[index]) }}
+      onSelect={(index) => {
+        navigation.navigate(state.routeNames[index])
+      }}
       style={{ paddingBottom: 25 }}
     >
       <BottomNavigationTab title="首頁" icon={HomeIcon} />
@@ -28,26 +26,23 @@ function BottomTabBar ({ navigation, state }: BottomTabBarProps) {
   )
 }
 
-export default function BottomTabNavigator () {
+export default function BottomTabNavigator() {
   return (
-    <Tab.Navigator
-      initialRouteName="HomeScreen"
-      tabBar={(props) => <BottomTabBar {...props} />}
-    >
+    <Tab.Navigator initialRouteName="HomeScreen" tabBar={(props) => <BottomTabBar {...props} />}>
       <Tab.Screen
-        name="HomeScreen"
-        component={HomeScreen}
+        name="HomeStack"
+        component={HomeStack}
         options={{ title: '主畫面', headerShown: false }}
       />
       <Tab.Screen
-        name="HistoryScreen"
-        component={HomeScreen}
-        options={{ title: '歷史' }}
+        name="HistoryStack"
+        component={HomeStack}
+        options={{ title: '歷史', headerShown: false }}
       />
       <Tab.Screen
-        name="AccountScreen"
-        component={HomeScreen}
-        options={{ title: '帳戶' }}
+        name="AccountStack"
+        component={AccountStack}
+        options={{ title: '帳戶', headerShown: false }}
       />
     </Tab.Navigator>
   )
