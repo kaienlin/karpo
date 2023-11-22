@@ -5,27 +5,25 @@ import HomeScreen from '../screens/Home'
 import SelectLocation from '../screens/SelectLocation'
 import SelectRide from '../screens/SelectRide'
 
-// const Stack = createNativeStackNavigator<HomeStackParamList>()
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<HomeStackParamList>()
 
 export default function HomeStack () {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* <Stack.Screen
+    <Stack.Navigator initialRouteName="BottomTab">
+      <Stack.Screen
         name="BottomTab"
         component={BottomTab}
-      />
-      <Stack.Screen
-        name="HomeScreen"
-        component={HomeScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="SelectLocationScreen"
         component={SelectLocation}
-      /> */}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen 
         name="SelectRideScreen"
         component={SelectRide}
+        options={{ title: '選擇共乘' }}
       />
     </Stack.Navigator>
   )

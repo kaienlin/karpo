@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { View } from 'react-native'
 import { useSelector, useDispatch } from 'react-redux'
-import { Input } from '@ui-kitten/components'
+import { Input, Button } from '@ui-kitten/components'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MapView from 'react-native-maps'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -50,6 +50,14 @@ export default function HomeScreen ({ navigation }: HomeScreenProps) {
               )
         )}
       </View>
+      <Button
+        style={{ 
+          borderRadius: 30,
+          marginVertical: 10,
+          marginHorizontal: 40,
+        }}
+        onPress={() => navigation.navigate('SelectRideScreen')}
+      >預    約</Button>
       <MapView
         ref={mapRef}
         style={{ flex: 1, width: '100%', height: '100%' }}

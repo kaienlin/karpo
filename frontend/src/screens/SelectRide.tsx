@@ -62,7 +62,7 @@ const query = {
 
 export default function SelectRide () {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <>
       <View>
         <View style={{ 
           flexDirection: 'row',
@@ -92,6 +92,6 @@ export default function SelectRide () {
         data={rideInfoList}
         renderItem={({item}) => <InfoCard {...item} />}
       />
-    </SafeAreaView>
+    </>
   )
 }
