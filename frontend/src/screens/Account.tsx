@@ -1,11 +1,10 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetModalProvider
 } from '@gorhom/bottom-sheet'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
   Avatar,
   Button,
@@ -17,10 +16,8 @@ import {
   useTheme
 } from '@ui-kitten/components'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useDispatch, useSelector } from 'react-redux'
 
-import { type AccountStackParamList } from '../navigation/AccountStack'
-import { type RootState } from '../redux/store'
+import { type AccountScreenProps } from '../types/screens'
 
 interface UserProfile {
   name: string
@@ -28,8 +25,6 @@ interface UserProfile {
   phone: string
   avatar: string
 }
-
-type AccountScreenProps = NativeStackScreenProps<AccountStackParamList, 'AccountScreen'>
 
 const items = [
   { title: '個人資料', icon: 'person', route: 'ProfileScreen' },

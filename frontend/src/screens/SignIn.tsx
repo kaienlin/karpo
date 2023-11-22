@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
   Button,
   Icon,
@@ -16,14 +15,12 @@ import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch } from 'react-redux'
 
-import { type AuthStackParamList } from '../navigation/AuthStack'
 import { signIn } from '../redux/auth'
 import { AuthAPI, type UserCredentials } from '../services/auth'
+import { type SignInScreenProps } from '../types/screens'
 
 const EmailIcon = (props: IconProps) => <Icon {...props} name="email-outline" />
 const LockIcon = (props: IconProps) => <Icon {...props} name="lock-outline" />
-
-type SignInScreenProps = NativeStackScreenProps<AuthStackParamList, 'SignInScreen'>
 
 export default function SignInScreen({ navigation }: SignInScreenProps) {
   const theme = useTheme()

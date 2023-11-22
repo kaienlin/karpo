@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { FlatList, TouchableOpacity, View } from 'react-native'
 import { GOOGLE_MAPS_API_KEY } from '@env'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
   Button,
   Icon,
@@ -17,16 +16,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Route from '../components/MapViewRoute'
-import { type DriverStackParamList } from '../navigation/DriverStack'
 import { type RootState } from '../redux/store'
 import { addWaypoint, clearWaypoints, removeWaypoint } from '../redux/waypoints'
+import { type PlanRideScreenProps } from '../types/screens'
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
 
-export default function PlanRideScreen({
-  navigation
-}: NativeStackScreenProps<DriverStackParamList, 'PlanRideScreen'>) {
+export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
   const theme = useTheme()
   const waypoints = useSelector((state: RootState) => state.waypoints)
   const dispatch = useDispatch()
@@ -148,7 +145,7 @@ export default function PlanRideScreen({
 
       <MapView
         ref={mapRef}
-        style={{ flex: 1, width: '100%', height: '100%' }}
+        style={{ flex: 1, width: '100%', height: 'auto' }}
         provider="google"
         showsMyLocationButton={true}
         showsUserLocation={true}
@@ -161,6 +158,17 @@ export default function PlanRideScreen({
           }}
         />
       </MapView>
+      <View style={{ position: 'absolute', bottom: '7%', width: '100%', paddingHorizontal: 20 }}>
+        <Button
+          onPress={() => {
+            navigation.navigate('RideDepartScreen')
+          }}
+          size="large"
+          style={{ borderRadius: 12 }}
+        >
+          完成
+        </Button>
+      </View>
     </SafeAreaView>
   )
 }

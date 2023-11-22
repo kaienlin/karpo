@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { ScrollView, TouchableOpacity, View } from 'react-native'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Card, Icon, Tab, TabBar, Text, useTheme } from '@ui-kitten/components'
 import { Image } from 'expo-image'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch } from 'react-redux'
 
-import { type HomeStackParamList } from '../navigation/HomeStack'
 import { restoreWaypoints } from '../redux/waypoints'
+import type { HomeScreenProps } from '../types/screens'
 
 interface SavedRide {
   label: string
@@ -148,9 +147,7 @@ function PassengerSubScreen() {
   return <></>
 }
 
-export default function HomeScreen({
-  navigation
-}: NativeStackScreenProps<HomeStackParamList, 'HomeScreen'>) {
+export default function HomeScreen({ navigation }: HomeScreenProps) {
   const dispatch = useDispatch()
   const [selectedIndex, setSelectedIndex] = useState(0)
 

@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { restoreToken } from '../redux/auth'
 import { type RootState } from '../redux/store'
 import AuthStack from './AuthStack'
-import BottomTab from './BottomTab'
+import MainStack from './MainStack'
 
 const CustomTheme = {
   ...DefaultTheme,
@@ -33,7 +33,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer theme={CustomTheme}>
-      {state.userToken === null ? <AuthStack /> : <BottomTab />}
+      {state.userToken === null ? <AuthStack /> : <MainStack />}
     </NavigationContainer>
   )
 }

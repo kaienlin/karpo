@@ -1,11 +1,8 @@
 import { Image, View } from 'react-native'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Button } from '@ui-kitten/components'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { type AuthStackParamList } from '../navigation/AuthStack'
-
-type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'WelcomeScreen'>
+import { type WelcomeScreenProps } from '../types/screens'
 
 export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   return (

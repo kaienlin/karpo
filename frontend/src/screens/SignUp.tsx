@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
   Button,
   Icon,
@@ -16,9 +15,9 @@ import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch } from 'react-redux'
 
-import { type AuthStackParamList } from '../navigation/AuthStack'
 import { signIn } from '../redux/auth'
 import { AuthAPI, type UserCredentials } from '../services/auth'
+import { type SignUpScreenProps } from '../types/screens'
 
 const EmailIcon = (props: IconProps) => <Icon {...props} name="email-outline" />
 const LockIcon = (props: IconProps) => <Icon {...props} name="lock-outline" />
@@ -27,9 +26,7 @@ interface SignUpForm extends UserCredentials {
   passwordConfirm: string
 }
 
-type SignUpcreenProps = NativeStackScreenProps<AuthStackParamList, 'SignUpScreen'>
-
-export default function SignUpScreen({ navigation }: SignUpcreenProps) {
+export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   const theme = useTheme()
   const dispatch = useDispatch()
 

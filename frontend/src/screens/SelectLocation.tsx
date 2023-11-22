@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import {
   Button,
   Divider,
@@ -19,10 +18,10 @@ import MapView, { type Details, type Region } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { type HomeStackParamList } from '../navigation/HomeStack'
 import { type RootState } from '../redux/store'
 import { updateWaypoint } from '../redux/waypoints'
 import { MapsAPI } from '../services/maps'
+import { type SelectLocationScreenProps } from '../types/screens'
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 const LocIcon = (props: IconProps) => <Icon {...props} name="pin-outline" />
@@ -50,8 +49,6 @@ function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
     />
   )
 }
-
-type SelectLocationScreenProps = NativeStackScreenProps<HomeStackParamList, 'SelectLocationScreen'>
 
 export default function SelectLocationScreen({ navigation, route }: SelectLocationScreenProps) {
   const { waypointIndex } = route.params

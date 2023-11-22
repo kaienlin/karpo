@@ -1,8 +1,14 @@
 import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { BottomNavigation, BottomNavigationTab, Icon, type IconProps } from '@ui-kitten/components'
 
-import AccountStack from './AccountStack'
-import HomeStack from './HomeStack'
+import AccountScreen from '../screens/Account'
+import HomeScreen from '../screens/Home'
+
+export type BottomTabParamList = {
+  HomeScreen: undefined
+  HistoryScreen: undefined
+  AccountScreen: undefined
+}
 
 const HomeIcon = (props: IconProps) => <Icon {...props} name="home-outline" />
 const ArchiveIcon = (props: IconProps) => <Icon {...props} name="archive-outline" />
@@ -30,18 +36,18 @@ export default function BottomTabNavigator() {
   return (
     <Tab.Navigator initialRouteName="HomeScreen" tabBar={(props) => <BottomTabBar {...props} />}>
       <Tab.Screen
-        name="HomeStack"
-        component={HomeStack}
+        name="HomeScreen"
+        component={HomeScreen}
         options={{ title: '主畫面', headerShown: false }}
       />
       <Tab.Screen
-        name="HistoryStack"
-        component={HomeStack}
+        name="HistoryScreen"
+        component={HomeScreen}
         options={{ title: '歷史', headerShown: false }}
       />
       <Tab.Screen
-        name="AccountStack"
-        component={AccountStack}
+        name="AccountScreen"
+        component={AccountScreen}
         options={{ title: '帳戶', headerShown: false }}
       />
     </Tab.Navigator>

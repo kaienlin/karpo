@@ -1,20 +1,20 @@
 import { useRef } from 'react'
-import MapView from 'react-native-maps'
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
+import { FlatList, TouchableOpacity, View } from 'react-native'
 import {
-  Text,
-  Divider,
-  useTheme,
-  Icon,
   Avatar,
   Button,
-  IconProps,
+  Divider,
+  Icon,
   StyleService,
-  useStyleSheet
+  Text,
+  useStyleSheet,
+  useTheme,
+  type IconProps
 } from '@ui-kitten/components'
-import { FlatList, TouchableOpacity, View } from 'react-native'
+import MapView from 'react-native-maps'
+
 import SwipeButton from '../components/SwipeButton'
-import { DriverStackParamList } from '../navigation/DriverStack'
+import { type RideDepartScreenProps } from '../types/screens'
 
 const fakePassengers = [
   {
@@ -100,9 +100,7 @@ function PassengerItem({ avatar, name, rating, numPassenger, onChat, onCall }: P
   )
 }
 
-type HomeScreenProps = NativeStackScreenProps<DriverStackParamList, 'RideDepartScreen'>
-
-export default function RideDepartScreen({ navigation }: HomeScreenProps) {
+export default function RideDepartScreen({ navigation }: RideDepartScreenProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
   const mapRef = useRef<MapView>(null)
