@@ -122,7 +122,7 @@ async def get_ride_joins(
 @router.put("/{ride_id}/joins/{join_id}/accept")
 async def put_ride_id_joins_join_id_accept(
     ride_id: uuid.UUID,
-    join_id: uuid.UUID
+    join_id: uuid.UUID,
 ) -> None:
     """Accept a join request specified by `join_id` and `ride_id`"""
     raise NotImplementedError("QQ")
@@ -134,13 +134,10 @@ async def put_ride_id_depart(ride_id: uuid.UUID) -> None:
     raise NotImplementedError("QQ")
 
 
-@router.put(
-    "/{ride_id}/status",
-    response_model=PutRideIdStatusResponse
-)
+@router.put("/{ride_id}/status", response_model=PutRideIdStatusResponse)
 async def put_ride_id_status(
     ride_id: uuid.UUID,
-    req: PutRideIdStatusRequest
+    req: PutRideIdStatusRequest,
 ) -> PutRideIdStatusResponse:
     """Update the next stopover specifed by `ride_id`."""
     raise NotImplementedError("QQ")
@@ -149,19 +146,13 @@ async def put_ride_id_status(
 @router.put("/{ride_id}/position")
 async def put_ride_id_position(
     ride_id: uuid.UUID,
-    req: PutRideIdPositionRequest
+    req: PutRideIdPositionRequest,
 ) -> None:
     """Update the driver's current position specified by `ride_id`."""
     raise NotImplementedError("QQ")
 
 
-@router.get(
-    "/{ride_id}/schedule",
-    response_model=GetRideIdScheduleResponse
-)
-async def get_ride_id_schedule(
-    ride_id: uuid.UUID
-) -> GetRideIdScheduleResponse:
+@router.get("/{ride_id}/schedule", response_model=GetRideIdScheduleResponse)
+async def get_ride_id_schedule(ride_id: uuid.UUID) -> GetRideIdScheduleResponse:
     """Get a list of stopovers and current position specified by `ride_id`."""
     raise NotImplementedError("QQ")
-

@@ -63,7 +63,7 @@ class PostRidesRequest(BaseModel):
 
 
 class PostRidesResponse(BaseModel):
-    status: str
+    ride_id: uuid.UUID
 
 
 class PostCommentsRequest(BaseModel):
