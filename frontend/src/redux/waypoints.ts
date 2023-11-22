@@ -1,24 +1,38 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-export const emptyWaypoint: Waypoint = { title: '', latitude: null, longitude: null }
+const emptyWaypoint: Waypoint = { title: '', latitude: null, longitude: null }
+
+const initialState: Waypoint[] = [emptyWaypoint, emptyWaypoint]
 
 export const waypointSlice = createSlice({
   name: 'waypoints',
-  initialState: [emptyWaypoint, emptyWaypoint],
+  initialState,
   reducers: {
     addWaypoint: (state) => {
       state.push(emptyWaypoint)
     },
     removeWaypoint: (state, action) => {
-      state.splice(action.payload.index, 1)
+      const { index } = action.payload
+      state.splice(index, 1)
     },
     updateWaypoint: (state, action) => {
-      state[action.payload.index] = action.payload.location
+      const { index, location } = action.payload
+      state[index] = location
+    },
+    clearWaypoints: () => {
+      return initialState
+    },
+    restoreWaypoints: (state, action) => {
+      const { origin, destination, waypoints } = action.payload
+      if (waypoints === undefined) {
+        return [origin, destination]
+      }
+      return [origin, ...waypoints, destination]
     }
   }
 })
 
-export const { addWaypoint, removeWaypoint, updateWaypoint } =
+export const { addWaypoint, removeWaypoint, updateWaypoint, clearWaypoints, restoreWaypoints } =
   waypointSlice.actions
 
 export default waypointSlice.reducer

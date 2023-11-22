@@ -1,0 +1,143 @@
+{
+  "components": {
+    "Card": {
+      "meta": {},
+      "appearances": {
+        "outline": {
+          "mapping": {
+            "borderRadius": 12,
+            "backgroundColor": "background-basic-color-2",
+            "state": {
+              "active": {
+                "backgroundColor": "background-basic-color-3"
+              }
+            }
+          },
+          "variantGroups": {}
+        }
+      }
+    },
+    "Tab": {
+      "meta": {
+        "scope": "all",
+        "parameters": {
+          "textFontFamily": {
+            "type": "string"
+          },
+          "textFontSize": {
+            "type": "number"
+          },
+          "textFontWeight": {
+            "type": "number"
+          },
+          "textMarginVertical": {
+            "type": "number"
+          },
+          "textColor": {
+            "type": "string"
+          },
+          "iconWidth": {
+            "type": "number"
+          },
+          "iconHeight": {
+            "type": "number"
+          },
+          "iconMarginVertical": {
+            "type": "number"
+          },
+          "iconTintColor": {
+            "type": "string"
+          }
+        },
+        "appearances": {
+          "default": {
+            "default": true
+          }
+        },
+        "variantGroups": {},
+        "states": {
+          "selected": {
+            "default": false,
+            "priority": 0,
+            "scope": "all"
+          },
+          "hover": {
+            "default": false,
+            "priority": 1,
+            "scope": "all"
+          },
+          "focused": {
+            "default": false,
+            "priority": 2,
+            "scope": "all"
+          }
+        }
+      },
+      "appearances": {
+        "default": {
+          "mapping": {
+            "textMarginVertical": 3,
+            "textFontSize": 24,
+            "textFontWeight": "bold",
+            "textFontFamily": "text-font-family",
+            "textColor": "text-hint-color",
+            "iconWidth": 24,
+            "iconHeight": 24,
+            "iconMarginVertical": 3,
+            "iconTintColor": "text-hint-color",
+            "state": {
+              "hover": {
+                "textColor": "text-primary-hover-color",
+                "iconTintColor": "text-primary-hover-color"
+              },
+              "selected": {
+                "textColor": "color-basic-700",
+                "iconTintColor": "text-primary-color"
+              }
+            }
+          }
+        }
+      }
+    },
+    "TabBar": {
+      "meta": {
+        "scope": "all",
+        "parameters": {
+          "paddingVertical": {
+            "type": "number"
+          },
+          "backgroundColor": {
+            "type": "string"
+          },
+          "indicatorHeight": {
+            "type": "number"
+          },
+          "indicatorBorderRadius": {
+            "type": "number"
+          },
+          "indicatorBackgroundColor": {
+            "type": "string"
+          }
+        },
+        "appearances": {
+          "default": {
+            "default": true
+          }
+        },
+        "variantGroups": {},
+        "states": {}
+      },
+      "appearances": {
+        "default": {
+          "mapping": {
+            "paddingVertical": 5,
+            "backgroundColor": "background-basic-color-1",
+            "indicatorHeight": 3,
+            "indicatorBorderRadius": 2,
+            "indicatorBackgroundColor": "color-basic-700"
+          }
+        }
+      }
+    }
+  }
+}

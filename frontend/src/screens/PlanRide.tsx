@@ -1,22 +1,32 @@
 import { useRef } from 'react'
-import { FlatList, View } from 'react-native'
+import { FlatList, TouchableOpacity, View } from 'react-native'
 import { GOOGLE_MAPS_API_KEY } from '@env'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
-import { Button, Icon, Input, Text, useTheme, type IconProps } from '@ui-kitten/components'
+import {
+  Button,
+  Icon,
+  Input,
+  Text,
+  TopNavigation,
+  TopNavigationAction,
+  useTheme,
+  type IconProps
+} from '@ui-kitten/components'
 import MapView from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Route from '../components/MapViewRoute'
-import { type HomeStackParamList } from '../navigation/HomeStack'
+import { type DriverStackParamList } from '../navigation/DriverStack'
 import { type RootState } from '../redux/store'
-import { addWaypoint, removeWaypoint } from '../redux/waypoints'
+import { addWaypoint, clearWaypoints, removeWaypoint } from '../redux/waypoints'
 
+const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
 
-type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeScreen'>
-
-export default function HomeScreen({ navigation }: HomeScreenProps) {
+export default function PlanRideScreen({
+  navigation
+}: NativeStackScreenProps<DriverStackParamList, 'PlanRideScreen'>) {
   const theme = useTheme()
   const waypoints = useSelector((state: RootState) => state.waypoints)
   const dispatch = useDispatch()
@@ -53,7 +63,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       <View style={{ flex: 1, paddingLeft: 10, paddingRight: 5 }}>
         <Input
           size="small"
-          placeholder={index === 0 ? '上車地點' : '要去哪裡？'}
+          placeholder={
+            index === 0 ? '上車地點' : waypoints.length === 2 ? '下車地點' : '新增停靠點'
+          }
           value={item.title}
           onFocus={() => {
             navigation.navigate('SelectLocationScreen', {
@@ -81,12 +93,25 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ paddingLeft: 25, paddingRight: 10, paddingBottom: 25 }}>
+      <TopNavigation
+        alignment="center"
+        title="規劃您的行程"
+        accessoryLeft={() => (
+          <TopNavigationAction
+            icon={BackIcon}
+            onPress={() => {
+              dispatch(clearWaypoints())
+              navigation.goBack()
+            }}
+          />
+        )}
+      />
+      <View style={{ paddingLeft: 25, paddingRight: 10, paddingBottom: 15 }}>
         <FlatList
           data={waypoints}
           scrollEnabled={false}
           renderItem={renderInputItem}
-          keyExtractor={(item, index) => `${index}-${item.title}`}
+          keyExtractor={(item, index) => index.toString()}
           ItemSeparatorComponent={() => (
             <View
               style={{
@@ -98,48 +123,27 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               }}
             />
           )}
-          ListFooterComponent={() =>
-            waypoints.length <= 5 && (
-              <>
-                <View
-                  style={{
-                    left: 7,
-                    width: 1.25,
-                    height: 15,
-                    marginVertical: -5,
-                    backgroundColor: '#D8D8D8'
-                  }}
-                />
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View
-                    style={{
-                      width: 15,
-                      height: 15,
-                      justifyContent: 'center',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Icon style={{ width: 18, height: 18 }} name="plus" fill="#484848" />
-                  </View>
-
-                  <View style={{ flex: 1, paddingLeft: 10, paddingRight: 5 }}>
-                    <Input
-                      size="small"
-                      placeholder={'新增停靠點'}
-                      onFocus={() => {
-                        dispatch(addWaypoint())
-                        navigation.navigate('SelectLocationScreen', {
-                          waypointIndex: waypoints.length
-                        })
-                      }}
-                    />
-                  </View>
-                  <View style={{ width: 35 }}></View>
-                </View>
-              </>
-            )
-          }
         />
+        {waypoints.length < 5 && (
+          <TouchableOpacity
+            onPress={() => {
+              dispatch(addWaypoint())
+            }}
+            style={{
+              flexDirection: 'row',
+              gap: 3,
+              justifyContent: 'flex-end',
+              paddingTop: 10,
+              paddingRight: 12,
+              alignItems: 'center'
+            }}
+          >
+            <Text category="label" style={{ fontSize: 14 }}>
+              新增停靠點
+            </Text>
+            <Icon style={{ width: 15, height: 15 }} name="plus" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <MapView
