@@ -1981,6 +1981,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@kolking/react-native-rating@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@kolking/react-native-rating/-/react-native-rating-1.1.2.tgz#215fd0e6043bc4ee5d1a4e7948dd3ba283ce93bf"
+  integrity sha512-TfqVz539hIoUBWnoAJ02tOh/Lw+swxlVVyX18l+vEqRN/GmtLGybfFFK4mrItNJQ2En5Oia8qMf2glufn7OqBA==
+
 "@mapbox/polyline@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@mapbox/polyline/-/polyline-1.2.1.tgz#1eecce5e8c0d9e6dfc718b225e8e9f03591ea636"
