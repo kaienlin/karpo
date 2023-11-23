@@ -25,22 +25,25 @@ services:
       KARPO_BACKEND_RELOAD: "True"
       KARPO_BACKEND_HOST: 0.0.0.0
       KARPO_BACKEND_DB_HOST: karpo_backend-db
-      KARPO_BACKEND_DB_PORT: 5432
+      KARPO_BACKEND_DB_PORT: 26257
       KARPO_BACKEND_DB_USER: karpo_backend
       KARPO_BACKEND_DB_PASS: karpo_backend
       KARPO_BACKEND_DB_BASE: karpo_backend
       KARPO_BACKEND_REDIS_HOST: karpo_backend-redis
 
   db:
-    image: postgres:13.8-bullseye
+    image: cockroachdb/cockroach:v23.1.12
     hostname: karpo_backend-db
     environment:
-      POSTGRES_PASSWORD: "karpo_backend"
-      POSTGRES_USER: "karpo_backend"
-      POSTGRES_DB: "karpo_backend"
+      COCKROACH_DATABASE: "karpo_backend"
+      COCKROACH_USER: "karpo_backend"
     restart: always
+    ports:
+      # Exposes application port.
+    - "8080:8080"
+    command: start-single-node --insecure
     healthcheck:
-      test: pg_isready -U karpo_backend
+      test: ./cockroach node status --insecure
       interval: 2s
       timeout: 3s
       retries: 40
@@ -51,7 +54,7 @@ services:
     command: alembic upgrade head
     environment:
       KARPO_BACKEND_DB_HOST: karpo_backend-db
-      KARPO_BACKEND_DB_PORT: 5432
+      KARPO_BACKEND_DB_PORT: 26257
       KARPO_BACKEND_DB_USER: karpo_backend
       KARPO_BACKEND_DB_PASS: karpo_backend
       KARPO_BACKEND_DB_BASE: karpo_backend

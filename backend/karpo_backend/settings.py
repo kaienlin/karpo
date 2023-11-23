@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     users_secret: str = os.getenv("USERS_SECRET", "")
     # Variables for the database
     db_host: str = "localhost"
-    db_port: int = 5432
+    db_port: int = 26257
     db_user: str = "karpo_backend"
     db_pass: str = "karpo_backend"
     db_base: str = "karpo_backend"
@@ -72,7 +72,7 @@ class Settings(BaseSettings):
         :return: database URL.
         """
         return URL.build(
-            scheme="postgresql+asyncpg",
+            scheme="cockroachdb+asyncpg",
             host=self.db_host,
             port=self.db_port,
             user=self.db_user,
