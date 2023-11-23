@@ -12,6 +12,8 @@ from fastapi_users.authentication import (
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from pydantic import Base64Str, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql.sqltypes import String
 from typing_extensions import Annotated
 
 from karpo_backend.db.base import Base
@@ -21,6 +23,12 @@ from karpo_backend.settings import settings
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
     """Represents a user entity."""
+
+    name: Mapped[str] = mapped_column(String(length=200))
+    phone_number: Mapped[Optional[str]] = mapped_column(String(length=20))
+    avg_rating: Mapped[Optional[float]]
+    rating_count: Mapped[int]
+    avatar: Mapped[Optional[bytes]]
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
@@ -39,9 +47,6 @@ class UserCreate(schemas.BaseUserCreate):
 
     name: str
     phone_number: Optional[str] = None
-    rating: Optional[
-        Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
-    ] = None
     avatar: Optional[Base64Str] = None
 
 

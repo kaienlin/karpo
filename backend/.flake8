@@ -50,6 +50,8 @@ ignore =
   WPS214,
   ; Found too long ``try`` body
   WPS229,
+  ; Found magic number
+  WPS432,
   ; Found unpythonic getter or setter
   WPS615,
   ; Found a line that starts with a dot
