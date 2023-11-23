@@ -1,7 +1,7 @@
 import { FlatList, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Icon, Text } from '@ui-kitten/components'
+import { Icon, Text, Button } from '@ui-kitten/components'
 import InfoCard from '../components/InfoCard'
+import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 
 const rideInfoList = [
   {
@@ -60,7 +60,9 @@ const query = {
   date: '2023/11/21'
 }
 
-export default function SelectRide () {
+type SelectRideScreenProps = NativeStackScreenProps<HomeStackParamList, 'SelectRideScreen'>
+
+export default function SelectRide ({ navigation }: SelectRideScreenProps) {
   return (
     <>
       <View>
@@ -90,7 +92,16 @@ export default function SelectRide () {
       </View>
       <FlatList 
         data={rideInfoList}
-        renderItem={({item}) => <InfoCard {...item} />}
+        renderItem={({item}) => {
+          return (
+            <InfoCard 
+              {...item}
+              onPress={() => {
+                navigation.navigate('RideInfoScreen', {...item})
+              }}
+            />
+          )
+        }}
       />
     </>
   )

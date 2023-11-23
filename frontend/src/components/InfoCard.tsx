@@ -1,4 +1,9 @@
-import { View, StyleSheet } from 'react-native'
+import { 
+  View, 
+  StyleSheet, 
+  TouchableOpacity, 
+  GestureResponderEvent 
+} from 'react-native'
 import { 
   Button, 
   Card,
@@ -20,6 +25,7 @@ interface FooterProps {
 interface CardProps extends HeaderProps, FooterProps {
   driverOrigin: string
   driverDestination: string
+  onPress: (event: GestureResponderEvent) => void
 }
 
 const styles = StyleSheet.create({
@@ -50,9 +56,11 @@ export default function InfoCard ({
   driverDestination,
   origin2route,
   destination2route,
+  onPress
 }: CardProps) {
   return (
     <Card
+      onPress={onPress}
       header={(props) => 
         <Header
           {...props}

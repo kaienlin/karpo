@@ -4,6 +4,7 @@ import BottomTab from './BottomTab'
 import HomeScreen from '../screens/Home'
 import SelectLocation from '../screens/SelectLocation'
 import SelectRide from '../screens/SelectRide'
+import RideInfo from '../screens/RideInfo'
 
 const Stack = createNativeStackNavigator<HomeStackParamList>()
 
@@ -24,6 +25,11 @@ export default function HomeStack () {
         name="SelectRideScreen"
         component={SelectRide}
         options={{ title: '選擇共乘' }}
+      />
+      <Stack.Screen 
+        name="RideInfoScreen"
+        component={RideInfo}
+        options={{ title: '共乘資訊' }}
       />
     </Stack.Navigator>
   )
