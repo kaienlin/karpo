@@ -26,8 +26,8 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
     name: Mapped[str] = mapped_column(String(length=200))
     phone_number: Mapped[Optional[str]] = mapped_column(String(length=20))
-    avg_rating: Mapped[Optional[float]]
-    rating_count: Mapped[int]
+    avg_rating: Mapped[Optional[float]] = mapped_column(insert_default=0)
+    rating_count: Mapped[int] = mapped_column(insert_default=0)
     avatar: Mapped[Optional[bytes]]
 
 
