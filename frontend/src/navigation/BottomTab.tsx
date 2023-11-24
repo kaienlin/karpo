@@ -3,6 +3,8 @@ import { BottomNavigation, BottomNavigationTab, Icon, type IconProps } from '@ui
 
 import AccountScreen from '../screens/Account'
 import HomeScreen from '../screens/Home'
+import HistoryScreen from '../screens/History'
+import AccountScreen from '../screens/Account'
 
 export type BottomTabParamList = {
   HomeScreen: undefined
@@ -14,7 +16,7 @@ const HomeIcon = (props: IconProps) => <Icon {...props} name="home-outline" />
 const ArchiveIcon = (props: IconProps) => <Icon {...props} name="archive-outline" />
 const PersonIcon = (props: IconProps) => <Icon {...props} name="person-outline" />
 
-const Tab = createBottomTabNavigator()
+const Tab = createBottomTabNavigator<BottomTabParamList>()
 
 function BottomTabBar({ navigation, state }: BottomTabBarProps) {
   return (
@@ -42,8 +44,8 @@ export default function BottomTabNavigator() {
       />
       <Tab.Screen
         name="HistoryScreen"
-        component={HomeScreen}
-        options={{ title: '歷史', headerShown: false }}
+        component={HistoryScreen}
+        options={{ title: '歷史' }}
       />
       <Tab.Screen
         name="AccountScreen"
