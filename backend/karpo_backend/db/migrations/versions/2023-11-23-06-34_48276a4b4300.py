@@ -1,3 +1,4 @@
+# type: ignore
 """empty message
 
 Revision ID: 48276a4b4300
