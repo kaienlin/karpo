@@ -6,7 +6,6 @@ import {
   BottomSheetModalProvider
 } from '@gorhom/bottom-sheet'
 import { decode as decodePolyline } from '@mapbox/polyline'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import {
   Button,
   Icon,
@@ -22,6 +21,8 @@ import MapView, { Polyline } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 
+import Counter from '../components/Counter'
+import DateTimePicker from '../components/DateTimePicker'
 import { type RootState } from '../redux/store'
 import { addWaypoint, clearWaypoints, removeWaypoint } from '../redux/waypoints'
 import { MapsAPI } from '../services/maps'
@@ -40,84 +41,6 @@ const parseDatetime = (date: Date) => {
   const timeStr = date.toLocaleTimeString('zh-TW', { hour: 'numeric', minute: 'numeric' })
 
   return `${dateStr} ${timeStr}`
-}
-
-function Counter({
-  value,
-  onValueChange,
-  minValue = 0,
-  maxValue = 5
-}: {
-  value: number
-  onValueChange: (value: number) => void
-  minValue?: number
-  maxValue?: number
-}) {
-  const theme = useTheme()
-
-  const decrease = () => {
-    if (value > minValue) {
-      onValueChange((prev) => prev - 1)
-    }
-  }
-  const increase = () => {
-    if (value < maxValue) {
-      onValueChange((prev) => prev + 1)
-    }
-  }
-
-  const decreaseDisabled = value <= minValue
-  const increaseDisabled = value >= maxValue
-
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'center'
-      }}
-    >
-      <TouchableOpacity onPress={decrease} disabled={decreaseDisabled} activeOpacity={0.5}>
-        <Icon
-          style={{ width: 40, height: 40 }}
-          name="minus-circle-outline"
-          fill={decreaseDisabled ? theme['color-basic-disabled'] : theme['color-basic-700']}
-        />
-      </TouchableOpacity>
-      <Text style={{ width: 50, fontSize: 30, fontWeight: '500', textAlign: 'center' }}>
-        {value}
-      </Text>
-
-      <TouchableOpacity onPress={increase} disabled={increaseDisabled} activeOpacity={0.5}>
-        <Icon
-          style={{ width: 40, height: 40 }}
-          name="plus-circle-outline"
-          fill={increaseDisabled ? theme['color-basic-disabled'] : theme['color-basic-700']}
-        />
-      </TouchableOpacity>
-    </View>
-  )
-}
-
-function TimePicker({ date, setDate }: { date: Date; setDate: (date: Date) => void }) {
-  const onChange = (event, selectedDate) => {
-    setDate(selectedDate)
-  }
-  // TODO: validate expired date (and set to nears valid date)
-  // TODO: add support for Android
-
-  return (
-    <View style={{ flex: 1 }}>
-      <DateTimePicker
-        value={date}
-        mode={'datetime'}
-        onChange={onChange}
-        display="spinner"
-        minuteInterval={5}
-        locale="zh-TW"
-      />
-    </View>
-  )
 }
 
 interface RidePlan {
@@ -301,7 +224,7 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
                       }}
                     >
                       <Text category="h5">選擇出發時間</Text>
-                      <TimePicker date={tempDepartTime} setDate={setTempDepartTime} />
+                      <DateTimePicker date={tempDepartTime} setDate={setTempDepartTime} />
                       <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
                         <Button
                           size="giant"
