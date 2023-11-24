@@ -93,6 +93,70 @@ const initMapsAPI = (apiKey: string) => ({
       console.log(error)
       return []
     }
+  },
+  getRoute: async (coordinates: Waypoint[]): Promise<Partial<{ polyline: string }>> => {
+    const [origin, ...intermediates] = coordinates
+    const destination = intermediates.pop()
+
+    if (origin.latitude === null || destination?.latitude === null) {
+      return null
+    }
+    try {
+      const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask':
+            'routes.duration,routes.distanceMeters,routes.legs,routes.polyline,routes.viewport'
+        },
+        body: JSON.stringify({
+          travelMode: 'DRIVE',
+          routingPreference: 'TRAFFIC_AWARE',
+          computeAlternativeRoutes: false,
+          languageCode: 'zh-TW',
+          origin: {
+            location: {
+              latLng: {
+                latitude: origin.latitude,
+                longitude: origin.longitude
+              }
+            }
+          },
+          destination: {
+            location: {
+              latLng: {
+                latitude: destination?.latitude,
+                longitude: destination?.longitude
+              }
+            }
+          },
+          intermediates: [
+            intermediates.map((waypoint) => ({
+              location: {
+                latLng: {
+                  latitude: waypoint.latitude,
+                  longitude: waypoint.longitude
+                }
+              }
+            }))
+          ]
+        })
+      })
+
+      const {
+        routes: [
+          {
+            polyline: { encodedPolyline }
+          }
+        ]
+      } = await response.json()
+
+      return { polyline: encodedPolyline }
+    } catch (error) {
+      console.error(error)
+      return null
+    }
   }
 })
 

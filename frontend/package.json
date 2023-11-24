@@ -13,6 +13,7 @@
     "@eva-design/eva": "^2.2.0",
     "@gorhom/bottom-sheet": "^4",
     "@mapbox/polyline": "^1.2.1",
+    "@react-native-community/datetimepicker": "7.2.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
