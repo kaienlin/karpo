@@ -27,6 +27,7 @@ router = APIRouter()
 @router.post(
     "/{ride_id}/joins",
     responses={404: {"description": "nonexistent ride_id or wrong permissions"}},
+    tags=["passenger"],
 )
 async def post_ride_id_joins(
     req: PostRideIdJoinsRequest,
@@ -40,6 +41,7 @@ async def post_ride_id_joins(
     responses={
         404: {"description": "nonexistent ride_id,join_id or wrong permissions"},
     },
+    tags=["passenger"],
 )
 async def get_ride_id_join_id_status(
     ride_id: uuid.UUID,
@@ -52,13 +54,18 @@ async def get_ride_id_join_id_status(
 @router.get(
     "/{ride_id}/status",
     responses={404: {"description": "nonexistent ride_id or wrong permissions"}},
+    tags=["passenger"],
 )
 async def get_ride_id_status(ride_id: uuid.UUID) -> GetRideIdStatusResponse:
     """Get the dynamic status (location, phase) of a ride."""
     raise NotImplementedError("QQ")
 
 
-@router.get("/{ride_id}/messages", response_model=GetRideMessagesResponse)
+@router.get(
+    "/{ride_id}/messages",
+    response_model=GetRideMessagesResponse,
+    tags=["chat"],
+)
 async def get_chatroom_messages(
     ride_id: uuid.UUID,
     from_time: datetime.datetime,
@@ -71,7 +78,7 @@ async def get_chatroom_messages(
     raise NotImplementedError("QQ")
 
 
-@router.post("/{ride_id}/messages")
+@router.post("/{ride_id}/messages", tags=["chat"])
 async def post_chatroom_messages(
     ride_id: uuid.UUID,
     req: PostRideMessagesRequest,
@@ -80,7 +87,7 @@ async def post_chatroom_messages(
     raise NotImplementedError("QQ")
 
 
-@router.post("/", response_model=PostRidesResponse)
+@router.post("/", response_model=PostRidesResponse, tags=["driver"])
 async def post_rides(
     req: PostRidesRequest,
 ) -> PostRidesResponse:
@@ -88,7 +95,7 @@ async def post_rides(
     raise NotImplementedError("QQ")
 
 
-@router.post("/{ride_id}/comments")
+@router.post("/{ride_id}/comments", tags=["driver", "passenger"])
 async def post_comments(
     ride_id: uuid.UUID,
     req: PostCommentsRequest,
@@ -97,7 +104,7 @@ async def post_comments(
     raise NotImplementedError("QQ")
 
 
-@router.get("/saved_rides", response_model=GetRideSavedRidesResponse)
+@router.get("/saved_rides", response_model=GetRideSavedRidesResponse, tags=["driver"])
 async def get_saved_rides(
     driver_id: uuid.UUID,
 ) -> GetRideSavedRidesResponse:
@@ -108,7 +115,7 @@ async def get_saved_rides(
     raise NotImplementedError("QQ")
 
 
-@router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse)
+@router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse, tags=["driver"])
 async def get_ride_joins(
     ride_id: uuid.UUID,
 ) -> GetRideJoinsResponse:
@@ -119,7 +126,7 @@ async def get_ride_joins(
     raise NotImplementedError("QQ")
 
 
-@router.put("/{ride_id}/joins/{join_id}/accept")
+@router.put("/{ride_id}/joins/{join_id}/accept", tags=["driver"])
 async def put_ride_id_joins_join_id_accept(
     ride_id: uuid.UUID,
     join_id: uuid.UUID,
@@ -128,13 +135,17 @@ async def put_ride_id_joins_join_id_accept(
     raise NotImplementedError("QQ")
 
 
-@router.put("/{ride_id}/depart")
+@router.put("/{ride_id}/depart", tags=["driver"])
 async def put_ride_id_depart(ride_id: uuid.UUID) -> None:
     """Update the ride status to departure"""
     raise NotImplementedError("QQ")
 
 
-@router.put("/{ride_id}/status", response_model=PutRideIdStatusResponse)
+@router.put(
+    "/{ride_id}/status",
+    response_model=PutRideIdStatusResponse,
+    tags=["driver"],
+)
 async def put_ride_id_status(
     ride_id: uuid.UUID,
     req: PutRideIdStatusRequest,
@@ -143,7 +154,7 @@ async def put_ride_id_status(
     raise NotImplementedError("QQ")
 
 
-@router.put("/{ride_id}/position")
+@router.put("/{ride_id}/position", tags=["driver"])
 async def put_ride_id_position(
     ride_id: uuid.UUID,
     req: PutRideIdPositionRequest,
@@ -152,7 +163,11 @@ async def put_ride_id_position(
     raise NotImplementedError("QQ")
 
 
-@router.get("/{ride_id}/schedule", response_model=GetRideIdScheduleResponse)
+@router.get(
+    "/{ride_id}/schedule",
+    response_model=GetRideIdScheduleResponse,
+    tags=["driver", "passenger"],
+)
 async def get_ride_id_schedule(ride_id: uuid.UUID) -> GetRideIdScheduleResponse:
     """Get a list of stopovers and current position specified by `ride_id`."""
     raise NotImplementedError("QQ")

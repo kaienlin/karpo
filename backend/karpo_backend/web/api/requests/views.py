@@ -12,7 +12,7 @@ from karpo_backend.web.api.requests.schema import (
 router = APIRouter()
 
 
-@router.post("/", response_model=PostRequestsResponse)
+@router.post("/", response_model=PostRequestsResponse, tags=["passenger"])
 async def post_requests(
     req: PostRequestsRequest,
     limit: int = 10,
@@ -38,7 +38,7 @@ async def post_requests(
     raise NotImplementedError("QQ")
 
 
-@router.get("/{request_id}", response_model=GetRequestIdResponse)
+@router.get("/{request_id}", response_model=GetRequestIdResponse, tags=["passenger"])
 async def get_request_id() -> GetRequestIdResponse:
     """
     Get the information of the request specified by `request_id`.
@@ -53,6 +53,7 @@ async def get_request_id() -> GetRequestIdResponse:
     "/{request_id}/matches",
     response_model=GetRequestIdMatchesResponse,
     responses={404: {"description": "Not Found"}},
+    tags=["passenger"],
 )
 async def get_request_id_matches(
     request_id: uuid.UUID,
