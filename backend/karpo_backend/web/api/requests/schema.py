@@ -18,7 +18,7 @@ class MatchDTO(BaseModel):
     get_off_location: LocationDTO
     distance_to_get_on_location: NonNegativeFloat
     distance_to_get_off_location: NonNegativeFloat
-    driver_source: LocationDTO
+    driver_origin: LocationDTO
     driver_destination: LocationDTO
     num_available_seat: PositiveInt
     other_passengers: List[uuid.UUID]
@@ -31,8 +31,8 @@ class MatchDTO(BaseModel):
 
 class PostRequestsRequest(BaseModel):
     time: datetime.datetime
-    source: LocationDTO
-    source_description: Optional[str] = None
+    origin: LocationDTO
+    origin_description: Optional[str] = None
     destination: LocationDTO
     destination_description: Optional[str] = None
     num_people: PositiveInt

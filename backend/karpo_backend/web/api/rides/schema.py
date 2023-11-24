@@ -32,7 +32,7 @@ class ChatRecordDTO(BaseModel):
 
 class RideDTO(BaseModel):
     time: datetime.datetime
-    source: LocationDTO
+    origin: LocationDTO
     destination: LocationDTO
     num_people: int
     route: RouteDTO
