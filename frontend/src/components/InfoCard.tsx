@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 import { 
   View, 
   StyleSheet, 
   TouchableOpacity, 
   GestureResponderEvent 
 } from 'react-native'
+=======
+import { View, StyleSheet } from 'react-native'
+>>>>>>> feature/frontend-driver
 import { 
   Button, 
   Card,
@@ -25,7 +29,10 @@ interface FooterProps {
 interface CardProps extends HeaderProps, FooterProps {
   driverOrigin: string
   driverDestination: string
+<<<<<<< HEAD
   onPress: (event: GestureResponderEvent) => void
+=======
+>>>>>>> feature/frontend-driver
 }
 
 const styles = StyleSheet.create({
@@ -56,11 +63,17 @@ export default function InfoCard ({
   driverDestination,
   origin2route,
   destination2route,
+<<<<<<< HEAD
   onPress
 }: CardProps) {
   return (
     <Card
       onPress={onPress}
+=======
+}: CardProps) {
+  return (
+    <Card
+>>>>>>> feature/frontend-driver
       header={(props) => 
         <Header
           {...props}

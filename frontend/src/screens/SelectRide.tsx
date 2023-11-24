@@ -1,7 +1,9 @@
 import { FlatList, View } from 'react-native'
-import { Icon, Text, Button } from '@ui-kitten/components'
-import InfoCard from '../components/InfoCard'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
+import { Icon, Text } from '@ui-kitten/components'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
+import InfoCard from '../components/InfoCard'
 
 const rideInfoList = [
   {
@@ -14,7 +16,7 @@ const rideInfoList = [
     driverOrigin: '台積電 12 廠',
     driverDestination: '竹北市光明六路 16 號',
     origin2route: 0.3,
-    destination2route: 0.7,
+    destination2route: 0.7
   },
   {
     departTime: '10:30',
@@ -26,7 +28,7 @@ const rideInfoList = [
     driverOrigin: '園區二路 57 號',
     driverDestination: '竹北市光明六路 116 號',
     origin2route: 0.3,
-    destination2route: 0.7,
+    destination2route: 0.7
   },
   {
     departTime: '10:44',
@@ -38,7 +40,7 @@ const rideInfoList = [
     driverOrigin: '實驗中學',
     driverDestination: '博愛國小',
     origin2route: 0.3,
-    destination2route: 0.7,
+    destination2route: 0.7
   },
   {
     departTime: '10:44',
@@ -50,8 +52,8 @@ const rideInfoList = [
     driverOrigin: '實驗中學',
     driverDestination: '博愛國小',
     origin2route: 0.3,
-    destination2route: 0.7,
-  },
+    destination2route: 0.7
+  }
 ]
 
 const query = {
@@ -62,42 +64,43 @@ const query = {
 
 type SelectRideScreenProps = NativeStackScreenProps<HomeStackParamList, 'SelectRideScreen'>
 
-export default function SelectRide ({ navigation }: SelectRideScreenProps) {
+export default function SelectRide({ navigation }: SelectRideScreenProps) {
   return (
     <>
       <View>
-        <View style={{ 
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignContent: 'center', 
-          marginHorizontal: 20,
-          marginTop: 20 
-        }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignContent: 'center',
+            marginHorizontal: 20,
+            marginTop: 20
+          }}
+        >
           <Text style={{ fontSize: 22 }}>{query.origin}</Text>
-          <Icon 
-            name='arrow-forward-outline' 
-            style={{ width: 42, height: 30 }}
-          />
+          <Icon name="arrow-forward-outline" style={{ width: 42, height: 30 }} />
           <Text style={{ fontSize: 22 }}>{query.destination}</Text>
         </View>
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignContent: 'center',
-          marginHorizontal: 20,
-          marginVertical: 5
-        }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignContent: 'center',
+            marginHorizontal: 20,
+            marginVertical: 5
+          }}
+        >
           <Text>{query.date}</Text>
         </View>
       </View>
-      <FlatList 
+      <FlatList
         data={rideInfoList}
-        renderItem={({item}) => {
+        renderItem={({ item }) => {
           return (
-            <InfoCard 
+            <InfoCard
               {...item}
               onPress={() => {
-                navigation.navigate('RideInfoScreen', {...item})
+                navigation.navigate('RideInfoScreen', { ...item })
               }}
             />
           )
