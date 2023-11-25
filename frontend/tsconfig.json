@@ -3,6 +3,10 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "types": ["google.maps"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*", "*"]
+    }
   }
 }
