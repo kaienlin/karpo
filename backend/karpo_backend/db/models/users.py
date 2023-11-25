@@ -7,10 +7,11 @@ from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, schemas
 from fastapi_users.authentication import (
     AuthenticationBackend,
     CookieTransport,
-    JWTStrategy,
+    RedisStrategy,
 )
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from pydantic import Base64Str, Field
+from redis import asyncio as redis_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import String
@@ -92,20 +93,24 @@ async def get_user_manager(
     yield UserManager(user_db)
 
 
-def get_jwt_strategy() -> JWTStrategy:
+def get_redis_strategy() -> RedisStrategy:
     """
-    Return a JWTStrategy in order to instantiate it dynamically.
+    Return a RedisStrategy in order to instantiate it dynamically.
 
-    :returns: instance of JWTStrategy with provided settings.
+    :returns: instance of RedisStrategy with provided settings.
     """
-    return JWTStrategy(secret=settings.users_secret, lifetime_seconds=None)
+    redis_client = redis_asyncio.from_url(
+        str(settings.redis_url),
+        decode_responses=True,
+    )
+    return RedisStrategy(redis_client, lifetime_seconds=86400)
 
 
 cookie_transport = CookieTransport()
 auth_cookie = AuthenticationBackend(
     name="cookie",
     transport=cookie_transport,
-    get_strategy=get_jwt_strategy,
+    get_strategy=get_redis_strategy,
 )
 
 backends = [
