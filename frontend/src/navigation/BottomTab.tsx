@@ -1,10 +1,9 @@
 import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { BottomNavigation, BottomNavigationTab, Icon, type IconProps } from '@ui-kitten/components'
 
-import AccountScreen from '../screens/Account'
-import HomeScreen from '../screens/Home'
-import HistoryScreen from '../screens/History'
-import AccountScreen from '../screens/Account'
+import AccountScreen from '~/screens/Account'
+import HistoryScreen from '~/screens/History'
+import HomeScreen from '~/screens/Home'
 
 export type BottomTabParamList = {
   HomeScreen: undefined
@@ -42,11 +41,7 @@ export default function BottomTabNavigator() {
         component={HomeScreen}
         options={{ title: '主畫面', headerShown: false }}
       />
-      <Tab.Screen
-        name="HistoryScreen"
-        component={HistoryScreen}
-        options={{ title: '歷史' }}
-      />
+      <Tab.Screen name="HistoryScreen" component={HistoryScreen} options={{ title: '歷史' }} />
       <Tab.Screen
         name="AccountScreen"
         component={AccountScreen}
