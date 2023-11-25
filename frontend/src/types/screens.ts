@@ -27,16 +27,20 @@ export type AccountScreenProps = CompositeScreenProps<
 >
 
 // Driver stack
-export type PlanRideScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<DriverStackParamList, 'PlanRideScreen'>,
+export type DriverPlanRideScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<DriverStackParamList, 'DriverPlanRideScreen'>,
   NativeStackScreenProps<MainStackParamList>
 >
 export type SelectLocationScreenProps = CompositeScreenProps<
   NativeStackScreenProps<DriverStackParamList, 'SelectLocationScreen'>,
   NativeStackScreenProps<MainStackParamList>
 >
-export type RideDepartScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<DriverStackParamList, 'RideDepartScreen'>,
+export type DriverSelectJoinScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<DriverStackParamList, 'DriverSelectJoinScreen'>,
+  NativeStackScreenProps<MainStackParamList>
+>
+export type DriverDepartScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<DriverStackParamList, 'DriverDepartScreen'>,
   NativeStackScreenProps<MainStackParamList>
 >
 

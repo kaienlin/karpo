@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FlatList, ScrollView, TouchableOpacity, View } from 'react-native'
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetModalProvider
-} from '@gorhom/bottom-sheet'
+import { FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { decode as decodePolyline } from '@mapbox/polyline'
 import {
   Button,
@@ -21,27 +17,15 @@ import MapView, { Polyline } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch, useSelector } from 'react-redux'
 
-import Counter from '../components/Counter'
-import DateTimePicker from '../components/DateTimePicker'
-import { type RootState } from '../redux/store'
-import { addWaypoint, clearWaypoints, removeWaypoint } from '../redux/waypoints'
-import { MapsAPI } from '../services/maps'
-import { type PlanRideScreenProps } from '../types/screens'
+import { InputCounterModal, InputDateTimeModal } from '~/components/InputModals'
+import { type RootState } from '~/redux/store'
+import { addWaypoint, clearWaypoints, removeWaypoint } from '~/redux/waypoints'
+import { MapsAPI } from '~/services/maps'
+import { type DriverPlanRideScreenProps } from '~/types/screens'
+import { displayDatetime } from '~/utils/format'
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
-
-const parseDatetime = (date: Date) => {
-  const today = new Date()
-
-  const dateStr =
-    date.toLocaleDateString() === today.toLocaleDateString()
-      ? '今天'
-      : date.toLocaleDateString('zh-TW', { weekday: 'short', month: 'short', day: 'numeric' })
-  const timeStr = date.toLocaleTimeString('zh-TW', { hour: 'numeric', minute: 'numeric' })
-
-  return `${dateStr} ${timeStr}`
-}
 
 interface RidePlan {
   departTime: Date | null
@@ -49,7 +33,7 @@ interface RidePlan {
   waypoints: Waypoint[]
 }
 
-export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
+export default function DriverPlanRideScreen({ navigation }: DriverPlanRideScreenProps) {
   const theme = useTheme()
   const waypoints = useSelector((state: RootState) => state.waypoints)
   const dispatch = useDispatch()
@@ -57,9 +41,6 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
   const mapRef = useRef<MapView>(null)
   const timeModalRef = useRef<BottomSheetModal>(null)
   const seatsModalRef = useRef<BottomSheetModal>(null)
-
-  const [tempNumSeats, setTempNumSeats] = useState(0)
-  const [tempDepartTime, setTempDepartTime] = useState<Date | null>(new Date())
 
   const { control, handleSubmit } = useForm<RidePlan>({
     defaultValues: {
@@ -159,6 +140,7 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
 
   const onSubmit = async (data: RidePlan) => {
     // TODO:
+    navigation.navigate('DriverSelectJoinScreen')
   }
 
   return (
@@ -178,7 +160,7 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
           )}
         />
 
-        <View style={{ paddingLeft: 25, paddingRight: 10, paddingBottom: 15 }}>
+        <View style={styles.panelContainer}>
           <ScrollView
             horizontal={true}
             showsHorizontalScrollIndicator={false}
@@ -206,39 +188,13 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
                       <Icon {...props} name={value === null ? 'arrow-ios-downward' : 'checkmark'} />
                     )}
                   >
-                    {value === null ? '立即出發' : `${parseDatetime(value)} 出發`}
+                    {value === null ? '立即出發' : `${displayDatetime(value)} 出發`}
                   </Button>
-                  <BottomSheetModal
+                  <InputDateTimeModal
                     ref={timeModalRef}
-                    index={1}
-                    snapPoints={['55%', '55%']}
-                    backdropComponent={(props) => <BottomSheetBackdrop {...props} />}
-                    handleIndicatorStyle={{ display: 'none' }}
-                  >
-                    <View
-                      style={{
-                        flex: 1,
-                        paddingVertical: 20,
-                        paddingHorizontal: 40,
-                        gap: 20
-                      }}
-                    >
-                      <Text category="h5">選擇出發時間</Text>
-                      <DateTimePicker date={tempDepartTime} setDate={setTempDepartTime} />
-                      <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-                        <Button
-                          size="giant"
-                          style={{ borderRadius: 100 }}
-                          onPress={() => {
-                            onChange(tempDepartTime)
-                            timeModalRef.current?.dismiss()
-                          }}
-                        >
-                          確定
-                        </Button>
-                      </View>
-                    </View>
-                  </BottomSheetModal>
+                    title="設定出發時間"
+                    onConfirm={onChange}
+                  />
                 </>
               )}
             />
@@ -263,37 +219,7 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
                   >
                     {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
                   </Button>
-                  <BottomSheetModal
-                    ref={seatsModalRef}
-                    index={1}
-                    snapPoints={['40%', '40%']}
-                    backdropComponent={(props) => <BottomSheetBackdrop {...props} />}
-                    handleIndicatorStyle={{ display: 'none' }}
-                  >
-                    <View
-                      style={{
-                        flex: 1,
-                        paddingVertical: 20,
-                        paddingHorizontal: 40,
-                        gap: 20
-                      }}
-                    >
-                      <Text category="h5">可搭載人數</Text>
-                      <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-                        <Counter value={tempNumSeats} onValueChange={setTempNumSeats} />
-                        <Button
-                          size="giant"
-                          style={{ borderRadius: 100 }}
-                          onPress={() => {
-                            onChange(tempNumSeats)
-                            seatsModalRef.current?.dismiss()
-                          }}
-                        >
-                          確定
-                        </Button>
-                      </View>
-                    </View>
-                  </BottomSheetModal>
+                  <InputCounterModal ref={seatsModalRef} title="可搭載人數" onConfirm={onChange} />
                 </>
               )}
             />
@@ -303,17 +229,7 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
             scrollEnabled={false}
             renderItem={renderInputItem}
             keyExtractor={(item, index) => index.toString()}
-            ItemSeparatorComponent={() => (
-              <View
-                style={{
-                  left: 7,
-                  width: 1.25,
-                  height: 15,
-                  marginVertical: -5,
-                  backgroundColor: '#D8D8D8'
-                }}
-              />
-            )}
+            ItemSeparatorComponent={() => <View style={styles.waypointInputSeparator} />}
           />
           {waypoints.length < 5 && (
             <View style={{ alignItems: 'flex-end', marginTop: 15, marginRight: 12 }}>
@@ -343,8 +259,8 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
         >
           {routeCoordinates && <Polyline coordinates={routeCoordinates} strokeWidth={5} />}
         </MapView>
-        <View style={{ position: 'absolute', bottom: '5%', width: '100%', paddingHorizontal: 20 }}>
-          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
+        <View style={styles.submitButtonContainer}>
+          <Button onPress={onSubmit} size="large" style={{ borderRadius: 12 }}>
             發布行程
           </Button>
         </View>
@@ -352,3 +268,24 @@ export default function PlanRideScreen({ navigation }: PlanRideScreenProps) {
     </SafeAreaView>
   )
 }
+
+const styles = StyleSheet.create({
+  panelContainer: {
+    paddingLeft: 25,
+    paddingRight: 10,
+    paddingBottom: 15
+  },
+  waypointInputSeparator: {
+    left: 7,
+    width: 1.25,
+    height: 15,
+    marginVertical: -5,
+    backgroundColor: '#D8D8D8'
+  },
+  submitButtonContainer: {
+    position: 'absolute',
+    bottom: '5%',
+    width: '100%',
+    paddingHorizontal: 20
+  }
+})

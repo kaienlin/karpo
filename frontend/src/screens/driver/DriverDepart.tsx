@@ -13,24 +13,24 @@ import {
 } from '@ui-kitten/components'
 import MapView from 'react-native-maps'
 
-import SwipeButton from '../components/SwipeButton'
-import { type RideDepartScreenProps } from '../types/screens'
+import SwipeButton from '../../components/SwipeButton'
+import { type DriverDepartScreenProps } from '../../types/screens'
 
 const fakePassengers = [
   {
-    avatar: require('../../assets/icon.png'),
+    avatar: require('../../../assets/icon.png'),
     name: 'Topi',
     rating: 5.0,
     numPassenger: 1
   },
   {
-    avatar: require('../../assets/icon.png'),
+    avatar: require('../../../assets/icon.png'),
     name: 'Chako',
     rating: 4.7,
     numPassenger: 1
   },
   {
-    avatar: require('../../assets/icon.png'),
+    avatar: require('../../../assets/icon.png'),
     name: 'Mayo',
     rating: 4.8,
     numPassenger: 2
@@ -100,7 +100,7 @@ function PassengerItem({ avatar, name, rating, numPassenger, onChat, onCall }: P
   )
 }
 
-export default function RideDepartScreen({ navigation }: RideDepartScreenProps) {
+export default function RideDepartScreen({ navigation }: DriverDepartScreenProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
   const mapRef = useRef<MapView>(null)
