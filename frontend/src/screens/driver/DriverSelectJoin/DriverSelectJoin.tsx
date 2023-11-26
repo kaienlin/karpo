@@ -4,13 +4,7 @@ import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Shadow } from 'react-native-shadow-2'
 import BottomSheet from '@gorhom/bottom-sheet'
-import {
-  Icon,
-  TopNavigation,
-  TopNavigationAction,
-  useTheme,
-  type IconProps
-} from '@ui-kitten/components'
+import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
 import { type JoinInfo } from '~/types/data'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
@@ -80,8 +74,6 @@ const query = {
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 
 export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinScreenProps) {
-  const theme = useTheme()
-
   const [joins, setJoins] = useState<JoinInfo[]>(rideInfoList)
   const [selectedJoins, setSelectedJoins] = useState<JoinInfo[]>([])
 
@@ -101,23 +93,16 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     navigation.navigate('DriverDepartScreen')
   }
 
-  // TODO: implement
-  const handleViewProfile = () => {
-    throw new Error('Not implemented')
-  }
-
-  // TODO: implement
-
-  const handleReject = (index: number) => {
+  const handleReject = (index: number) => () => {
     setJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
   }
 
-  const handleSelect = (index: number) => {
+  const handleSelect = (index: number) => () => {
     setSelectedJoins((prev) => [...prev, { ...joins[index], status: 'pending' }])
     setJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
   }
 
-  const handleDeselect = (index: number) => {
+  const handleDeselect = (index: number) => () => {
     setJoins((prev) => [...prev, { ...selectedJoins[index], status: 'available' }])
     setSelectedJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
   }

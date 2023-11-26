@@ -10,15 +10,15 @@ import { PassengerInfoCard } from './PassengerInfoCard'
 interface PassengerAvatarListProps {
   data: any[]
   title: string
-  onDeselect: (index: number) => void
+  onDeselect: (index: number) => () => void
   onConfirm: () => void
 }
 
 interface PassengerCardListProps {
   data: any[]
   title: string
-  onReject: (index: number) => void
-  onSelect: (index: number) => void
+  onReject: (index: number) => () => void
+  onSelect: (index: number) => () => void
 }
 
 export const PassengerAvatarList = ({
@@ -31,12 +31,7 @@ export const PassengerAvatarList = ({
   const renderItem = ({ item, index }) => (
     <View style={{ alignItems: 'center', gap: 5 }}>
       <View>
-        <Pressable
-          onPress={() => {
-            onDeselect(index)
-          }}
-          style={{ zIndex: 1, top: 12, right: 5 }}
-        >
+        <Pressable onPress={onDeselect(index)} style={{ zIndex: 1, top: 12, right: 5 }}>
           {({ pressed }) => (
             <Icon
               style={{ width: 20, height: 20 }}
@@ -85,10 +80,15 @@ export const PassengerAvatarList = ({
 export const PassengerCardList = ({ data, title, onReject, onSelect }: PassengerCardListProps) => {
   const theme = useTheme()
 
-  const handleChat = () => {
+  const handleViewProfile = (userId: string) => () => {
     throw new Error('Not implemented')
   }
-  const handleCall = async (phone: string) => {
+
+  const handleChat = (userId: string) => () => {
+    throw new Error('Not implemented')
+  }
+
+  const handleCall = (phone: string) => async () => {
     try {
       await Linking.openURL(`tel:${phone}`)
     } catch (error) {}
@@ -116,21 +116,11 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
             <Animated.View entering={FadeIn} exiting={FadeOut}>
               <PassengerInfoCard
                 {...item}
-                onViewProfile={() => {
-                  handleViewProfile(item.passengerProfile)
-                }}
-                onChat={() => {
-                  handleChat(item.passengerProfile.userId)
-                }}
-                onCall={() => {
-                  handleCall(item.passengerProfile.phone)
-                }}
-                onReject={() => {
-                  onReject(index)
-                }}
-                onSelect={() => {
-                  onSelect(index)
-                }}
+                onViewProfile={handleViewProfile(item.passengerProfile.userId)}
+                onChat={handleChat(item.passengerProfile.userId)}
+                onCall={handleCall(item.passengerProfile.phone)}
+                onReject={onReject(index)}
+                onSelect={onSelect(index)}
               />
             </Animated.View>
           )
