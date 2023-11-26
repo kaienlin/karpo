@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import DriverDepart from '~/screens/driver/DriverDepart'
 import DriverPlanRide from '~/screens/driver/DriverPlanRide'
 import DriverSelectJoinScreen from '~/screens/driver/DriverSelectJoin'
+import RateScreen from '~/screens/Rate'
 import SelectLocation from '~/screens/SelectLocation'
 
 const Stack = createNativeStackNavigator<DriverStackParamList>()
@@ -22,6 +23,7 @@ export default function DriverStack() {
       <Stack.Screen name="SelectLocationScreen" component={SelectLocation} />
       <Stack.Screen name="DriverSelectJoinScreen" component={DriverSelectJoinScreen} />
       <Stack.Screen name="DriverDepartScreen" component={DriverDepart} />
+      <Stack.Screen name="RideCompleteScreen" component={RateScreen} />
     </Stack.Navigator>
   )
 }

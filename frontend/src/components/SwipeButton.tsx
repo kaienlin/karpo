@@ -1,32 +1,32 @@
 import React, { useEffect } from 'react'
 import { ActivityIndicator, Dimensions, View } from 'react-native'
-import { PanGestureHandler } from 'react-native-gesture-handler'
+import { Icon, StyleService, useStyleSheet, useTheme } from '@ui-kitten/components'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   Easing,
   Extrapolate,
   Extrapolation,
   interpolate,
   runOnJS,
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withDelay,
   withRepeat,
+  withSpring,
   withTiming
 } from 'react-native-reanimated'
-import { Icon, useStyleSheet, StyleService, useTheme } from '@ui-kitten/components'
 
 const BUTTON_WIDTH = Dimensions.get('screen').width - 48
 const SWIPE_RANGE = BUTTON_WIDTH - 90
 
 interface SwipeButtonProps {
-  onSwipe?: () => void
+  onSwipe: () => void
   isLoading?: boolean
   text?: string
 }
 
 export default function SwipeButton({
-  onSwipe = () => {},
+  onSwipe,
   isLoading = false,
   text = 'Swipe me for some action'
 }: SwipeButtonProps) {
@@ -46,22 +46,20 @@ export default function SwipeButton({
     }
   }, [isLoading])
 
-  const animatedGestureHandler = useAnimatedGestureHandler({
-    onActive: (e) => {
-      const newValue = e.translationX
-
+  const pan = Gesture.Pan()
+    .onChange((event) => {
+      const newValue = event.translationX
       if (newValue >= 0 && newValue <= SWIPE_RANGE) {
         offset.value = newValue
       }
-    },
-    onEnd: () => {
+    })
+    .onFinalize((event) => {
       if (offset.value < SWIPE_RANGE - 20) {
         offset.value = withSpring(0)
       } else {
         runOnJS(onSwipe)()
       }
-    }
-  })
+    })
 
   const AnimatedStyles = {
     swipeButton: useAnimatedStyle(() => ({
@@ -96,7 +94,7 @@ export default function SwipeButton({
 
   return (
     <View style={styles.swipeButtonContainer}>
-      <PanGestureHandler enabled={!isLoading} onGestureEvent={animatedGestureHandler}>
+      <GestureDetector gesture={pan}>
         <Animated.View style={[styles.swipeButton, AnimatedStyles.swipeButton]}>
           <Animated.View style={[styles.swipeButtonContent, AnimatedStyles.swipeButtonContent]}>
             <Icon
@@ -115,7 +113,7 @@ export default function SwipeButton({
           ) : // <Image style={styles.chevron} source={Chevron} />
           null}
         </Animated.View>
-      </PanGestureHandler>
+      </GestureDetector>
       <Animated.Text style={[styles.swipeText, AnimatedStyles.swipeText]}>{text}</Animated.Text>
     </View>
   )
