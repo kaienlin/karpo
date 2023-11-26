@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { FlatList, Pressable, View } from 'react-native'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Shadow } from 'react-native-shadow-2'
 import {
   Button,
   Icon,
@@ -11,13 +14,11 @@ import {
 } from '@ui-kitten/components'
 import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Shadow } from 'react-native-shadow-2'
 
-import { PassengerInfoCard } from '~/components/PassengerInfoCard'
 import { type JoinInfo } from '~/types/data'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
+
+import { PassengerInfoCard } from './PassengerInfoCard'
 
 const rideInfoList = [
   {
@@ -180,7 +181,7 @@ export default function SelectJoinScreen({ navigation }: DriverSelectJoinScreenP
                     </Pressable>
                     <Image
                       style={{ height: 50, width: 50, borderRadius: 25 }}
-                      source={require('../../../assets/riceball.jpg')}
+                      source={require('~/assets/riceball.jpg')}
                     />
                   </View>
                   <Text style={{ fontSize: 13 }}>{item.passengerProfile.name}</Text>

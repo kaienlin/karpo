@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native'
-import { Avatar, Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
 import { Shadow } from 'react-native-shadow-2'
+import { Avatar, Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
 
-import { displayDatetime } from '../utils/format'
+import { displayDatetime } from '~/utils/format'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
 const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
@@ -48,7 +48,7 @@ function PassengerInfoCardHeader({
   return (
     <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 10 }}>
       <View style={{ padding: 10 }} onPress={onViewProfile}>
-        <Avatar source={require('../../assets/riceball.jpg')} size="giant" />
+        <Avatar source={require('~/assets/riceball.jpg')} size="giant" />
       </View>
       <View
         style={{
