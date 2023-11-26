@@ -1,24 +1,22 @@
-import { useState } from 'react'
-import { FlatList, Pressable, View } from 'react-native'
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { useEffect, useRef, useState } from 'react'
+import MapView, { Polyline } from 'react-native-maps'
+import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Shadow } from 'react-native-shadow-2'
+import BottomSheet from '@gorhom/bottom-sheet'
 import {
-  Button,
   Icon,
-  Text,
   TopNavigation,
   TopNavigationAction,
   useTheme,
   type IconProps
 } from '@ui-kitten/components'
-import { Image } from 'expo-image'
-import * as Linking from 'expo-linking'
 
 import { type JoinInfo } from '~/types/data'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
-import { PassengerInfoCard } from './PassengerInfoCard'
+import { fakeRoute } from '../DriverDepart/DriverDepart'
+import { PassengerAvatarList, PassengerCardList } from './PassengerList'
 
 const rideInfoList = [
   {
@@ -81,14 +79,23 @@ const query = {
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 
-export default function SelectJoinScreen({ navigation }: DriverSelectJoinScreenProps) {
+export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinScreenProps) {
   const theme = useTheme()
 
   const [joins, setJoins] = useState<JoinInfo[]>(rideInfoList)
   const [selectedJoins, setSelectedJoins] = useState<JoinInfo[]>([])
 
+  const mapRef = useRef<MapView>(null)
+  const bottomSheetRef = useRef<BottomSheet>(null)
+
+  useEffect(() => {
+    mapRef.current?.fitToCoordinates(fakeRoute, {
+      edgePadding: { top: 50, right: 50, left: 50, bottom: 350 }
+    })
+  }, [fakeRoute])
+
   // TODO: implement
-  const handleAccept = () => {
+  const handleConfirm = () => {
     // send accept request to server
     // navigate to RideDepartScreen
     navigation.navigate('DriverDepartScreen')
@@ -100,15 +107,6 @@ export default function SelectJoinScreen({ navigation }: DriverSelectJoinScreenP
   }
 
   // TODO: implement
-  const handleChat = () => {
-    throw new Error('Not implemented')
-  }
-
-  const handleCall = async (phone: string) => {
-    try {
-      await Linking.openURL(`tel:${phone}`)
-    } catch (error) {}
-  }
 
   const handleReject = (index: number) => {
     setJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
@@ -119,9 +117,9 @@ export default function SelectJoinScreen({ navigation }: DriverSelectJoinScreenP
     setJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
   }
 
-  const handleDeselect = (item, index: number) => {
+  const handleDeselect = (index: number) => {
+    setJoins((prev) => [...prev, { ...selectedJoins[index], status: 'available' }])
     setSelectedJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
-    setJoins((prev) => [...prev, { ...item, status: 'available' }])
   }
 
   return (
@@ -144,87 +142,50 @@ export default function SelectJoinScreen({ navigation }: DriverSelectJoinScreenP
             />
           )}
         />
-        {selectedJoins.length > 0 && (
-          <View
-            style={{
-              height: 100,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingHorizontal: 20,
-              bottom: 12
-            }}
-          >
-            <FlatList
-              data={selectedJoins}
-              horizontal={true}
-              style={{ paddingLeft: 10 }}
-              ItemSeparatorComponent={() => <View style={{ width: 15 }} />}
-              renderItem={({ item, index }) => (
-                <View style={{ alignItems: 'center', gap: 5 }}>
-                  <View>
-                    <Pressable
-                      onPress={() => {
-                        handleDeselect(item, index)
-                      }}
-                      style={{ zIndex: 1, top: 12, right: 5 }}
-                    >
-                      {({ pressed }) => (
-                        <Icon
-                          style={{ width: 20, height: 20 }}
-                          name="close-circle"
-                          fill={
-                            pressed ? theme['color-primary-600'] : theme['color-primary-default']
-                          }
-                        />
-                      )}
-                    </Pressable>
-                    <Image
-                      style={{ height: 50, width: 50, borderRadius: 25 }}
-                      source={require('~/assets/riceball.jpg')}
-                    />
-                  </View>
-                  <Text style={{ fontSize: 13 }}>{item.passengerProfile.name}</Text>
-                </View>
-              )}
-            />
-            <Button onPress={handleAccept} size="small" style={{ borderRadius: 100 }}>
-              確認同行
-            </Button>
-          </View>
-        )}
       </Shadow>
 
-      <FlatList
-        style={{ flex: 1 }}
-        data={joins}
-        ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
-        ListHeaderComponent={() => <View style={{ height: 15 }} />}
-        renderItem={({ item, index }) => {
-          return (
-            <Animated.View entering={FadeIn} exiting={FadeOut}>
-              <PassengerInfoCard
-                {...item}
-                onViewProfile={() => {
-                  handleViewProfile(item.passengerProfile)
-                }}
-                onChat={() => {
-                  handleChat(item.passengerProfile.userId)
-                }}
-                onCall={() => {
-                  handleCall(item.passengerProfile.phone)
-                }}
-                onReject={() => {
-                  handleReject(index)
-                }}
-                onSelect={() => {
-                  handleSelect(index)
-                }}
-              />
-            </Animated.View>
-          )
+      <MapView ref={mapRef} style={{ flex: 1, width: '100%', height: '100%' }} provider="google">
+        <Polyline coordinates={fakeRoute} strokeWidth={5} />
+      </MapView>
+
+      <BottomSheet
+        ref={bottomSheetRef}
+        style={{ zIndex: 1 }}
+        index={1}
+        topInset={30}
+        snapPoints={['19%', '45%', '75%']}
+        onChange={(index) => {
+          if (index === 0) {
+            mapRef.current?.fitToCoordinates(fakeRoute, {
+              edgePadding: { top: 50, right: 50, left: 50, bottom: 200 }
+            })
+          } else if (index === 1) {
+            mapRef.current?.fitToCoordinates(fakeRoute, {
+              edgePadding: { top: 50, right: 50, left: 50, bottom: 350 }
+            })
+          }
         }}
-      />
+      >
+        {selectedJoins.length > 0 && (
+          <Animated.View entering={FadeIn.delay(100)}>
+            <PassengerAvatarList
+              title="已選擇的乘客"
+              data={selectedJoins}
+              onDeselect={handleDeselect}
+              onConfirm={handleConfirm}
+            />
+          </Animated.View>
+        )}
+
+        <Animated.View style={{ flex: 1 }} layout={CurvedTransition}>
+          <PassengerCardList
+            title="已發出請求的乘客"
+            data={joins}
+            onReject={handleReject}
+            onSelect={handleSelect}
+          />
+        </Animated.View>
+      </BottomSheet>
     </SafeAreaView>
   )
 }

@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
 import { Avatar, Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
 
+import { type JoinInfo } from '~/types/data'
 import { displayDatetime } from '~/utils/format'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
