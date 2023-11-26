@@ -27,7 +27,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
     name: Mapped[str] = mapped_column(String(length=200))
     phone_number: Mapped[Optional[str]] = mapped_column(String(length=20))
-    avg_rating: Mapped[Optional[float]] = mapped_column(insert_default=0)
+    rating: Mapped[Optional[float]] = mapped_column(insert_default=None)
     rating_count: Mapped[int] = mapped_column(insert_default=0)
     avatar: Mapped[Optional[bytes]]
 
@@ -56,9 +56,6 @@ class UserUpdate(schemas.BaseUserUpdate):
 
     name: str
     phone_number: Optional[str] = None
-    rating: Optional[
-        Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
-    ] = None
     avatar: Optional[Base64Str] = None
 
 
