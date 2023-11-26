@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: 2f5324563085
+Revision ID: cfd2c66ccacb
 Revises: 2b7380507a71
-Create Date: 2023-11-26 08:21:48.086187
+Create Date: 2023-11-26 12:26:31.708519
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "2f5324563085"
+revision = "cfd2c66ccacb"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -90,15 +90,16 @@ def upgrade() -> None:
             "user_id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False
         ),
         sa.Column(
-            "source",
+            "origin",
             Geography(
                 geometry_type="POINT",
                 srid=4326,
                 spatial_index=False,
                 from_text="ST_GeogFromText",
                 name="geography",
+                nullable=False,
             ),
-            nullable=True,
+            nullable=False,
         ),
         sa.Column(
             "destination",
@@ -108,10 +109,11 @@ def upgrade() -> None:
                 spatial_index=False,
                 from_text="ST_GeogFromText",
                 name="geography",
+                nullable=False,
             ),
-            nullable=True,
+            nullable=False,
         ),
-        sa.Column("source_description", sa.String(length=320), nullable=False),
+        sa.Column("origin_description", sa.String(length=320), nullable=False),
         sa.Column("destination_description", sa.String(length=320), nullable=False),
         sa.Column(
             "route",
@@ -121,15 +123,14 @@ def upgrade() -> None:
                 spatial_index=False,
                 from_text="ST_GeogFromText",
                 name="geography",
+                nullable=False,
             ),
-            nullable=True,
+            nullable=False,
         ),
         sa.Column(
             "route_timestamps", sa.ARRAY(sa.DateTime(timezone=True)), nullable=True
         ),
         sa.Column("departure_time", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("num_people", sa.Integer(), nullable=False),
-        sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("schedule", sa.ARRAY(sa.String()), nullable=True),
         sa.Column(
             "driver_position",
@@ -142,6 +143,8 @@ def upgrade() -> None:
             ),
             nullable=True,
         ),
+        sa.Column("num_people", sa.Integer(), nullable=False),
+        sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("last_update_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "created_at",

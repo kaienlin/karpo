@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from geoalchemy2 import Geography
+from geoalchemy2 import Geography, WKBElement
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -17,15 +17,15 @@ class RidesModel(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
-    source = mapped_column(
+    origin: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
-    destination = mapped_column(
+    destination: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
-    source_description: Mapped[str] = mapped_column(String(length=320))
+    origin_description: Mapped[str] = mapped_column(String(length=320))
     destination_description: Mapped[str] = mapped_column(String(length=320))
-    route = mapped_column(
+    route: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
     )
     route_timestamps = mapped_column(
