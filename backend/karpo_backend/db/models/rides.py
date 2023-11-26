@@ -15,7 +15,7 @@ class RidesModel(Base):
 
     __tablename__ = "rides"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     source = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),

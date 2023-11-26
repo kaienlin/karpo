@@ -14,7 +14,7 @@ class MessagesModel(Base):
 
     __tablename__ = "messages"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     ride_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rides.id"))
     content: Mapped[str]
