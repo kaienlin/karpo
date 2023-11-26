@@ -41,6 +41,7 @@ loguru = "^0.7.0"
 geoalchemy2 = "^0.14.2"
 sqlalchemy-cockroachdb = "^2.0.1"
 psycopg2-binary = "^2.9.9"
+shapely = "^2.0.2"
 
 
 [tool.poetry.dev-dependencies]

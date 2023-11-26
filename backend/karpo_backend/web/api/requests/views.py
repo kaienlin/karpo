@@ -1,13 +1,18 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.param_functions import Depends
+from shapely import Point, wkb
 
+from karpo_backend.db.dao.requests_dao import RequestsDAO
+from karpo_backend.db.models.users import User, current_active_user  # type: ignore
 from karpo_backend.web.api.requests.schema import (
     GetRequestIdMatchesResponse,
     GetRequestIdResponse,
     PostRequestsRequest,
     PostRequestsResponse,
 )
+from karpo_backend.web.api.utils import LocationDTO
 
 router = APIRouter()
 
@@ -16,6 +21,8 @@ router = APIRouter()
 async def post_requests(
     req: PostRequestsRequest,
     limit: int = 10,
+    requests_dao: RequestsDAO = Depends(),
+    user: User = Depends(current_active_user),
 ) -> PostRequestsResponse:
     """
     For a passenger to submit a request and get a list of matched rides.
@@ -35,18 +42,50 @@ async def post_requests(
     + **request_id**
     + **matches**: the same as the reponse of GET /requests/{request_id}/matches.
     """
-    raise NotImplementedError("QQ")
+    request_id = await requests_dao.create_requests_model(
+        user_id=user.id,
+        origin=req.origin,
+        destination=req.destination,
+        origin_description=req.origin_description,
+        destination_description=req.destination_description,
+        num_people=req.num_people,
+        start_time=req.time,
+    )
+    return PostRequestsResponse(request_id=request_id, matches=[])
 
 
 @router.get("/{request_id}", response_model=GetRequestIdResponse, tags=["passenger"])
-async def get_request_id() -> GetRequestIdResponse:
+async def get_request_id(
+    request_id: uuid.UUID,
+    requests_dao: RequestsDAO = Depends(),
+    user: User = Depends(current_active_user),
+) -> GetRequestIdResponse:
     """
     Get the information of the request specified by `request_id`.
 
     #### Response:
     + **is_active**: `true` if this request is open for matching.
     """
-    raise NotImplementedError("QQ")
+    request = await requests_dao.get_requests_model_by_id(request_id)
+    if request is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    if request.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    origin: Point = wkb.loads(bytes(request.origin.data))
+    destination: Point = wkb.loads(bytes(request.destination.data))
+
+    return GetRequestIdResponse(
+        time=request.start_time,
+        origin=LocationDTO(longitude=origin.x, latitude=origin.y),
+        destination=LocationDTO(longitude=destination.x, latitude=destination.y),
+        origin_description=request.origin_description,
+        destination_description=request.destination_description,
+        num_people=request.num_people,
+        is_active=request.is_active,
+        create_time=request.created_at,
+    )
 
 
 @router.get(

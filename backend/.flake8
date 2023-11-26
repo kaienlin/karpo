@@ -10,6 +10,8 @@ ignore =
   WPS305,
   ; docstring
   D,
+  ; Found too many arguments
+  WPS211,
   ; Found `__init__.py` module with logic
   WPS412,
   ; Found class without a base class
