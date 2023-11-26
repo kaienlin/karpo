@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from typing import Literal
 
 from geoalchemy2 import Geography
 from sqlalchemy import ForeignKey
@@ -19,9 +20,7 @@ class JoinsModel(Base):
     request_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("requests.id"))
     ride_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rides.id"))
     cost: Mapped[int]
-    status: Mapped[str] = mapped_column(
-        String(length=10),
-    )  # pending, rejected, accepted
+    status: Mapped[Literal["pending", "rejected", "accepted"]]
     get_on_location = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
@@ -30,9 +29,7 @@ class JoinsModel(Base):
     )
     get_on_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     get_off_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
-    progress: Mapped[str] = mapped_column(
-        String(length=10),
-    )  # waiting, onboard, fulfilled
+    progress: Mapped[Literal["waiting", "onboard", "fulfilled"]]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
