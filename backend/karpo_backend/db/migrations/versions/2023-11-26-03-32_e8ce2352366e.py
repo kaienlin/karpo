@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: 48276a4b4300
+Revision ID: e8ce2352366e
 Revises: 2b7380507a71
-Create Date: 2023-11-23 06:34:06.006164
+Create Date: 2023-11-26 03:32:20.325195
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "48276a4b4300"
+revision = "e8ce2352366e"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -24,7 +24,7 @@ def upgrade() -> None:
         "requests",
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
-            "source",
+            "origin",
             Geography(
                 geometry_type="POINT",
                 srid=4326,
@@ -45,7 +45,7 @@ def upgrade() -> None:
             ),
             nullable=True,
         ),
-        sa.Column("source_description", sa.String(length=320), nullable=False),
+        sa.Column("origin_description", sa.String(length=320), nullable=False),
         sa.Column("destination_description", sa.String(length=320), nullable=False),
         sa.Column("num_people", sa.Integer(), nullable=False),
         sa.Column("start_time", sa.DateTime(timezone=True), nullable=False),
@@ -62,7 +62,7 @@ def upgrade() -> None:
         "user",
         sa.Column("name", sa.String(length=200), nullable=False),
         sa.Column("phone_number", sa.String(length=20), nullable=True),
-        sa.Column("avg_rating", sa.Float(), nullable=True),
+        sa.Column("rating", sa.Float(), nullable=True),
         sa.Column("rating_count", sa.Integer(), nullable=False),
         sa.Column("avatar", sa.LargeBinary(), nullable=True),
         sa.Column("id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False),
@@ -152,7 +152,11 @@ def upgrade() -> None:
         sa.Column("request_id", sa.Uuid(), nullable=False),
         sa.Column("ride_id", sa.Uuid(), nullable=False),
         sa.Column("cost", sa.Integer(), nullable=False),
-        sa.Column("status", sa.String(length=10), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum("pending", "rejected", "accepted", native_enum=False),
+            nullable=False,
+        ),
         sa.Column(
             "get_on_location",
             Geography(
@@ -177,7 +181,11 @@ def upgrade() -> None:
         ),
         sa.Column("get_on_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column("get_off_time", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("progress", sa.String(length=10), nullable=False),
+        sa.Column(
+            "progress",
+            sa.Enum("waiting", "onboard", "fulfilled", native_enum=False),
+            nullable=False,
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
