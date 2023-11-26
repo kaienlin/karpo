@@ -1,3 +1,7 @@
+/**
+ * @deprecated Now use route.params to pass data between screens
+ */
+
 import { createSlice } from '@reduxjs/toolkit'
 
 const emptyWaypoint: Waypoint = { title: '', latitude: null, longitude: null }

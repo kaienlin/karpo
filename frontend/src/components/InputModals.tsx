@@ -6,7 +6,7 @@ import { Button, Text } from '@ui-kitten/components'
 import Counter from '../components/Counter'
 import DateTimePicker from '../components/DateTimePicker'
 
-const InputModal = forwardRef<BottomSheetModal, { height: string; children?: ReactNode }>(
+export const InputModal = forwardRef<BottomSheetModal, { height: string; children?: ReactNode }>(
   function InputModal(props, ref) {
     return (
       <BottomSheetModal

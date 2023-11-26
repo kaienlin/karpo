@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import MapView, { type Details, type Region } from 'react-native-maps'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import { useNavigationState } from '@react-navigation/native'
 import {
   Button,
   Divider,
@@ -14,12 +17,7 @@ import {
   type ListItemProps
 } from '@ui-kitten/components'
 import * as Location from 'expo-location'
-import MapView, { type Details, type Region } from 'react-native-maps'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useDispatch, useSelector } from 'react-redux'
 
-import { type RootState } from '../redux/store'
-import { updateWaypoint } from '../redux/waypoints'
 import { MapsAPI } from '../services/maps'
 import { type SelectLocationScreenProps } from '../types/screens'
 
@@ -51,10 +49,10 @@ function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
 }
 
 export default function SelectLocationScreen({ navigation, route }: SelectLocationScreenProps) {
-  const { waypointIndex } = route.params
-  const defaultCenter = useSelector((state: RootState) => state.waypoints[waypointIndex])
+  const { waypointIndex, waypoint: defaultCenter } = route.params
+  const routes = useNavigationState((state) => state.routes)
+  const prevScreen = routes[routes.length - 2].name
 
-  const dispatch = useDispatch()
   const inputRef = useRef<Input>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
   const snapPoints = useMemo(() => ['20%', '90%'], [])
@@ -111,12 +109,16 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
   const handlePressLocationItem = (item: AutocompleteItem) => {
     void (async () => {
       const latlng = await MapsAPI.getPlaceLatLng(item.placeId)
-      dispatch(
-        updateWaypoint({
-          index: waypointIndex,
-          location: { title: item.title, ...latlng }
-        })
-      )
+      navigation.navigate({
+        name: prevScreen,
+        params: {
+          updatedWaypoint: {
+            index: waypointIndex,
+            payload: { title: item.title, ...latlng }
+          }
+        },
+        merge: true
+      })
     })()
 
     navigation.goBack()
@@ -133,17 +135,20 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
   }
 
   const handlePressConfirm = () => {
-    dispatch(
-      updateWaypoint({
-        index: waypointIndex,
-        location: {
-          title: searchInput,
-          latitude: center?.latitude,
-          longitude: center?.longitude
+    navigation.navigate({
+      name: prevScreen,
+      params: {
+        updatedWaypoint: {
+          index: waypointIndex,
+          payload: {
+            title: searchInput,
+            latitude: center?.latitude,
+            longitude: center?.longitude
+          }
         }
-      })
-    )
-    navigation.goBack()
+      },
+      merge: true
+    })
   }
 
   const renderClearIcon = (props: IconProps) => (

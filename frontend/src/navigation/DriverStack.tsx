@@ -10,7 +10,7 @@ const Stack = createNativeStackNavigator<DriverStackParamList>()
 
 export type DriverStackParamList = {
   DriverPlanRideScreen: undefined
-  SelectLocationScreen: { waypointIndex: number }
+  SelectLocationScreen: { waypointIndex: number; waypoint: Waypoint }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
   RideCompleteScreen: undefined
