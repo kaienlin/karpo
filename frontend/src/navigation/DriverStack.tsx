@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
-import DriverDepart from '~/screens/driver/DriverDepart'
-import DriverPlanRide from '~/screens/driver/DriverPlanRide'
-import DriverSelectJoinScreen from '~/screens/driver/DriverSelectJoin'
+import DriverDepart from '~/screens/DriverDepart'
+import DriverPlanRide from '~/screens/DriverPlanRide'
+import DriverSelectJoinScreen from '~/screens/DriverSelectJoin'
 import RateScreen from '~/screens/Rate'
 import SelectLocation from '~/screens/SelectLocation'
 
