@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.models.requests import RequestsModel
-from karpo_backend.web.api.utils import LocationDTO
+from karpo_backend.web.api.utils import LocationWithDescDTO
 
 
 class RequestsDAO:
@@ -20,10 +20,8 @@ class RequestsDAO:
     async def create_requests_model(
         self,
         user_id: uuid.UUID,
-        origin: LocationDTO,
-        destination: LocationDTO,
-        origin_description: Optional[str],
-        destination_description: Optional[str],
+        origin: LocationWithDescDTO,
+        destination: LocationWithDescDTO,
         num_people: int,
         start_time: datetime.datetime,
         is_active: bool = True,
@@ -32,8 +30,8 @@ class RequestsDAO:
             user_id=user_id,
             origin=f"POINT({origin.longitude} {origin.latitude})",
             destination=f"POINT({destination.longitude} {destination.latitude})",
-            origin_description=origin_description,
-            destination_description=destination_description,
+            origin_description=origin.description,
+            destination_description=destination.description,
             num_people=num_people,
             start_time=start_time,
             is_active=is_active,

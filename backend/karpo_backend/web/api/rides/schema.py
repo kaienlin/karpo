@@ -4,7 +4,7 @@ from typing import List, Literal
 
 from pydantic import BaseModel, NonNegativeInt
 
-from karpo_backend.web.api.utils import LocationDTO, RouteDTO
+from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
 
 class PostRideIdJoinsRequest(BaseModel):
@@ -32,8 +32,8 @@ class ChatRecordDTO(BaseModel):
 
 class RideDTO(BaseModel):
     time: datetime.datetime
-    origin: LocationDTO
-    destination: LocationDTO
+    origin: LocationWithDescDTO
+    destination: LocationWithDescDTO
     num_people: int
     route: RouteDTO
 
@@ -43,8 +43,8 @@ class JoinDTO(BaseModel):
     passenger_id: uuid.UUID
     get_on_time: datetime.datetime
     get_off_time: datetime.datetime
-    get_on_location: LocationDTO
-    get_off_location: LocationDTO
+    get_on_location: LocationWithDescDTO
+    get_off_location: LocationWithDescDTO
     passenger_get_on_distance: float
     passenger_get_off_distance: float
     price: int
@@ -84,7 +84,7 @@ class GetRideJoinsResponse(BaseModel):
 class StopoverDTO(BaseModel):
     request_id: uuid.UUID
     time: datetime.datetime
-    location: LocationDTO
+    location: LocationWithDescDTO
     status: Literal["get_on", "get_off"]
 
 
