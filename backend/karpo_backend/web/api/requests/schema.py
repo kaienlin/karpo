@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, PositiveInt
 
-from karpo_backend.db.models.users import UserRead  # type: ignore
+from karpo_backend.web.api.users.schema import UserInfoForOthersDTO
 from karpo_backend.web.api.utils import LocationWithDescDTO, RouteDTO
 
 
@@ -22,7 +22,7 @@ class MatchDTO(BaseModel):
     driver_destination: LocationWithDescDTO
     num_available_seat: PositiveInt
     other_passengers: List[uuid.UUID]
-    driver_info: UserRead
+    driver_info: UserInfoForOthersDTO
     fare: NonNegativeInt
     driver_route: RouteDTO
     status: Literal["unasked", "pending", "accepted"]
