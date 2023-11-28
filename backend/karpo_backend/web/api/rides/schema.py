@@ -4,6 +4,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
+from karpo_backend.web.api.users.schema import UserInfoForOthersDTO
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
 
@@ -84,6 +85,7 @@ class GetRideJoinsResponse(BaseModel):
 
 class StopoverDTO(BaseModel):
     request_id: uuid.UUID
+    passenger_info: UserInfoForOthersDTO
     time: datetime.datetime
     location: LocationWithDescDTO
     status: Literal["pick_up", "drop_off"]
