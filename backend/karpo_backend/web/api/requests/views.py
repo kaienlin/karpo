@@ -12,7 +12,7 @@ from karpo_backend.web.api.requests.schema import (
     PostRequestsRequest,
     PostRequestsResponse,
 )
-from karpo_backend.web.api.utils import LocationDTO
+from karpo_backend.web.api.utils import LocationWithDescDTO
 
 router = APIRouter()
 
@@ -46,8 +46,6 @@ async def post_requests(
         user_id=user.id,
         origin=req.origin,
         destination=req.destination,
-        origin_description=req.origin_description,
-        destination_description=req.destination_description,
         num_people=req.num_people,
         start_time=req.time,
     )
@@ -78,10 +76,16 @@ async def get_request_id(
 
     return GetRequestIdResponse(
         time=request.start_time,
-        origin=LocationDTO(longitude=origin.x, latitude=origin.y),
-        destination=LocationDTO(longitude=destination.x, latitude=destination.y),
-        origin_description=request.origin_description,
-        destination_description=request.destination_description,
+        origin=LocationWithDescDTO(
+            longitude=origin.x,
+            latitude=origin.y,
+            description=request.origin_description,
+        ),
+        destination=LocationWithDescDTO(
+            longitude=destination.x,
+            latitude=destination.y,
+            description=request.destination_description,
+        ),
         num_people=request.num_people,
         is_active=request.is_active,
         create_time=request.created_at,

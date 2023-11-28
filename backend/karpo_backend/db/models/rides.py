@@ -20,11 +20,11 @@ class RidesModel(Base):
     origin: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
+    origin_description: Mapped[str]
     destination: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
-    origin_description: Mapped[str] = mapped_column(String(length=320))
-    destination_description: Mapped[str] = mapped_column(String(length=320))
+    destination_description: Mapped[str]
     route: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
     )
