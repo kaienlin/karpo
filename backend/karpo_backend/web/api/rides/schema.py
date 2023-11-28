@@ -2,7 +2,7 @@ import datetime
 import uuid
 from typing import List, Literal
 
-from pydantic import BaseModel, NonNegativeInt
+from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
@@ -47,6 +47,7 @@ class JoinDTO(BaseModel):
     drop_off_location: LocationWithDescDTO
     passenger_pick_up_distance: float
     passenger_drop_off_distance: float
+    num_passengers: PositiveInt
     fare: int
 
 
