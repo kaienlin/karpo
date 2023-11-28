@@ -34,20 +34,20 @@ class RideDTO(BaseModel):
     time: datetime.datetime
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
-    num_people: int
+    num_seats: int
     route: RouteDTO
 
 
 class JoinDTO(BaseModel):
     join_id: uuid.UUID
     passenger_id: uuid.UUID
-    get_on_time: datetime.datetime
-    get_off_time: datetime.datetime
-    get_on_location: LocationWithDescDTO
-    get_off_location: LocationWithDescDTO
-    passenger_get_on_distance: float
-    passenger_get_off_distance: float
-    price: int
+    pick_up_time: datetime.datetime
+    drop_off_time: datetime.datetime
+    pick_up_location: LocationWithDescDTO
+    drop_off_location: LocationWithDescDTO
+    passenger_pick_up_distance: float
+    passenger_drop_off_distance: float
+    fare: int
 
 
 class GetRideMessagesResponse(BaseModel):
@@ -77,7 +77,7 @@ class GetRideSavedRidesResponse(BaseModel):
 
 
 class GetRideJoinsResponse(BaseModel):
-    vacant_seat: int
+    num_available_seat: int
     joins: List[JoinDTO]
 
 
@@ -85,7 +85,7 @@ class StopoverDTO(BaseModel):
     request_id: uuid.UUID
     time: datetime.datetime
     location: LocationWithDescDTO
-    status: Literal["get_on", "get_off"]
+    status: Literal["pick_up", "drop_off"]
 
 
 class PutRideIdStatusRequest(BaseModel):

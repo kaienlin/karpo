@@ -12,18 +12,18 @@ class MatchDTO(BaseModel):
     """A match between a passenger's request and a ride provided by a driver"""
 
     ride_id: uuid.UUID
-    get_on_time: datetime.datetime
-    get_off_time: datetime.datetime
-    get_on_location: LocationWithDescDTO
-    get_off_location: LocationWithDescDTO
-    distance_to_get_on_location: NonNegativeFloat
-    distance_to_get_off_location: NonNegativeFloat
+    pick_up_time: datetime.datetime
+    drop_off_time: datetime.datetime
+    pick_up_location: LocationWithDescDTO
+    drop_off_location: LocationWithDescDTO
+    passenger_pick_up_distance: NonNegativeFloat
+    passenger_drop_off_distance: NonNegativeFloat
     driver_origin: LocationWithDescDTO
     driver_destination: LocationWithDescDTO
     num_available_seat: PositiveInt
     other_passengers: List[uuid.UUID]
     driver_info: UserRead
-    cost: NonNegativeInt
+    fare: NonNegativeInt
     driver_route: RouteDTO
     status: Literal["unasked", "pending", "accepted"]
     join_id: Optional[uuid.UUID] = None
@@ -33,7 +33,7 @@ class PostRequestsRequest(BaseModel):
     time: datetime.datetime
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
-    num_people: PositiveInt
+    num_passengers: PositiveInt
 
 
 class PostRequestsResponse(BaseModel):

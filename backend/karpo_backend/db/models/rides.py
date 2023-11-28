@@ -32,7 +32,7 @@ class RidesModel(Base):
         ARRAY(DateTime(timezone=True)),
     )
     departure_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
-    num_people: Mapped[int]
+    num_seats: Mapped[int]
     phase: Mapped[int]
     schedule = mapped_column(ARRAY(String))
     driver_position = mapped_column(

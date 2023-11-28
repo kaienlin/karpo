@@ -36,7 +36,7 @@ async def post_requests(
     + **origin_description**: any description e.g. address, place id.
     + **destination**: the coordinate where the passenger wants to go.
     + **destination_description**: any description e.g. address, place id.
-    + **num_people**: number of people who want a ride.
+    + **num_passengers**: number of people who want a ride.
 
     #### Response:
     + **request_id**
@@ -46,7 +46,7 @@ async def post_requests(
         user_id=user.id,
         origin=req.origin,
         destination=req.destination,
-        num_people=req.num_people,
+        num_passengers=req.num_passengers,
         start_time=req.time,
     )
     return PostRequestsResponse(request_id=request_id, matches=[])
@@ -86,7 +86,7 @@ async def get_request_id(
             latitude=destination.y,
             description=request.destination_description,
         ),
-        num_people=request.num_people,
+        num_passengers=request.num_passengers,
         is_active=request.is_active,
         create_time=request.created_at,
     )
