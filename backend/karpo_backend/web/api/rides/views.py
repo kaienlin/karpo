@@ -10,15 +10,13 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     GetRideJoinsResponse,
     GetRideMessagesResponse,
     GetRideSavedRidesResponse,
+    PatchRideIdStatusRequest,
     PostCommentsRequest,
     PostRideIdJoinsRequest,
     PostRideIdJoinsResponse,
     PostRideMessagesRequest,
     PostRidesRequest,
     PostRidesResponse,
-    PutRideIdPositionRequest,
-    PutRideIdStatusRequest,
-    PutRideIdStatusResponse,
 )
 
 router = APIRouter()
@@ -135,31 +133,23 @@ async def put_ride_id_joins_join_id_accept(
     raise NotImplementedError("QQ")
 
 
-@router.put("/{ride_id}/depart", tags=["driver"])
-async def put_ride_id_depart(ride_id: uuid.UUID) -> None:
-    """Update the ride status to departure"""
-    raise NotImplementedError("QQ")
-
-
-@router.put(
-    "/{ride_id}/status",
-    response_model=PutRideIdStatusResponse,
-    tags=["driver"],
-)
-async def put_ride_id_status(
+@router.patch("/{ride_id}/status", tags=["driver"])
+async def patch_ride_id_status(
     ride_id: uuid.UUID,
-    req: PutRideIdStatusRequest,
-) -> PutRideIdStatusResponse:
-    """Update the next stopover specifed by `ride_id`."""
-    raise NotImplementedError("QQ")
-
-
-@router.put("/{ride_id}/position", tags=["driver"])
-async def put_ride_id_position(
-    ride_id: uuid.UUID,
-    req: PutRideIdPositionRequest,
+    req: PatchRideIdStatusRequest,
 ) -> None:
-    """Update the driver's current position specified by `ride_id`."""
+    """
+    Update the driver's status (position, phase).
+
+    #### Request Body:
+    + **position**: the driver's current position.
+    + **phase**: a phase index on the schedule(/rides/{ride_id}/schedule).
+
+    #### Example values for `phase`:
+    + -1: not yet departed.
+    + 0: pick up first passenger, i.e. depart.
+    + len(schedule): arrive driver's destination.
+    """
     raise NotImplementedError("QQ")
 
 
