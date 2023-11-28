@@ -133,6 +133,15 @@ async def put_ride_id_joins_join_id_accept(
     raise NotImplementedError("QQ")
 
 
+@router.put("/{ride_id}/joins/{join_id}/reject", tags=["driver"])
+async def put_ride_id_joins_join_id_reject(
+    ride_id: uuid.UUID,
+    join_id: uuid.UUID,
+) -> None:
+    """Reject a join request specified by `join_id` and `ride_id`"""
+    raise NotImplementedError("QQ")
+
+
 @router.patch("/{ride_id}/status", tags=["driver"])
 async def patch_ride_id_status(
     ride_id: uuid.UUID,
