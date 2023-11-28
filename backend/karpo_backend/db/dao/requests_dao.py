@@ -22,7 +22,7 @@ class RequestsDAO:
         user_id: uuid.UUID,
         origin: LocationWithDescDTO,
         destination: LocationWithDescDTO,
-        num_people: int,
+        num_passengers: int,
         start_time: datetime.datetime,
         is_active: bool = True,
     ) -> uuid.UUID:
@@ -32,7 +32,7 @@ class RequestsDAO:
             destination=f"POINT({destination.longitude} {destination.latitude})",
             origin_description=origin.description,
             destination_description=destination.description,
-            num_people=num_people,
+            num_passengers=num_passengers,
             start_time=start_time,
             is_active=is_active,
         )

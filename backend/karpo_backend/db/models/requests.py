@@ -26,7 +26,7 @@ class RequestsModel(Base):
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
     destination_description: Mapped[Optional[str]]
-    num_people: Mapped[int]
+    num_passengers: Mapped[int]
     start_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool]
     created_at: Mapped[datetime.datetime] = mapped_column(
