@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
@@ -89,16 +89,9 @@ class StopoverDTO(BaseModel):
     status: Literal["pick_up", "drop_off"]
 
 
-class PutRideIdStatusRequest(BaseModel):
-    next_stopover_index: NonNegativeInt
-
-
-class PutRideIdStatusResponse(BaseModel):
-    next_stopover: StopoverDTO
-
-
-class PutRideIdPositionRequest(BaseModel):
+class PatchRideIdStatusRequest(BaseModel):
     position: LocationDTO
+    phase: Optional[int] = None
 
 
 class GetRideIdScheduleResponse(BaseModel):
