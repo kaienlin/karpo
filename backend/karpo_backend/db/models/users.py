@@ -54,7 +54,7 @@ class UserCreate(schemas.BaseUserCreate):
 class UserUpdate(schemas.BaseUserUpdate):
     """Represents an update command for a user."""
 
-    name: str
+    name: Optional[str] = None
     phone_number: Optional[str] = None
     avatar: Optional[Base64Str] = None
 
