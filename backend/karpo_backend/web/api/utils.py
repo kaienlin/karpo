@@ -9,7 +9,7 @@ class LocationDTO(BaseModel):
 
 
 class LocationWithDescDTO(LocationDTO):
-    description: Optional[str]
+    description: Optional[str] = None
 
 
 class RouteDTO(BaseModel):
