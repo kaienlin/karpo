@@ -5,6 +5,7 @@ from fastapi import APIRouter
 
 from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     GetRideIdJoinIdStatusResponse,
+    GetRideIdResponse,
     GetRideIdScheduleResponse,
     GetRideIdStatusResponse,
     GetRideJoinsResponse,
@@ -90,6 +91,12 @@ async def post_rides(
     req: PostRidesRequest,
 ) -> PostRidesResponse:
     """司機發起行程."""
+    raise NotImplementedError("QQ")
+
+
+@router.get("/{ride_id}", tags=["driver", "passenger"])
+async def get_ride_id(ride_id: uuid.UUID) -> GetRideIdResponse:
+    """Get the ride specified by `ride_id`."""
     raise NotImplementedError("QQ")
 
 

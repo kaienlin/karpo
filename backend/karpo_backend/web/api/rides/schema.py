@@ -39,6 +39,10 @@ class RideDTO(BaseModel):
     route: RouteDTO
 
 
+class GetRideIdResponse(BaseModel):
+    ride: RideDTO
+
+
 class JoinDTO(BaseModel):
     join_id: uuid.UUID
     passenger_id: uuid.UUID
