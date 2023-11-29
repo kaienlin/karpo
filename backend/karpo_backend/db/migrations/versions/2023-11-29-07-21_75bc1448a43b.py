@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: cfd2c66ccacb
+Revision ID: 75bc1448a43b
 Revises: 2b7380507a71
-Create Date: 2023-11-26 12:26:31.708519
+Create Date: 2023-11-29 07:21:52.518553
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "cfd2c66ccacb"
+revision = "75bc1448a43b"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -54,6 +54,7 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
+        sa.Column("origin_description", sa.String(), nullable=True),
         sa.Column(
             "destination",
             Geography(
@@ -66,9 +67,8 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("origin_description", sa.String(length=320), nullable=True),
-        sa.Column("destination_description", sa.String(length=320), nullable=True),
-        sa.Column("num_people", sa.Integer(), nullable=False),
+        sa.Column("destination_description", sa.String(), nullable=True),
+        sa.Column("num_passengers", sa.Integer(), nullable=False),
         sa.Column("start_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column(
@@ -101,6 +101,7 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
+        sa.Column("origin_description", sa.String(), nullable=False),
         sa.Column(
             "destination",
             Geography(
@@ -113,8 +114,7 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("origin_description", sa.String(length=320), nullable=False),
-        sa.Column("destination_description", sa.String(length=320), nullable=False),
+        sa.Column("destination_description", sa.String(), nullable=False),
         sa.Column(
             "route",
             Geography(
@@ -143,7 +143,7 @@ def upgrade() -> None:
             ),
             nullable=True,
         ),
-        sa.Column("num_people", sa.Integer(), nullable=False),
+        sa.Column("num_seats", sa.Integer(), nullable=False),
         sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("last_update_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
@@ -163,14 +163,14 @@ def upgrade() -> None:
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("request_id", sa.Uuid(), nullable=False),
         sa.Column("ride_id", sa.Uuid(), nullable=False),
-        sa.Column("cost", sa.Integer(), nullable=False),
+        sa.Column("fare", sa.Integer(), nullable=False),
         sa.Column(
             "status",
             sa.Enum("pending", "rejected", "accepted", native_enum=False),
             nullable=False,
         ),
         sa.Column(
-            "get_on_location",
+            "pick_up_location",
             Geography(
                 geometry_type="POINT",
                 srid=4326,
@@ -181,8 +181,9 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
+        sa.Column("pick_up_location_description", sa.String(), nullable=False),
         sa.Column(
-            "get_off_location",
+            "drop_off_location",
             Geography(
                 geometry_type="POINT",
                 srid=4326,
@@ -193,8 +194,9 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("get_on_time", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("get_off_time", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("drop_off_location_description", sa.String(), nullable=False),
+        sa.Column("pick_up_time", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("drop_off_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "progress",
             sa.Enum("waiting", "onboard", "fulfilled", native_enum=False),
