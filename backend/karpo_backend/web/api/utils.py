@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -14,3 +15,4 @@ class LocationWithDescDTO(LocationDTO):
 
 class RouteDTO(BaseModel):
     route: List[LocationDTO]
+    timestamps: List[datetime.datetime]
