@@ -109,6 +109,7 @@ async def get_request_id_matches(
     + **limit**: control how many matches in the response.
 
     #### Response (an element in the list):
+    + **proximity**: the lower the better.
     + **join_id**: the join_id of a sent join request, null if `status` is "unasked".
     """
     raise NotImplementedError("QQ")

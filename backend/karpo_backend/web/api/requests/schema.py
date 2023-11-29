@@ -16,8 +16,8 @@ class MatchDTO(BaseModel):
     drop_off_time: datetime.datetime
     pick_up_location: LocationWithDescDTO
     drop_off_location: LocationWithDescDTO
-    passenger_pick_up_distance: NonNegativeFloat
-    passenger_drop_off_distance: NonNegativeFloat
+    pick_up_distance: NonNegativeFloat
+    drop_off_distance: NonNegativeFloat
     driver_origin: LocationWithDescDTO
     driver_destination: LocationWithDescDTO
     num_available_seat: PositiveInt
@@ -25,6 +25,7 @@ class MatchDTO(BaseModel):
     driver_info: UserInfoForOthersDTO
     fare: NonNegativeInt
     driver_route: RouteDTO
+    proximity: float
     status: Literal["unasked", "pending", "accepted"]
     join_id: Optional[uuid.UUID] = None
 
