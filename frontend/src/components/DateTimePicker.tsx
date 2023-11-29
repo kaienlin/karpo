@@ -27,7 +27,7 @@ export default function DateTimePicker({
         display="spinner"
         minuteInterval={5}
         locale="zh-TW"
-        minimumDate={new Date()}
+        minimumDate={roundedDate}
       />
     </View>
   )
