@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter
 
@@ -18,6 +19,7 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     PostRideMessagesRequest,
     PostRidesRequest,
     PostRidesResponse,
+    PutRideIdJoinsJoinIdStatusRequest,
 )
 
 router = APIRouter()
@@ -121,31 +123,31 @@ async def get_saved_rides(
 
 
 @router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse, tags=["driver"])
-async def get_ride_joins(
-    ride_id: uuid.UUID,
+async def get_ride_id_joins(
+    ride_id: uuid.UUID, status: Literal["pending", "accepted", "rejected", "all"]
 ) -> GetRideJoinsResponse:
-    """得到發起邀請的乘客的訊息
+    """
+    Get matches for the request specified `request_id`.
 
-    :param ride_id: id of ride.
+    #### Query parameters:
+    + **ride_id**: ride want to query.
+    + **status**: which status of joins want to get.
+
     """
     raise NotImplementedError("QQ")
 
 
-@router.put("/{ride_id}/joins/{join_id}/accept", tags=["driver"])
-async def put_ride_id_joins_join_id_accept(
+@router.put("/{ride_id}/joins/{join_id}/status", tags=["driver"])
+async def put_ride_id_joins_join_id_status(
     ride_id: uuid.UUID,
     join_id: uuid.UUID,
+    req: PutRideIdJoinsJoinIdStatusRequest,
 ) -> None:
-    """Accept a join request specified by `join_id` and `ride_id`"""
-    raise NotImplementedError("QQ")
+    """Accept or Reject a join request specified by `join_id` and `ride_id`
 
-
-@router.put("/{ride_id}/joins/{join_id}/reject", tags=["driver"])
-async def put_ride_id_joins_join_id_reject(
-    ride_id: uuid.UUID,
-    join_id: uuid.UUID,
-) -> None:
-    """Reject a join request specified by `join_id` and `ride_id`"""
+    #### Request Body:
+    + **action**: action to do.
+    """
     raise NotImplementedError("QQ")
 
 

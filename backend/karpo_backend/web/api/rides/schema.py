@@ -100,5 +100,9 @@ class PatchRideIdStatusRequest(BaseModel):
     phase: Optional[int] = None
 
 
+class PutRideIdJoinsJoinIdStatusRequest(BaseModel):
+    action: Literal["reject", "accept"]
+
+
 class GetRideIdScheduleResponse(BaseModel):
     schedule: List[StopoverDTO]
