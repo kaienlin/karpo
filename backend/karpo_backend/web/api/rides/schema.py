@@ -103,6 +103,10 @@ class PatchRideIdStatusRequest(BaseModel):
 class PutRideIdJoinsJoinIdStatusRequest(BaseModel):
     action: Literal["reject", "accept"]
 
+<<<<<<< Updated upstream
 
+=======
+    
+>>>>>>> Stashed changes
 class GetRideIdScheduleResponse(BaseModel):
     schedule: List[StopoverDTO]
