@@ -4,10 +4,11 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Depends
+from shapely import LineString, Point, wkb
 
-from karpo_backend.db.dao.requests_dao import RequestsDAO
 from karpo_backend.db.dao.joins_dao import JoinsDAO
-# from karpo_backend.db.dao.rides_dao import RidesDAO
+from karpo_backend.db.dao.requests_dao import RequestsDAO
+from karpo_backend.db.dao.rides_dao import RidesDAO
 from karpo_backend.db.models.users import User, current_active_user  # type: ignore
 from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     GetRideIdJoinIdStatusResponse,
@@ -25,10 +26,138 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     PostRidesRequest,
     PostRidesResponse,
     PutRideIdJoinsJoinIdStatusRequest,
+    RideDTO,
 )
+from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
 router = APIRouter()
 
+## TODO
+@router.get(
+    "/{ride_id}/status",
+    responses={404: {"description": "nonexistent ride_id or wrong permissions"}},
+    tags=["passenger"],
+)
+async def get_ride_id_status(ride_id: uuid.UUID) -> GetRideIdStatusResponse:
+    """Get the dynamic status (location, phase) of a ride."""
+    raise NotImplementedError("QQ")
+
+
+@router.post("/", response_model=PostRidesResponse, tags=["driver"])
+async def post_rides(
+    req: PostRidesRequest,
+    rides_dao: RidesDAO = Depends(),
+    user: User = Depends(current_active_user),
+) -> PostRidesResponse:
+    """
+    司機發起行程.
+    route_with_time.route需要至少2個點
+    """
+    ride_id = await rides_dao.create_ride_model(
+        user_id=user.id,
+        origin=req.ride.origin,
+        destination=req.ride.destination,
+        route=req.ride.route_with_time.route,
+        route_timestamps=req.ride.route_with_time.timestamps,
+        departure_time=req.ride.departure_time,
+        num_seats=req.ride.num_seats,
+        driver_position=req.ride.driver_position,
+        last_update_time=req.ride.last_update_time,
+    )
+    return PostRidesResponse(ride_id=ride_id)
+
+
+@router.get("/{ride_id}", tags=["driver", "passenger"])
+async def get_ride_id(
+    ride_id: uuid.UUID,
+    rides_dao: RidesDAO = Depends(),
+) -> GetRideIdResponse:
+    """Get the ride specified by `ride_id`."""
+    ride = await rides_dao.get_ride_model_by_id(ride_id)
+    if ride is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    origin: Point = wkb.loads(bytes(ride.origin.data))
+    destination: Point = wkb.loads(bytes(ride.destination.data))
+    route: LineString = wkb.loads(bytes(ride.route.data))
+    driver_position: Point = wkb.loads(bytes(ride.driver_position.data))
+
+    return GetRideIdResponse(
+        ride=RideDTO(
+            origin=LocationWithDescDTO(
+                longitude=origin.x,
+                latitude=origin.y,
+                description=ride.origin_description,
+            ),
+            destination=LocationWithDescDTO(
+                longitude=destination.x,
+                latitude=destination.y,
+                description=ride.destination_description,
+            ),
+            route_with_time=RouteDTO(
+                route=list(route.coords),
+                timestamps=ride.route_timestamps,
+            ),
+            num_seats=ride.num_seats,
+            schedule=ride.schedule,
+            driver_position=LocationDTO(
+                longitude=destination.x,
+                latitude=destination.y,
+            ),
+            departure_time=ride.departure_time,
+            last_update_time=ride.last_update_time,
+            phase=ride.phase,
+        )
+    )
+
+
+## TODO
+@router.get("/saved_rides", response_model=GetRideSavedRidesResponse, tags=["driver"])
+async def get_saved_rides(
+    driver_id: uuid.UUID,
+) -> GetRideSavedRidesResponse:
+    """取得過去行程
+
+    :param driver_id: id of driver.
+    """
+    raise NotImplementedError("QQ")
+
+
+## TODO
+@router.patch("/{ride_id}/status", tags=["driver"])
+async def patch_ride_id_status(
+    ride_id: uuid.UUID,
+    req: PatchRideIdStatusRequest,
+) -> None:
+    """
+    Update the driver's status (position, phase).
+
+    #### Request Body:
+    + **position**: the driver's current position.
+    + **phase**: a phase index on the schedule(/rides/{ride_id}/schedule).
+
+    #### Example values for `phase`:
+    + -1: not yet departed.
+    + 0: pick up first passenger, i.e. depart.
+    + len(schedule): arrive driver's destination.
+    """
+    raise NotImplementedError("QQ")
+
+
+## TODO
+@router.get(
+    "/{ride_id}/schedule",
+    response_model=GetRideIdScheduleResponse,
+    tags=["driver", "passenger"],
+)
+async def get_ride_id_schedule(ride_id: uuid.UUID) -> GetRideIdScheduleResponse:
+    """Get a list of stopovers and current position specified by `ride_id`."""
+    raise NotImplementedError("QQ")
+
+
+"""
+Other part
+"""
 # to be implemented (add joins entry)
 @router.post(
     "/{ride_id}/joins",
@@ -61,7 +190,6 @@ async def post_ride_id_joins(
 
     if request.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
-        
 
     join_id = await joins_dao.create_join_model(
         user_id=user.id,
@@ -69,6 +197,7 @@ async def post_ride_id_joins(
         request_id=req.request_id,
     )
     return PostRideIdJoinsResponse(join_id=join_id)
+
 
 # to be implemented (get join id status)
 @router.get(
@@ -82,7 +211,7 @@ async def get_ride_id_join_id_status(
     ride_id: uuid.UUID,
     join_id: uuid.UUID,
     joins_dao: JoinsDAO = Depends(),
-    requests_dao: RequestsDAO = Depends(), # can add user_id to joins table ??
+    requests_dao: RequestsDAO = Depends(),  # can add user_id to joins table ??
     user: User = Depends(current_active_user),
 ) -> GetRideIdJoinIdStatusResponse:
     """Get the status of a join request."""
@@ -93,18 +222,8 @@ async def get_ride_id_join_id_status(
     request = requests_dao.get_requests_model_by_id(join.request_id)
     if request.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
-    
+
     return GetRideIdJoinIdStatusResponse(driver_response=join.status)
-
-
-@router.get(
-    "/{ride_id}/status",
-    responses={404: {"description": "nonexistent ride_id or wrong permissions"}},
-    tags=["passenger"],
-)
-async def get_ride_id_status(ride_id: uuid.UUID) -> GetRideIdStatusResponse:
-    """Get the dynamic status (location, phase) of a ride."""
-    raise NotImplementedError("QQ")
 
 
 @router.get(
@@ -133,17 +252,18 @@ async def post_chatroom_messages(
     raise NotImplementedError("QQ")
 
 
-@router.post("/", response_model=PostRidesResponse, tags=["driver"])
-async def post_rides(
-    req: PostRidesRequest,
-) -> PostRidesResponse:
-    """司機發起行程."""
-    raise NotImplementedError("QQ")
+@router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse, tags=["driver"])
+async def get_ride_id_joins(
+    ride_id: uuid.UUID, status: Literal["pending", "accepted", "rejected", "all"]
+) -> GetRideJoinsResponse:
+    """
+    Get matches for the request specified `request_id`.
 
+    #### Query parameters:
+    + **ride_id**: ride want to query.
+    + **status**: which status of joins want to get.
+    """
 
-@router.get("/{ride_id}", tags=["driver", "passenger"])
-async def get_ride_id(ride_id: uuid.UUID) -> GetRideIdResponse:
-    """Get the ride specified by `ride_id`."""
     raise NotImplementedError("QQ")
 
 
@@ -155,32 +275,6 @@ async def post_comments(
     """對參與該行程的用戶添加評論"""
     raise NotImplementedError("QQ")
 
-
-@router.get("/saved_rides", response_model=GetRideSavedRidesResponse, tags=["driver"])
-async def get_saved_rides(
-    driver_id: uuid.UUID,
-) -> GetRideSavedRidesResponse:
-    """取得過去行程
-
-    :param driver_id: id of driver.
-    """
-    raise NotImplementedError("QQ")
-
-
-@router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse, tags=["driver"])
-async def get_ride_id_joins(
-    ride_id: uuid.UUID,
-    status: Literal["pending", "accepted", "rejected", "all"]
-) -> GetRideJoinsResponse:
-    """
-    Get matches for the request specified `request_id`.
-
-    #### Query parameters:
-    + **ride_id**: ride want to query.
-    + **status**: which status of joins want to get.
-    """
-    
-    raise NotImplementedError("QQ")
 
 # to be implemented (update join status)
 @router.put("/{ride_id}/joins/{join_id}/status", tags=["driver"])
@@ -194,7 +288,7 @@ async def put_ride_id_joins_join_id_status(
 ) -> None:
     """
     Accept or reject a join request specified by `join_id` and `ride_id`.
-    
+
     #### Request Body:
     + **action**: `"reject"` or `"accept"`.
     """
@@ -204,7 +298,7 @@ async def put_ride_id_joins_join_id_status(
     #     raise HTTPException(status_code=404, detail="Item not found")
     # if ride.user_id != user.id:
     #     raise HTTPException(status_code=403, detail="Permission denied")
-    
+
     # Todo: need to check if there is a vacant seat
 
     join = joins_dao.get_joins_model_by_id(join_id)
@@ -212,7 +306,7 @@ async def put_ride_id_joins_join_id_status(
         raise HTTPException(status_code=404, detail="Item not found")
     if join.ride_id != ride_id:
         raise HTTPException(status_code=403, detail="Permission denied")
-    
+
     joins_dao.put_joins_model_by_id(join_id, req.action)
 
 
@@ -233,33 +327,3 @@ async def put_ride_id_joins_join_id_status(
 # ) -> None:
 #     """Reject a join request specified by `join_id` and `ride_id`"""
 #     raise NotImplementedError("QQ")
-
-
-@router.patch("/{ride_id}/status", tags=["driver"])
-async def patch_ride_id_status(
-    ride_id: uuid.UUID,
-    req: PatchRideIdStatusRequest,
-) -> None:
-    """
-    Update the driver's status (position, phase).
-
-    #### Request Body:
-    + **position**: the driver's current position.
-    + **phase**: a phase index on the schedule(/rides/{ride_id}/schedule).
-
-    #### Example values for `phase`:
-    + -1: not yet departed.
-    + 0: pick up first passenger, i.e. depart.
-    + len(schedule): arrive driver's destination.
-    """
-    raise NotImplementedError("QQ")
-
-
-@router.get(
-    "/{ride_id}/schedule",
-    response_model=GetRideIdScheduleResponse,
-    tags=["driver", "passenger"],
-)
-async def get_ride_id_schedule(ride_id: uuid.UUID) -> GetRideIdScheduleResponse:
-    """Get a list of stopovers and current position specified by `ride_id`."""
-    raise NotImplementedError("QQ")

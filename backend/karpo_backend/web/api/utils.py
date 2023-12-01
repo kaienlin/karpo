@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -14,5 +14,5 @@ class LocationWithDescDTO(LocationDTO):
 
 
 class RouteDTO(BaseModel):
-    route: List[LocationDTO]
+    route: List[Tuple[float, float]]
     timestamps: List[datetime.datetime]

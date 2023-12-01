@@ -32,11 +32,15 @@ class ChatRecordDTO(BaseModel):
 
 
 class RideDTO(BaseModel):
-    time: datetime.datetime
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
+    route_with_time: RouteDTO
+    departure_time: datetime.datetime
     num_seats: int
-    route: RouteDTO
+    schedule: list[str]
+    driver_position: LocationDTO
+    last_update_time: datetime.datetime
+    phase: int = -1
 
 
 class GetRideIdResponse(BaseModel):
@@ -102,6 +106,7 @@ class PatchRideIdStatusRequest(BaseModel):
 
 class PutRideIdJoinsJoinIdStatusRequest(BaseModel):
     action: Literal["reject", "accept"]
+
 
 class GetRideIdScheduleResponse(BaseModel):
     schedule: List[StopoverDTO]
