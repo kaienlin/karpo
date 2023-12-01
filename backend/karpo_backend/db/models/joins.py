@@ -19,6 +19,8 @@ class JoinsModel(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     request_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("requests.id"))
     ride_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rides.id"))
+    request_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    ride_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     fare: Mapped[int]
     status: Mapped[Literal["pending", "rejected", "accepted"]]
     pick_up_location: Mapped[WKBElement] = mapped_column(
