@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useForm } from 'react-hook-form'
 import MapView, { Polyline } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import { decode as decodePolyline } from '@mapbox/polyline'
+import { skipToken } from '@reduxjs/toolkit/query'
 import {
   Button,
   Icon,
@@ -13,7 +13,9 @@ import {
   type IconProps
 } from '@ui-kitten/components'
 
-import { MapsAPI } from '~/services/maps'
+import { useCurrentLocation } from '~/hooks/useCurrentLocation'
+import { useCreateRideMutation } from '~/redux/driver'
+import { useGetRouteQuery } from '~/redux/maps'
 import { type DriverPlanRideScreenProps } from '~/types/screens'
 
 import PlanPanel, { emptyWaypoint } from './PlanPanel'
@@ -26,9 +28,11 @@ interface RidePlan {
   waypoints: Waypoint[]
 }
 
+const isValidWaypoints = (waypoints: Waypoint[]) =>
+  waypoints.every((waypoint) => waypoint.latitude !== null && waypoint.longitude !== null)
+
 export default function DriverPlanRideScreen({ navigation }: DriverPlanRideScreenProps) {
   const mapRef = useRef<MapView>(null)
-
   const { control, watch, handleSubmit } = useForm<RidePlan>({
     defaultValues: {
       time: null,
@@ -39,39 +43,20 @@ export default function DriverPlanRideScreen({ navigation }: DriverPlanRideScree
 
   const waypoints = watch('waypoints')
 
-  const [rideRoute, setRideRoute] = useState<string | null>(null)
-  const rideRouteCoordinates = useMemo(
-    () =>
-      rideRoute === null
-        ? []
-        : decodePolyline(rideRoute).map(([lat, lng]: number[]) => ({
-            latitude: lat,
-            longitude: lng
-          })),
-    [rideRoute]
-  )
+  const currentLocation = useCurrentLocation()
+  const [createRide] = useCreateRideMutation()
+  const { data: rideRoute } = useGetRouteQuery(isValidWaypoints(waypoints) ? waypoints : skipToken)
 
   useEffect(() => {
-    for (let i = 0; i < waypoints.length; i++) {
-      if (waypoints[i].latitude === null) {
-        return
-      }
+    if (rideRoute) {
+      mapRef.current?.fitToCoordinates(rideRoute, {
+        edgePadding: { top: 50, right: 50, left: 50, bottom: 100 }
+      })
     }
-
-    void (async () => {
-      const { polyline } = await MapsAPI.getRoute(waypoints)
-      setRideRoute(polyline)
-    })()
-  }, [waypoints])
-
-  useEffect(() => {
-    mapRef.current?.fitToCoordinates(rideRouteCoordinates, {
-      edgePadding: { top: 50, right: 50, left: 50, bottom: 100 }
-    })
-  }, [rideRouteCoordinates])
+  }, [rideRoute])
 
   const onSubmit = async (data: RidePlan) => {
-    // TODO:
+    await createRide(data)
     navigation.navigate('DriverSelectJoinScreen')
   }
 
@@ -91,18 +76,19 @@ export default function DriverPlanRideScreen({ navigation }: DriverPlanRideScree
           )}
         />
         <PlanPanel control={control} />
-        <MapView
-          ref={mapRef}
-          style={{ flex: 1, width: '100%', height: '100%' }}
-          provider="google"
-          showsUserLocation={true}
-        >
-          {rideRouteCoordinates !== null && (
-            <Polyline coordinates={rideRouteCoordinates} strokeWidth={5} />
-          )}
-        </MapView>
+        {currentLocation && (
+          <MapView
+            ref={mapRef}
+            style={{ flex: 1, width: '100%', height: '100%' }}
+            provider="google"
+            showsUserLocation={true}
+            initialRegion={{ ...currentLocation, latitudeDelta: 0.002, longitudeDelta: 0.005 }}
+          >
+            {rideRoute !== null && <Polyline coordinates={rideRoute} strokeWidth={5} />}
+          </MapView>
+        )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
+          <Button onPress={() => onSubmit({})} size="large" style={{ borderRadius: 12 }}>
             發布行程
           </Button>
         </View>

@@ -9,7 +9,8 @@ interface Viewport {
 }
 
 interface Waypoint extends LatLng {
-  title: string
+  description?: string
+  title?: string // @deprecated
   latitude: number | null
   longitude: number | null
 }
