@@ -29,7 +29,7 @@ class RidesDAO:
         driver_position: LocationWithDescDTO,
         last_update_time: datetime.datetime,
         schedule: List[str] = [],
-        phase: int = -1,
+        phase: int = -2,
     ) -> uuid.UUID:
         route_str = "LINESTRING("
         for route_point in route:

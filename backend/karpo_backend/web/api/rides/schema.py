@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
@@ -22,7 +22,13 @@ class GetRideIdJoinIdStatusResponse(BaseModel):
 
 class GetRideIdStatusResponse(BaseModel):
     driver_position: LocationDTO
-    driver_phase: NonNegativeInt
+    driver_phase: int
+
+
+class PatchRideIdStatusRequest(BaseModel):
+    position: LocationDTO
+    phase: Optional[int] = None
+    update_time: datetime.datetime
 
 
 class ChatRecordDTO(BaseModel):
@@ -37,10 +43,6 @@ class RideDTO(BaseModel):
     route_with_time: RouteDTO
     departure_time: datetime.datetime
     num_seats: int
-    schedule: list[str]
-    driver_position: LocationDTO
-    last_update_time: datetime.datetime
-    phase: int = -1
 
 
 class GetRideIdResponse(BaseModel):
@@ -69,7 +71,12 @@ class PostRideMessagesRequest(BaseModel):
 
 
 class PostRidesRequest(BaseModel):
-    ride: RideDTO
+    origin: LocationWithDescDTO
+    destination: LocationWithDescDTO
+    route: List[Tuple[float, float]]
+    durations: List[int]
+    departure_time: datetime.datetime
+    num_seats: PositiveInt
 
 
 class PostRidesResponse(BaseModel):
@@ -97,11 +104,6 @@ class StopoverDTO(BaseModel):
     time: datetime.datetime
     location: LocationWithDescDTO
     status: Literal["pick_up", "drop_off"]
-
-
-class PatchRideIdStatusRequest(BaseModel):
-    position: LocationDTO
-    phase: Optional[int] = None
 
 
 class PutRideIdJoinsJoinIdStatusRequest(BaseModel):

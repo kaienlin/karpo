@@ -2,7 +2,7 @@ import datetime
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from shapely import LineString, Point, wkb
 
@@ -51,18 +51,29 @@ async def post_rides(
 ) -> PostRidesResponse:
     """
     司機發起行程.
-    route_with_time.route需要至少2個點
+    `route` 和 `durations` 需要至少2個點
     """
+    if len(req.route) != len(req.durations):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Lengths of route and durations should be equal.",
+        )
+
+    timestamps = []
+    t = req.departure_time
+    for dur in req.durations:
+        t += datetime.timedelta(seconds=dur)
+        timestamps.append(t)
+
     ride_id = await rides_dao.create_ride_model(
         user_id=user.id,
-        origin=req.ride.origin,
-        destination=req.ride.destination,
-        route=req.ride.route_with_time.route,
-        route_timestamps=req.ride.route_with_time.timestamps,
-        departure_time=req.ride.departure_time,
-        num_seats=req.ride.num_seats,
-        driver_position=req.ride.driver_position,
-        last_update_time=req.ride.last_update_time,
+        origin=req.origin,
+        destination=req.destination,
+        route=req.route,
+        route_timestamps=timestamps,
+        departure_time=req.departure_time,
+        num_seats=req.num_seats,
+        last_update_time=datetime.datetime.now(),
     )
     return PostRidesResponse(ride_id=ride_id)
 
