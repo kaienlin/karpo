@@ -7,7 +7,7 @@ from pydantic import Base64Str, BaseModel, Field
 class UserInfoForOthersDTO(BaseModel):
     name: str
     rating: Optional[float] = Field(None, ge=0, le=5.0)
-    avatar: Base64Str
+    avatar: Optional[Base64Str] = None
 
 
 class DriverStateDTO(BaseModel):
