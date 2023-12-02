@@ -10,12 +10,22 @@ ignore =
   WPS305,
   ; docstring
   D,
+  ; Found too short name
+  WPS111,
   ; Found too many arguments
   WPS211,
+  ; Found line with high Jones Complexity
+  WPS221,
+  ; Found function with too much cognitive complexity
+  WPS231,
   ; Found `__init__.py` module with logic
   WPS412,
   ; Found class without a base class
   WPS306,
+  ; Found incorrect multi-line parameters
+  WPS317,
+  ; Found likely bitwise and boolean operation mixup
+  WPS465,
   ; Missing docstring in public nested class
   D106,
   ; First line should be in imperative mood
