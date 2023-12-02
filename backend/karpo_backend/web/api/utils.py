@@ -14,5 +14,5 @@ class LocationWithDescDTO(LocationDTO):
 
 
 class RouteDTO(BaseModel):
-    route: List[Tuple[float, float]]
+    route: List[Tuple[float, float]] = [(0, 0), (0, 1)] # set a default value for fast test
     timestamps: List[datetime.datetime]

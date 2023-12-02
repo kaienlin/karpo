@@ -22,7 +22,7 @@ class GetRideIdJoinIdStatusResponse(BaseModel):
 
 class GetRideIdStatusResponse(BaseModel):
     driver_position: LocationDTO
-    driver_phase: NonNegativeInt
+    phase: int
 
 
 class ChatRecordDTO(BaseModel):
@@ -31,16 +31,19 @@ class ChatRecordDTO(BaseModel):
     time: datetime.datetime
 
 
-class RideDTO(BaseModel):
+class RideOnlySettingDTO(BaseModel):
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
     route_with_time: RouteDTO
     departure_time: datetime.datetime
     num_seats: int
+
+
+class RideDTO(RideOnlySettingDTO):
     schedule: list[str]
     driver_position: LocationDTO
+    phase: int
     last_update_time: datetime.datetime
-    phase: int = -1
 
 
 class GetRideIdResponse(BaseModel):
@@ -83,7 +86,7 @@ class PostCommentsRequest(BaseModel):
 
 
 class GetRideSavedRidesResponse(BaseModel):
-    saved_rides: List[RideDTO]
+    saved_rides: List[RideOnlySettingDTO]
 
 
 class GetRideJoinsResponse(BaseModel):
@@ -100,7 +103,7 @@ class StopoverDTO(BaseModel):
 
 
 class PatchRideIdStatusRequest(BaseModel):
-    position: LocationDTO
+    driver_position: LocationDTO
     phase: Optional[int] = None
 
 
