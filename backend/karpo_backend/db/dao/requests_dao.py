@@ -1,13 +1,17 @@
 import datetime
 import uuid
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from fastapi import Depends
-from sqlalchemy import select
+from geoalchemy2 import Geography
+from geoalchemy2.shape import to_shape  # noqa: WPS347
+from sqlalchemy import func, select, type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.models.requests import RequestsModel
+from karpo_backend.db.models.rides import RidesModel
+from karpo_backend.matching import Match, evaluate_match
 from karpo_backend.web.api.utils import LocationWithDescDTO
 
 
@@ -49,3 +53,49 @@ class RequestsDAO:
         )
 
         return result.one_or_none()
+
+    async def get_request_matches(  # noqa: WPS210
+        self,
+        requests_model: RequestsModel,
+        limit: int,
+    ) -> List[Tuple[RidesModel, Match]]:
+        origin = to_shape(requests_model.origin).wkt
+        destination = to_shape(requests_model.destination).wkt
+        query = (
+            select(RidesModel)
+            .where(
+                (RidesModel.phase < 0)
+                & (RidesModel.num_seats >= requests_model.num_passengers)
+                & (
+                    RidesModel.route_timestamps[
+                        func.array_length(RidesModel.route_timestamps, 1)
+                    ]
+                    > requests_model.start_time
+                ),
+            )
+            .order_by(
+                func.ST_Distance(type_coerce(origin, Geography), RidesModel.route)
+                + func.ST_Distance(
+                    type_coerce(destination, Geography),
+                    RidesModel.route,
+                ),
+            )
+        )
+        candidates = await self.session.scalars(query)
+        results: List[RidesModel] = []
+        for partition in candidates.partitions(size=100):
+            evaled_matches: List[Tuple[RidesModel, Match]] = []
+            for ride in partition:
+                match = evaluate_match(ride, requests_model)
+                if match is not None:
+                    evaled_matches.append((ride, match))
+
+            evaled_matches.sort(key=lambda it: it[1].estimated_travel_time)
+            while evaled_matches and len(results) < limit:
+                results.append(evaled_matches[0])
+                evaled_matches.pop(0)
+
+            if len(results) == limit:
+                break
+
+        return results
