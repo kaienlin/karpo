@@ -22,7 +22,7 @@ class GetRideIdJoinIdStatusResponse(BaseModel):
 
 class GetRideIdStatusResponse(BaseModel):
     driver_position: LocationDTO
-    driver_phase: int
+    phase: int
 
 
 class PatchRideIdStatusRequest(BaseModel):
@@ -89,8 +89,8 @@ class PostCommentsRequest(BaseModel):
     comment: str
 
 
-class GetRideSavedRidesResponse(BaseModel):
-    saved_rides: List[RideDTO]
+# class GetRideSavedRidesResponse(BaseModel):
+#     saved_rides: List[RideOnlySettingDTO]
 
 
 class GetRideJoinsResponse(BaseModel):
