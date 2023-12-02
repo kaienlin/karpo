@@ -27,7 +27,6 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     PostRidesResponse,
     PutRideIdJoinsJoinIdStatusRequest,
     RideDTO,
-    RideOnlySettingDTO,
 )
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
@@ -88,6 +87,7 @@ async def post_rides(
         route_timestamps=timestamps,
         departure_time=req.departure_time,
         num_seats=req.num_seats,
+        driver_position=req.origin,
         last_update_time=datetime.datetime.now(),
     )
     return PostRidesResponse(ride_id=ride_id)
@@ -138,9 +138,9 @@ async def get_ride_id(
 @router.get("/saved_rides/{user_id}", response_model=GetRideSavedRidesResponse, tags=["driver"])
 async def get_saved_rides(
     user_id: uuid.UUID,
+    limit: int = 10,
     rides_dao: RidesDAO = Depends(),
     user: User = Depends(current_active_user),
-    limit: int = 10,
 ) -> GetRideSavedRidesResponse:
     """
     Get past ride records 
@@ -163,7 +163,7 @@ async def get_saved_rides(
         destination: Point = wkb.loads(bytes(ride.destination.data))
         route: LineString = wkb.loads(bytes(ride.route.data))
         driver_position: Point = wkb.loads(bytes(ride.driver_position.data))
-        rideDTO = RideOnlySettingDTO(
+        rideDTO = RideDTO(
             origin=LocationWithDescDTO(
                 longitude=origin.x,
                 latitude=origin.y,
@@ -194,6 +194,8 @@ async def get_saved_rides(
 async def patch_ride_id_status(
     ride_id: uuid.UUID,
     req: PatchRideIdStatusRequest,
+    rides_dao: RidesDAO = Depends(),
+    user: User = Depends(current_active_user),
 ) -> None:
     """
     Update the driver's status (position, phase).
@@ -215,7 +217,7 @@ async def patch_ride_id_status(
     if ride.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
     
-    await rides_dao.put_phase_position_by_id(ride_id=ride_id, driver_position=req.driver_position, phase=req.phase)
+    await rides_dao.put_phase_position_by_id(ride_id=ride_id, driver_position=req.driver_position, phase=req.phase, last_update_time=datetime.datetime.now())
  
 
 

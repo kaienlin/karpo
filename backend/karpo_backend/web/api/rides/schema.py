@@ -26,9 +26,8 @@ class GetRideIdStatusResponse(BaseModel):
 
 
 class PatchRideIdStatusRequest(BaseModel):
-    position: LocationDTO
+    driver_position: LocationDTO
     phase: Optional[int] = None
-    update_time: datetime.datetime
 
 
 class ChatRecordDTO(BaseModel):
@@ -73,8 +72,8 @@ class PostRideMessagesRequest(BaseModel):
 class PostRidesRequest(BaseModel):
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
-    route: List[Tuple[float, float]]
-    durations: List[int]
+    route: List[Tuple[float, float]] = [(0, 0), (0, 1)] # for quick test
+    durations: List[int] = [1, 1] 
     departure_time: datetime.datetime
     num_seats: PositiveInt
 
@@ -89,8 +88,8 @@ class PostCommentsRequest(BaseModel):
     comment: str
 
 
-# class GetRideSavedRidesResponse(BaseModel):
-#     saved_rides: List[RideOnlySettingDTO]
+class GetRideSavedRidesResponse(BaseModel):
+    saved_rides: List[RideDTO]
 
 
 class GetRideJoinsResponse(BaseModel):

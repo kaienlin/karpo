@@ -81,11 +81,14 @@ class RidesDAO:
         ride_id: uuid.UUID,
         phase: int,
         driver_position: LocationWithDescDTO,
+        last_update_time: datetime.datetime
     ) -> None:
         await self.session.execute(
             update(RidesModel)
             .where(RidesModel.id == ride_id)
-            .values(phase=phase, driver_position=f"POINT({driver_position.longitude} {driver_position.latitude})")
+            .values(phase=phase, 
+                    driver_position=f"POINT({driver_position.longitude} {driver_position.latitude})", 
+                    last_update_time=last_update_time)
         )
 
     async def get_phase_position_by_id(
