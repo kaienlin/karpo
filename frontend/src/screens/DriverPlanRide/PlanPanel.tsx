@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
-import { Controller, useFieldArray, type Control } from 'react-hook-form'
+import { useController, useFieldArray, type Control } from 'react-hook-form'
 import { type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { Button, Icon, Input, Text, useTheme, type IconProps } from '@ui-kitten/components'
@@ -12,99 +12,102 @@ import { displayDatetime } from '~/utils/format'
 
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
 
-const InputTime = ({ name = 'time', control }: { name?: string; control: Control<any> }) => {
-  const [tempValue, setTempValue] = useState<Date>(new Date())
+const InputTime = ({ name, control }: { name: string; control: Control<any> }) => {
+  const {
+    field: { onChange, value },
+    fieldState: { invalid }
+  } = useController({
+    name,
+    control,
+    rules: { required: true, validate: (value) => value !== null && value > new Date() }
+  })
+
+  const [tempValue, setTempValue] = useState<Date>(value ?? new Date())
   const modalRef = useRef<BottomSheetModal>(null)
 
   return (
-    <Controller
-      name={name}
-      control={control}
-      rules={{ required: true, validate: (value) => value !== null && value > new Date() }}
-      render={({ field: { onChange, value }, fieldState: { invalid } }) => (
-        <>
+    <>
+      <Button
+        onPress={() => {
+          modalRef.current?.present()
+        }}
+        size="small"
+        appearance={value == null ? 'filled' : 'outline'}
+        status={invalid ? 'danger' : value == null ? 'input' : 'primary'}
+        style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
+        accessoryLeft={(props) => <Icon {...props} name="clock" />}
+        accessoryRight={(props) => (
+          <Icon {...props} name={value == null ? 'arrow-ios-downward' : 'checkmark'} />
+        )}
+      >
+        {value == null ? '立即出發' : `${displayDatetime(value)} 出發`}
+      </Button>
+      <InputModal ref={modalRef} height="55%">
+        <Text category="h5">設定出發時間</Text>
+        <DateTimePicker date={tempValue} setDate={setTempValue} />
+        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
           <Button
+            size="giant"
+            style={{ borderRadius: 100 }}
             onPress={() => {
-              modalRef.current?.present()
+              onChange(tempValue)
+              modalRef.current?.dismiss()
             }}
-            size="small"
-            appearance={value == null ? 'filled' : 'outline'}
-            status={invalid ? 'danger' : value == null ? 'input' : 'primary'}
-            style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
-            accessoryLeft={(props) => <Icon {...props} name="clock" />}
-            accessoryRight={(props) => (
-              <Icon {...props} name={value == null ? 'arrow-ios-downward' : 'checkmark'} />
-            )}
           >
-            {value == null ? '立即出發' : `${displayDatetime(value)} 出發`}
+            確定
           </Button>
-          <InputModal ref={modalRef} height="55%">
-            <Text category="h5">設定出發時間</Text>
-            <DateTimePicker date={tempValue} setDate={setTempValue} />
-            <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-              <Button
-                size="giant"
-                style={{ borderRadius: 100 }}
-                onPress={() => {
-                  onChange(tempValue)
-                  modalRef.current?.dismiss()
-                }}
-              >
-                確定
-              </Button>
-            </View>
-          </InputModal>
-        </>
-      )}
-    />
+        </View>
+      </InputModal>
+    </>
   )
 }
 
-const InputSeats = ({ name = 'numSeats', control }: { name?: string; control: Control<any> }) => {
-  const [tempValue, setTempValue] = useState<number>(0)
+const InputSeats = ({ name, control }: { name: string; control: Control<any> }) => {
+  const {
+    field: { onChange, value },
+    fieldState: { invalid }
+  } = useController({
+    name,
+    control,
+    rules: { required: true, validate: (value) => value > 0 }
+  })
+  const [tempValue, setTempValue] = useState<number>(value ?? 0)
   const modalRef = useRef<BottomSheetModal>(null)
 
   return (
-    <Controller
-      name={name}
-      control={control}
-      rules={{ required: true, validate: (value) => value > 0 }}
-      render={({ field: { onChange, value }, fieldState: { invalid } }) => (
-        <>
+    <>
+      <Button
+        onPress={() => {
+          modalRef.current?.present()
+        }}
+        size="small"
+        appearance={value === 0 ? 'filled' : 'outline'}
+        status={invalid ? 'danger' : value === 0 ? 'input' : 'primary'}
+        style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
+        accessoryLeft={(props) => <Icon {...props} name="person" />}
+        accessoryRight={(props) => (
+          <Icon {...props} name={value === 0 ? 'arrow-ios-downward' : 'checkmark'} />
+        )}
+      >
+        {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
+      </Button>
+      <InputModal ref={modalRef} height="40%">
+        <Text category="h5">可搭載人數</Text>
+        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+          <Counter value={tempValue} onValueChange={setTempValue} />
           <Button
+            size="giant"
+            style={{ borderRadius: 100 }}
             onPress={() => {
-              modalRef.current?.present()
+              onChange(tempValue)
+              modalRef.current?.dismiss()
             }}
-            size="small"
-            appearance={value === 0 ? 'filled' : 'outline'}
-            status={invalid ? 'danger' : value === 0 ? 'input' : 'primary'}
-            style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
-            accessoryLeft={(props) => <Icon {...props} name="person" />}
-            accessoryRight={(props) => (
-              <Icon {...props} name={value === 0 ? 'arrow-ios-downward' : 'checkmark'} />
-            )}
           >
-            {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
+            確定
           </Button>
-          <InputModal ref={modalRef} height="40%">
-            <Text category="h5">可搭載人數</Text>
-            <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-              <Counter value={tempValue} onValueChange={setTempValue} />
-              <Button
-                size="giant"
-                style={{ borderRadius: 100 }}
-                onPress={() => {
-                  onChange(tempValue)
-                  modalRef.current?.dismiss()
-                }}
-              >
-                確定
-              </Button>
-            </View>
-          </InputModal>
-        </>
-      )}
-    />
+        </View>
+      </InputModal>
+    </>
   )
 }
 
@@ -143,7 +146,7 @@ const InputWaypoints = ({
           }}
         >
           <Text category="label" style={{ fontSize: 10, color: 'white' }}>
-            {index === 0 ? 's' : index}
+            {index}
           </Text>
         </View>
       )}
@@ -154,7 +157,7 @@ const InputWaypoints = ({
           placeholder={
             index === 0 ? '上車地點' : waypoints.length === 2 ? '下車地點' : '新增停靠點'
           }
-          value={item.title}
+          value={item.description}
           onFocus={() => {
             onSelect(index)
           }}
@@ -230,7 +233,7 @@ export default function PlanPanel({ control }: { control: Control<any> }) {
   }, [updatedWaypoint])
 
   const handleSelectWaypoint = (index: number) => {
-    navigation.navigate('SelectLocationScreen', {
+    navigation.navigate('SelectWaypointScreen', {
       waypointIndex: index,
       waypoint: waypoints[index]
     })
@@ -252,8 +255,8 @@ export default function PlanPanel({ control }: { control: Control<any> }) {
         contentContainerStyle={{ columnGap: 10 }}
         style={{ paddingBottom: 10 }}
       >
-        <InputTime control={control} />
-        <InputSeats control={control} />
+        <InputTime name="time" control={control} />
+        <InputSeats name="numSeats" control={control} />
       </ScrollView>
       <InputWaypoints
         waypoints={waypoints}

@@ -1,22 +1,17 @@
 /* eslint @typescript-eslint/no-invalid-void-type: 0 */
 
-import { decode as decodePolyline } from '@mapbox/polyline'
-
 import { MapsAPI } from '~/services/maps'
+import { flattenLegs } from '~/utils/maps'
 
 import { apiSlice } from './api'
 
 const mapsSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getRoute: builder.query<LatLng[], Waypoint[]>({
+    getRoute: builder.query<{ route: LatLng[]; durations: string[] }, Waypoint[]>({
       async queryFn(arg) {
         const waypoints = arg
-        const routeResult = await MapsAPI.getRoute(waypoints)
-
-        const result = decodePolyline(routeResult.polyline).map(([lat, lng]: number[]) => ({
-          latitude: lat,
-          longitude: lng
-        }))
+        const { legs } = await MapsAPI.getRoute(waypoints)
+        const result = flattenLegs(legs)
 
         return { data: result }
       }

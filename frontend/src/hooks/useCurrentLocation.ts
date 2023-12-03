@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import * as Location from 'expo-location'
 
 export const useCurrentLocation = () => {
-  const [position, setPosition] = useState<LatLng | null>(null)
+  const [location, setLocation] = useState<LatLng | null>(null)
+  const [isSuccess, setIsSuccess] = useState(false)
+
   useEffect(() => {
     const getCurrentPosition = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync()
@@ -21,11 +23,12 @@ export const useCurrentLocation = () => {
     getCurrentPosition()
       .then((data) => {
         if (data) {
-          setPosition({ latitude: data.coords.latitude, longitude: data.coords.longitude })
+          setLocation({ latitude: data.coords.latitude, longitude: data.coords.longitude })
+          setIsSuccess(true)
         }
       })
       .catch(console.log)
   }, [])
 
-  return position
+  return { location, isSuccess }
 }

@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-invalid-void-type: 0 */
 
-import type { DriverActivity, User } from '~/types/data'
+import type { DriverActivity, SavedRide, User } from '~/types/data'
 
 import { apiSlice } from './api'
 
@@ -28,6 +28,9 @@ const usersSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: profile
       })
+    }),
+    getSavedRides: builder.query<{ savedRides: SavedRide[] }, void>({
+      query: () => `/users/me/saved_rides`
     })
   })
 })
@@ -37,5 +40,6 @@ export const {
   useGetMyProfileQuery,
   useGetUserProfileQuery,
   useUpdateMyProfileMutation,
-  useUpdateUserProfileMutation
+  useUpdateUserProfileMutation,
+  useGetSavedRidesQuery
 } = usersSlice

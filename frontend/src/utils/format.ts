@@ -1,3 +1,8 @@
+export const displayTime = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+}
+
 export const displayDatetime = (date: Date | string, is24Hour: boolean = false) => {
   const today = new Date()
 

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { set } from 'react-hook-form'
 import MapView, { type Details, type Region } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
@@ -16,10 +17,11 @@ import {
   type IconProps,
   type ListItemProps
 } from '@ui-kitten/components'
-import * as Location from 'expo-location'
 
-import { MapsAPI } from '../services/maps'
-import { type SelectLocationScreenProps } from '../types/screens'
+import { useCurrentLocation } from '~/hooks/useCurrentLocation'
+import { MapsAPI } from '~/services/maps'
+import { type SelectWaypointScreenProps } from '~/types/screens'
+import { isValidWaypoint } from '~/utils/maps'
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 const LocIcon = (props: IconProps) => <Icon {...props} name="pin-outline" />
@@ -48,55 +50,35 @@ function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
   )
 }
 
-export default function SelectLocationScreen({ navigation, route }: SelectLocationScreenProps) {
+export default function SelectWaypoint({ navigation, route }: SelectWaypointScreenProps) {
   const { waypointIndex, waypoint: defaultCenter } = route.params
   const routes = useNavigationState((state) => state.routes)
   const prevScreen = routes[routes.length - 2].name
 
   const inputRef = useRef<Input>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
-  const snapPoints = useMemo(() => ['20%', '90%'], [])
 
   const [searchInput, setSearchInput] = useState<string>('')
-  const [center, setCenter] = useState<Region | null>(null)
   const [autocompleteResult, setAutocompleteResult] = useState<AutocompleteItem[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const deltas = { latitudeDelta: 0.002, longitudeDelta: 0.005 }
+  const { location: currentLocation, isSuccess: isCurrentLocationSuccess } = useCurrentLocation()
+  const [center, setCenter] = useState<Region | null>(() => {
+    if (isValidWaypoint(defaultCenter)) {
+      return { ...defaultCenter, ...deltas }
+    }
+    if (isCurrentLocationSuccess) {
+      return { ...currentLocation, ...deltas }
+    }
+    return null
+  })
 
   useEffect(() => {
-    if (defaultCenter.latitude !== null && defaultCenter.longitude !== null) {
-      setSearchInput(defaultCenter.title)
-      setCenter({
-        latitude: defaultCenter.latitude,
-        longitude: defaultCenter.longitude,
-        latitudeDelta: 0.002,
-        longitudeDelta: 0.005
-      })
-    } else {
-      const getCurrentPosition = async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync()
-        if (status !== 'granted') {
-          return
-        }
-
-        const deltas = { latitudeDelta: 0.002, longitudeDelta: 0.005 }
-        const last = await Location.getLastKnownPositionAsync()
-        if (last !== null) {
-          setCenter({
-            latitude: last.coords.latitude,
-            longitude: last.coords.longitude,
-            ...deltas
-          })
-        } else {
-          const current = await Location.getCurrentPositionAsync()
-          setCenter({
-            latitude: current.coords.latitude,
-            longitude: current.coords.longitude,
-            ...deltas
-          })
-        }
-      }
-      getCurrentPosition().catch(console.error)
+    if (isCurrentLocationSuccess) {
+      setCenter({ ...currentLocation, ...deltas })
     }
-  }, [])
+  }, [isCurrentLocationSuccess])
 
   const handleChangeSearchInput = (text: string) => {
     setSearchInput(text)
@@ -106,48 +88,48 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
     })()
   }
 
+  const handleRegionChangeComplete = (region: Region, details: Details) => {
+    if (details.isGesture === true) {
+      void (async () => {
+        const description = await MapsAPI.getPlaceTitle(region)
+        setSearchInput(description)
+      })()
+      setCenter(region)
+    }
+    setIsLoading(false)
+  }
+
+  const confirmWaypoint = (waypoint: Waypoint) => {
+    navigation.navigate({
+      name: prevScreen,
+      params: {
+        updatedWaypoint: {
+          index: waypointIndex,
+          payload: waypoint
+        }
+      },
+      merge: true
+    })
+  }
+
   const handlePressLocationItem = (item: AutocompleteItem) => {
     void (async () => {
       const latlng = await MapsAPI.getPlaceLatLng(item.placeId)
-      navigation.navigate({
-        name: prevScreen,
-        params: {
-          updatedWaypoint: {
-            index: waypointIndex,
-            payload: { title: item.title, ...latlng }
-          }
-        },
-        merge: true
+      confirmWaypoint({
+        description: item.title,
+        latitude: latlng.latitude,
+        longitude: latlng.longitude
       })
     })()
 
     navigation.goBack()
   }
 
-  const handleRegionChangeComplete = (region: Region, details: Details) => {
-    if (details.isGesture === true) {
-      void (async () => {
-        const title = await MapsAPI.getPlaceTitle(region)
-        setSearchInput(title)
-      })()
-      setCenter(region)
-    }
-  }
-
   const handlePressConfirm = () => {
-    navigation.navigate({
-      name: prevScreen,
-      params: {
-        updatedWaypoint: {
-          index: waypointIndex,
-          payload: {
-            title: searchInput,
-            latitude: center?.latitude,
-            longitude: center?.longitude
-          }
-        }
-      },
-      merge: true
+    confirmWaypoint({
+      description: searchInput,
+      latitude: center?.latitude,
+      longitude: center?.longitude
     })
   }
 
@@ -184,7 +166,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
           style={{ flex: 1 }}
           autoFocus={true}
           placeholder="要去哪裡？"
-          accessoryRight={searchInput.length > 0 ? renderClearIcon : undefined}
+          accessoryRight={searchInput?.length > 0 ? renderClearIcon : undefined}
           value={searchInput}
           onChangeText={handleChangeSearchInput}
           onFocus={() => {
@@ -197,7 +179,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
         style={{ zIndex: 1 }}
         index={1}
         topInset={30}
-        snapPoints={snapPoints}
+        snapPoints={['20%', '90%']}
         onChange={(index) => {
           if (index === 1) {
             inputRef.current?.focus()
@@ -231,6 +213,7 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
             provider="google"
             showsUserLocation={true}
             onRegionChange={() => {
+              setIsLoading(true)
               inputRef.current?.blur()
               bottomSheetRef.current?.close()
             }}
@@ -244,9 +227,11 @@ export default function SelectLocationScreen({ navigation, route }: SelectLocati
           <PinIcon style={styles.centerPin} />
         </View>
         <View style={styles.confirmButtonContainer}>
-          <Button size="large" style={styles.confirmButton} onPress={handlePressConfirm}>
-            完成
-          </Button>
+          {!isLoading && (
+            <Button size="large" style={styles.confirmButton} onPress={handlePressConfirm}>
+              完成
+            </Button>
+          )}
         </View>
       </View>
     </SafeAreaView>

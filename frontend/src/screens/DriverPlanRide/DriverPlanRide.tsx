@@ -1,22 +1,26 @@
-import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useForm } from 'react-hook-form'
-import MapView, { Polyline } from 'react-native-maps'
+import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
 import {
   Button,
   Icon,
+  Text,
   TopNavigation,
   TopNavigationAction,
+  useTheme,
   type IconProps
 } from '@ui-kitten/components'
 
+import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
 import { useCreateRideMutation } from '~/redux/driver'
 import { useGetRouteQuery } from '~/redux/maps'
+import { useGetSavedRidesQuery } from '~/redux/users'
 import { type DriverPlanRideScreenProps } from '~/types/screens'
+import { isValidWaypoint, isValidWaypoints } from '~/utils/maps'
 
 import PlanPanel, { emptyWaypoint } from './PlanPanel'
 
@@ -28,32 +32,44 @@ interface RidePlan {
   waypoints: Waypoint[]
 }
 
-const isValidWaypoints = (waypoints: Waypoint[]) =>
-  waypoints.every((waypoint) => waypoint.latitude !== null && waypoint.longitude !== null)
+const defaultValues = {
+  time: null,
+  numSeats: 0,
+  waypoints: [emptyWaypoint, emptyWaypoint]
+}
 
-export default function DriverPlanRideScreen({ navigation }: DriverPlanRideScreenProps) {
-  const mapRef = useRef<MapView>(null)
-  const { control, watch, handleSubmit } = useForm<RidePlan>({
-    defaultValues: {
-      time: null,
-      numSeats: 0,
-      waypoints: [emptyWaypoint, emptyWaypoint]
+export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
+  const theme = useTheme()
+
+  const { savedRideIndex } = route?.params ?? undefined
+  const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
+    selectFromResult: ({ data, ...rest }) => {
+      const ride = data?.savedRides[savedRideIndex]
+      if (!ride) return { data, ...rest }
+
+      const intermediates = ride.intermediates ?? []
+      return {
+        data: {
+          time: new Date(ride.time),
+          numSeats: ride.numSeats,
+          waypoints: [ride.origin, ...intermediates, ride.destination]
+        }
+      }
     }
+  })
+
+  const { control, watch, handleSubmit } = useForm<RidePlan>({
+    defaultValues: savedRide ?? defaultValues
   })
 
   const waypoints = watch('waypoints')
 
-  const currentLocation = useCurrentLocation()
+  const { location: currentLocation } = useCurrentLocation()
   const [createRide] = useCreateRideMutation()
-  const { data: rideRoute } = useGetRouteQuery(isValidWaypoints(waypoints) ? waypoints : skipToken)
-
-  useEffect(() => {
-    if (rideRoute) {
-      mapRef.current?.fitToCoordinates(rideRoute, {
-        edgePadding: { top: 50, right: 50, left: 50, bottom: 100 }
-      })
-    }
-  }, [rideRoute])
+  const { data: rideRoute } = useGetRouteQuery(
+    isValidWaypoints(waypoints) ? waypoints : skipToken,
+    { selectFromResult: ({ data }) => ({ data: data?.route }) }
+  )
 
   const onSubmit = async (data: RidePlan) => {
     await createRide(data)
@@ -77,18 +93,60 @@ export default function DriverPlanRideScreen({ navigation }: DriverPlanRideScree
         />
         <PlanPanel control={control} />
         {currentLocation && (
-          <MapView
-            ref={mapRef}
-            style={{ flex: 1, width: '100%', height: '100%' }}
-            provider="google"
-            showsUserLocation={true}
-            initialRegion={{ ...currentLocation, latitudeDelta: 0.002, longitudeDelta: 0.005 }}
+          <MapViewWithRoute
+            route={rideRoute}
+            fitToRouteButtonPosition={{ left: '86%', bottom: '11%' }}
+            initialRegion={{ ...currentLocation, latitudeDelta: 0.005, longitudeDelta: 0.002 }}
           >
-            {rideRoute !== null && <Polyline coordinates={rideRoute} strokeWidth={5} />}
-          </MapView>
+            {waypoints.map(
+              (waypoint, index) =>
+                isValidWaypoint(waypoint) && (
+                  <Marker key={index} coordinate={waypoint}>
+                    {index === 0 ? (
+                      <>
+                        <View
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 9,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundColor: theme['color-primary-default']
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 7,
+                              height: 7,
+                              borderRadius: 3.5,
+                              backgroundColor: 'white'
+                            }}
+                          />
+                        </View>
+                      </>
+                    ) : (
+                      <View
+                        style={{
+                          width: 15,
+                          height: 15,
+                          backgroundColor: '#484848',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          borderRadius: 2
+                        }}
+                      >
+                        <Text category="label" style={{ fontSize: 10, color: 'white' }}>
+                          {index}
+                        </Text>
+                      </View>
+                    )}
+                  </Marker>
+                )
+            )}
+          </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={() => onSubmit({})} size="large" style={{ borderRadius: 12 }}>
+          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
             發布行程
           </Button>
         </View>
@@ -105,7 +163,7 @@ const styles = StyleSheet.create({
   },
   submitButtonContainer: {
     position: 'absolute',
-    bottom: '5%',
+    bottom: '3.5%',
     width: '100%',
     paddingHorizontal: 20
   }

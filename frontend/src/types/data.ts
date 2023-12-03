@@ -37,11 +37,16 @@ export interface Ride {
   time: Date
   origin: Waypoint
   destination: Waypoint
+  intermediates?: Waypoint[]
   numSeats: number
   route: {
     route: LatLng[]
     timestamps: Date[]
   }
+}
+
+export interface SavedRide extends Omit<Ride, 'route'> {
+  label: string
 }
 
 export interface ScheduleStep {
