@@ -1,10 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
-import AccountScreen from '../screens/Account'
-
-export type AccountStackParamList = {
-  AccountScreen: undefined
-}
+import AccountScreen from '~/screens/Account'
+import type { AccountStackParamList } from '~/types/navigation'
 
 const Stack = createNativeStackNavigator<AccountStackParamList>()
 

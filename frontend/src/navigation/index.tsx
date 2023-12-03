@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native'
 import * as SecureStore from 'expo-secure-store'
-import { useDispatch, useSelector } from 'react-redux'
 
 import { restoreToken } from '../redux/auth'
 import { type RootState } from '../redux/store'

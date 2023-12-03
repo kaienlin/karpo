@@ -2,10 +2,15 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
 import type { CompositeScreenProps } from '@react-navigation/native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
-import type { AuthStackParamList } from '../navigation/AuthStack'
-import type { BottomTabParamList } from '../navigation/BottomTab'
-import type { DriverStackParamList } from '../navigation/DriverStack'
-import type { MainStackParamList } from '../navigation/MainStack'
+import type {
+  AccountStackParamList,
+  AuthStackParamList,
+  BottomTabParamList,
+  DriverStackParamList,
+  HistoryStackParamList,
+  MainStackParamList,
+  PassengerStackParamList
+} from '~/types/navigation'
 
 // Auth stack
 export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'WelcomeScreen'>

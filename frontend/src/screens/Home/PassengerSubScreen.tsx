@@ -1,33 +1,24 @@
 import { TouchableOpacity, View } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
 import { Icon, Text, useTheme } from '@ui-kitten/components'
 
-import { useGetSavedRidesQuery } from '~/redux/users'
+import type { SavedRide } from '~/types/data'
 
 import { SavedRideCard } from './components/SavedRideCard'
 
-export function DriverSubScreen() {
+interface PassengerSubScreenProps {
+  onMainPress: () => void
+  onSelectSavedRide: (ride: SavedRide) => void
+  onManageSavedRide?: () => void
+  savedRides?: SavedRide[]
+}
+
+export function PassengerSubScreen({
+  onMainPress,
+  onSelectSavedRide,
+  onManageSavedRide,
+  savedRides
+}: PassengerSubScreenProps) {
   const theme = useTheme()
-  const navigation = useNavigation()
-  const { data: savedRides } = useGetSavedRidesQuery(undefined, {
-    selectFromResult: ({ data }) => ({ data: data?.savedRides })
-  })
-
-  const handleMainPress = () => {
-    navigation.navigate('DriverStack', {
-      screen: 'DriverPlanRideScreen'
-    })
-  }
-
-  const handleSelectSavedRide = (index: number) => {
-    navigation.navigate('DriverStack', {
-      screen: 'DriverPlanRideScreen',
-      params: { savedRideIndex: index }
-    })
-  }
-
-  const handleManageSavedRide = () => {}
-
   return (
     <>
       <View
@@ -37,7 +28,7 @@ export function DriverSubScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={handleMainPress}
+          onPress={onMainPress}
           activeOpacity={0.7}
           style={{
             flex: 1,
@@ -64,7 +55,7 @@ export function DriverSubScreen() {
         >
           <Text category="h5">常用行程</Text>
           <TouchableOpacity
-            onPress={handleManageSavedRide}
+            onPress={onManageSavedRide}
             style={{ flexDirection: 'row', alignItems: 'center' }}
           >
             <Text>管理</Text>
@@ -76,7 +67,7 @@ export function DriverSubScreen() {
             {...ride}
             key={`${ride.label}-${index}`}
             onPress={() => {
-              handleSelectSavedRide(index)
+              onSelectSavedRide(ride)
             }}
           />
         ))}

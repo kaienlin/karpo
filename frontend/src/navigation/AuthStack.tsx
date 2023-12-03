@@ -4,15 +4,10 @@ import {
 } from '@react-navigation/native-stack'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
-import SignInScreen from '../screens/SignIn'
-import SignUpScreen from '../screens/SignUp'
-import WelcomeScreen from '../screens/Welcome'
-
-export type AuthStackParamList = {
-  WelcomeScreen: undefined
-  SignInScreen: undefined
-  SignUpScreen: undefined
-}
+import SignInScreen from '~/screens/SignIn'
+import SignUpScreen from '~/screens/SignUp'
+import WelcomeScreen from '~/screens/Welcome'
+import type { AuthStackParamList } from '~/types/navigation'
 
 const Stack = createNativeStackNavigator<AuthStackParamList>()
 

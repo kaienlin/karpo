@@ -1,18 +1,11 @@
-import { type NavigatorScreenParams } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
-import AccountStack, { type AccountStackParamList } from './AccountStack'
-import BottomTab, { type BottomTabParamList } from './BottomTab'
-import DriverStack, { type DriverStackParamList } from './DriverStack'
-import PassengerStack, { type PassengerStackParamList } from './PassengerStack'
+import type { MainStackParamList } from '~/types/navigation'
 
-export type MainStackParamList = {
-  BottomTab: NavigatorScreenParams<BottomTabParamList>
-  DriverStack: NavigatorScreenParams<DriverStackParamList>
-  PassengerStack: NavigatorScreenParams<PassengerStackParamList>
-  HistoryStack: undefined
-  AccountStack: NavigatorScreenParams<AccountStackParamList>
-}
+import AccountStack from './AccountStack'
+import BottomTab from './BottomTab'
+import DriverStack from './DriverStack'
+import PassengerStack from './PassengerStack'
 
 const Stack = createNativeStackNavigator<MainStackParamList>()
 

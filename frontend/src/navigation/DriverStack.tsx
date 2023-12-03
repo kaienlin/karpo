@@ -5,16 +5,9 @@ import DriverPlanRide from '~/screens/DriverPlanRide'
 import DriverSelectJoinScreen from '~/screens/DriverSelectJoin'
 import RateScreen from '~/screens/Rate'
 import SelectWaypoint from '~/screens/SelectWaypoint'
+import type { DriverStackParamList } from '~/types/navigation'
 
 const Stack = createNativeStackNavigator<DriverStackParamList>()
-
-export type DriverStackParamList = {
-  DriverPlanRideScreen: { savedRideIndex: number }
-  SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
-  DriverSelectJoinScreen: undefined
-  DriverDepartScreen: undefined
-  RideCompleteScreen: undefined
-}
 
 export default function DriverStack() {
   return (
