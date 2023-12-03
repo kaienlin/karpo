@@ -1,17 +1,20 @@
 import { combineReducers, configureStore, type PreloadedState } from '@reduxjs/toolkit'
 
+import { apiSlice } from './api'
 import authReducer from './auth'
 import waypointsReducer from './waypoints'
 
 export const rootReducer = combineReducers({
   auth: authReducer,
-  waypoints: waypointsReducer
+  waypoints: waypointsReducer,
+  [apiSlice.reducerPath]: apiSlice.reducer
 })
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   return configureStore({
     reducer: rootReducer,
-    preloadedState
+    preloadedState,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware)
   })
 }
 

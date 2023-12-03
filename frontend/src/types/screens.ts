@@ -31,8 +31,8 @@ export type DriverPlanRideScreenProps = CompositeScreenProps<
   NativeStackScreenProps<DriverStackParamList, 'DriverPlanRideScreen'>,
   NativeStackScreenProps<MainStackParamList>
 >
-export type SelectLocationScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<DriverStackParamList, 'SelectLocationScreen'>,
+export type SelectWaypointScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<DriverStackParamList, 'SelectWaypointScreen'>,
   NativeStackScreenProps<MainStackParamList>
 >
 export type DriverSelectJoinScreenProps = CompositeScreenProps<

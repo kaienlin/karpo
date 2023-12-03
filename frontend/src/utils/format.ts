@@ -1,5 +1,14 @@
-export const displayDatetime = (date: Date, is24Hour: boolean = false) => {
+export const displayTime = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+}
+
+export const displayDatetime = (date: Date | string, is24Hour: boolean = false) => {
   const today = new Date()
+
+  if (typeof date === 'string') {
+    date = new Date(date)
+  }
 
   const dateStr =
     date.toLocaleDateString() === today.toLocaleDateString()
@@ -12,4 +21,16 @@ export const displayDatetime = (date: Date, is24Hour: boolean = false) => {
   })
 
   return `${dateStr} ${timeStr}`
+}
+
+export const displayProximity = (proximity: number) => {
+  if (proximity > 0.8) {
+    return `超級順路`
+  } else if (proximity > 0.6) {
+    return `挺順路`
+  } else if (proximity > 0.4) {
+    return `普通`
+  } else {
+    return `不太順路`
+  }
 }
