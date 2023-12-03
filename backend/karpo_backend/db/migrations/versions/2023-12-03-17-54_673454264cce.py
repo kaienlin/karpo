@@ -1,9 +1,10 @@
 # type: ignore
-"""empty message
+"""Update rides table with label and waypoin
+ts.
 
-Revision ID: 75bc1448a43b
+Revision ID: 673454264cce
 Revises: 2b7380507a71
-Create Date: 2023-11-29 07:21:52.518553
+Create Date: 2023-12-03 17:54:31.638139
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +13,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "75bc1448a43b"
+revision = "673454264cce"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -89,6 +90,7 @@ def upgrade() -> None:
         sa.Column(
             "user_id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False
         ),
+        sa.Column("label", sa.String(), nullable=False),
         sa.Column(
             "origin",
             Geography(
@@ -128,9 +130,23 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column(
+            "waypoints",
+            Geography(
+                geometry_type="LINESTRING",
+                srid=4326,
+                spatial_index=False,
+                from_text="ST_GeogFromText",
+                name="geography",
+                nullable=False,
+            ),
+            nullable=False,
+        ),
+        sa.Column(
             "route_timestamps", sa.ARRAY(sa.DateTime(timezone=True)), nullable=True
         ),
         sa.Column("departure_time", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("num_seats", sa.Integer(), nullable=False),
+        sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("schedule", sa.ARRAY(sa.String()), nullable=True),
         sa.Column(
             "driver_position",
@@ -143,8 +159,6 @@ def upgrade() -> None:
             ),
             nullable=True,
         ),
-        sa.Column("num_seats", sa.Integer(), nullable=False),
-        sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("last_update_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "created_at",
@@ -163,6 +177,14 @@ def upgrade() -> None:
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("request_id", sa.Uuid(), nullable=False),
         sa.Column("ride_id", sa.Uuid(), nullable=False),
+        sa.Column(
+            "request_user_id",
+            fastapi_users_db_sqlalchemy.generics.GUID(),
+            nullable=False,
+        ),
+        sa.Column(
+            "ride_user_id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False
+        ),
         sa.Column("fare", sa.Integer(), nullable=False),
         sa.Column(
             "status",
@@ -213,8 +235,16 @@ def upgrade() -> None:
             ["requests.id"],
         ),
         sa.ForeignKeyConstraint(
+            ["request_user_id"],
+            ["user.id"],
+        ),
+        sa.ForeignKeyConstraint(
             ["ride_id"],
             ["rides.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["ride_user_id"],
+            ["user.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
     )

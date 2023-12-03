@@ -17,6 +17,7 @@ class RidesModel(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    label: Mapped[str]
     origin: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
@@ -26,6 +27,9 @@ class RidesModel(Base):
     )
     destination_description: Mapped[str]
     route: Mapped[WKBElement] = mapped_column(
+        Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
+    )
+    waypoints: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
     )
     route_timestamps = mapped_column(

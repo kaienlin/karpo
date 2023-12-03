@@ -27,6 +27,7 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     PostRidesResponse,
     PutRideIdJoinsJoinIdStatusRequest,
     RideDTO,
+    SavedRideItemDTO,
 )
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
@@ -95,10 +96,12 @@ async def post_rides(
 
     ride_id = await rides_dao.create_ride_model(
         user_id=user.id,
+        label=req.label,
         origin=req.origin,
         destination=req.destination,
         route=route,
         route_timestamps=timestamps,
+        waypoints=req.waypoints,
         departure_time=req.departure_time,
         num_seats=req.num_seats,
         driver_position=req.origin,
@@ -120,10 +123,11 @@ async def get_ride_id(
     origin: Point = wkb.loads(bytes(ride.origin.data))
     destination: Point = wkb.loads(bytes(ride.destination.data))
     route: LineString = wkb.loads(bytes(ride.route.data))
-    driver_position: Point = wkb.loads(bytes(ride.driver_position.data))
+    waypoints: LineString = wkb.loads(bytes(ride.waypoints.data))
 
     return GetRideIdResponse(
         ride=RideDTO(
+            label=ride.label,
             origin=LocationWithDescDTO(
                 longitude=origin.x,
                 latitude=origin.y,
@@ -138,13 +142,10 @@ async def get_ride_id(
                 route=list(route.coords),
                 timestamps=ride.route_timestamps,
             ),
-            num_seats=ride.num_seats,
-            schedule=ride.schedule,
-            driver_position=LocationDTO(
-                longitude=destination.x,
-                latitude=destination.y,
-            ),
+            waypoints=list(waypoints.coords),
             departure_time=ride.departure_time,
+            num_seats=ride.num_seats,
+            last_update_time=ride.last_update_time,
         )
     )
 
@@ -171,13 +172,14 @@ async def get_saved_rides(
     if user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
     
-    rideDTO_list = []
+    saved_ride_item_list = []
     for ride in rides:
         origin: Point = wkb.loads(bytes(ride.origin.data))
         destination: Point = wkb.loads(bytes(ride.destination.data))
-        route: LineString = wkb.loads(bytes(ride.route.data))
+        waypoints: LineString = wkb.loads(bytes(ride.waypoints.data))
         driver_position: Point = wkb.loads(bytes(ride.driver_position.data))
-        rideDTO = RideDTO(
+        saved_ride_item = SavedRideItemDTO(
+            label=ride.label,
             origin=LocationWithDescDTO(
                 longitude=origin.x,
                 latitude=origin.y,
@@ -188,18 +190,16 @@ async def get_saved_rides(
                 latitude=destination.y,
                 description=ride.destination_description,
             ),
-            route_with_time=RouteDTO(
-                route=list(route.coords),
-                timestamps=ride.route_timestamps,
-            ),
+            waypoints=list(waypoints.coords),
             departure_time=ride.departure_time,
             num_seats=ride.num_seats,
+            last_update_time=ride.last_update_time,
         ) 
-        rideDTO_list.append(rideDTO)
+        saved_ride_item_list.append(saved_ride_item)
 
 
     return GetRideSavedRidesResponse(
-        saved_rides=rideDTO_list,
+        saved_rides=saved_ride_item_list,
     )
 
 

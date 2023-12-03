@@ -35,13 +35,18 @@ class ChatRecordDTO(BaseModel):
     message: str
     time: datetime.datetime
 
-
-class RideDTO(BaseModel):
+class SavedRideItemDTO(BaseModel):
+    label: str
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
-    route_with_time: RouteDTO
+    waypoints: List[Tuple[float, float]]
     departure_time: datetime.datetime
     num_seats: int
+    last_update_time: datetime.datetime
+
+
+class RideDTO(SavedRideItemDTO):
+    route_with_time: RouteDTO
 
 
 class GetRideIdResponse(BaseModel):
@@ -74,9 +79,11 @@ class googleMapAPIrouteDTO(BaseModel):
     durations: List[int] = [1, 2] # for quick test
 
 class PostRidesRequest(BaseModel):
+    label: str = "new ride"
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
     route: googleMapAPIrouteDTO
+    waypoints: List[Tuple[float, float]] = [(0, 0), (0, 1), (0, 5)] # for quick test
     departure_time: datetime.datetime
     num_seats: PositiveInt
 
@@ -92,7 +99,7 @@ class PostCommentsRequest(BaseModel):
 
 
 class GetRideSavedRidesResponse(BaseModel):
-    saved_rides: List[RideDTO]
+    saved_rides: List[SavedRideItemDTO]
 
 
 class GetRideJoinsResponse(BaseModel):
