@@ -67,23 +67,37 @@ async def post_rides(
     司機發起行程.
     `route` 和 `durations` 需要至少2個點
     """
-    if len(req.route) != len(req.durations):
+    if len(req.route.steps) != len(req.route.durations):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Lengths of route and durations should be equal.",
+            detail="Lengths of steps and durations should be equal.",
         )
 
+    route = []
     timestamps = []
+
     t = req.departure_time
-    for dur in req.durations:
-        t += datetime.timedelta(seconds=dur)
-        timestamps.append(t)
+    for step, duration in zip(req.route.steps, req.route.durations):
+        ## Except for the step containing the origin, the first point of each step has been considered by the previous step.
+        if(len(timestamps)==0):
+            route.append((step[0][0], step[0][1]))
+            timestamps.append(req.departure_time)
+
+        distance_to_next_point = []
+        for point_idx in range(1, len(step)):
+            distance_to_next_point.append(((step[point_idx][0] - step[point_idx-1][0])**2 + (step[point_idx][1] - step[point_idx-1][1])**2) ** 0.5)
+        total_distance = sum(distance_to_next_point) 
+        for point_idx in range(1, len(step)):
+            route.append((step[point_idx][0], step[point_idx][1]))
+            timestamps.append(timestamps[-1] + datetime.timedelta(seconds=duration * (distance_to_next_point[point_idx-1]/total_distance)))
+
+        t += datetime.timedelta(seconds=duration)
 
     ride_id = await rides_dao.create_ride_model(
         user_id=user.id,
         origin=req.origin,
         destination=req.destination,
-        route=req.route,
+        route=route,
         route_timestamps=timestamps,
         departure_time=req.departure_time,
         num_seats=req.num_seats,
