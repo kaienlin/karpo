@@ -1,5 +1,6 @@
 import { GOOGLE_MAPS_API_KEY } from '@env'
 import Qs from 'qs'
+import reactotron from 'reactotron-react-native'
 
 interface AutocompleteItem {
   title: string
@@ -94,7 +95,9 @@ const initMapsAPI = (apiKey: string) => ({
       return []
     }
   },
-  getRoute: async (coordinates: Waypoint[]): Promise<Partial<{ polyline: string }>> => {
+  getRoute: async (
+    coordinates: Waypoint[]
+  ): Promise<Partial<{ polyline: string; legs: any[] }>> => {
     const [origin, ...intermediates] = coordinates
     const destination = intermediates.pop()
 
@@ -147,12 +150,13 @@ const initMapsAPI = (apiKey: string) => ({
       const {
         routes: [
           {
+            legs,
             polyline: { encodedPolyline }
           }
         ]
       } = await response.json()
 
-      return { polyline: encodedPolyline }
+      return { polyline: encodedPolyline, legs }
     } catch (error) {
       console.error(error)
       return null

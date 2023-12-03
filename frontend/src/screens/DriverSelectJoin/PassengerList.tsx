@@ -12,15 +12,15 @@ import { PassengerInfoCard } from './PassengerInfoCard'
 interface PassengerAvatarListProps {
   data: JoinDetailed[]
   title: string
-  onDeselect: (index: number) => () => void
+  onDeselect: (id: string) => () => void
   onConfirm: () => void
 }
 
 interface PassengerCardListProps {
   data: JoinDetailed[]
   title: string
-  onReject: (index: number) => () => void
-  onSelect: (index: number) => () => void
+  onReject: (id: string) => () => void
+  onSelect: (id: string) => () => void
 }
 
 export const PassengerAvatarList = ({
@@ -31,19 +31,24 @@ export const PassengerAvatarList = ({
 }: PassengerAvatarListProps) => {
   const theme = useTheme()
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
-    const { avatar, name } = item.passengerInfo
+    const {
+      status,
+      passengerInfo: { name, avatar }
+    } = item
     return (
       <View style={{ alignItems: 'center', gap: 5 }}>
         <View>
-          <Pressable onPress={onDeselect(index)} style={{ zIndex: 1, top: 12, right: 5 }}>
-            {({ pressed }) => (
-              <Icon
-                style={{ width: 20, height: 20 }}
-                name="close-circle"
-                fill={pressed ? theme['color-primary-600'] : theme['color-primary-default']}
-              />
-            )}
-          </Pressable>
+          {status === 'pending' && (
+            <Pressable onPress={onDeselect(item.joinId)} style={{ zIndex: 1, top: 12, right: 5 }}>
+              {({ pressed }) => (
+                <Icon
+                  style={{ width: 20, height: 20 }}
+                  name="close-circle"
+                  fill={pressed ? theme['color-primary-600'] : theme['color-primary-default']}
+                />
+              )}
+            </Pressable>
+          )}
           <Image style={{ height: 50, width: 50, borderRadius: 25 }} source={{ uri: avatar }} />
         </View>
         <Text style={{ fontSize: 13 }}>{name}</Text>
@@ -80,21 +85,6 @@ export const PassengerAvatarList = ({
 
 export const PassengerCardList = ({ data, title, onReject, onSelect }: PassengerCardListProps) => {
   const theme = useTheme()
-  const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
-    const { passengerInfo, ...join } = item
-    return (
-      <Animated.View>
-        <PassengerInfoCard
-          data={item}
-          onViewProfile={handleViewProfile(passengerInfo.id)}
-          onChat={handleChat(passengerInfo.id)}
-          onCall={handleCall(passengerInfo.phoneNumber)}
-          onReject={onReject(index)}
-          onSelect={onSelect(index)}
-        />
-      </Animated.View>
-    )
-  }
 
   const handleViewProfile = (userId: string) => () => {
     throw new Error('Not implemented')
@@ -108,6 +98,22 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
     try {
       await Linking.openURL(`tel:${phone}`)
     } catch (error) {}
+  }
+
+  const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
+    const { passengerInfo, ...join } = item
+    return (
+      <Animated.View>
+        <PassengerInfoCard
+          data={{ passengerInfo, ...join }}
+          onViewProfile={handleViewProfile(passengerInfo?.id)}
+          onChat={handleChat(passengerInfo?.id)}
+          onCall={handleCall(passengerInfo?.phoneNumber)}
+          onReject={onReject(join.joinId)}
+          onSelect={onSelect(join.joinId)}
+        />
+      </Animated.View>
+    )
   }
 
   return (

@@ -113,6 +113,8 @@ export interface Join {
   numPassengers: number
   fare: number
   proximity: number
+
+  status: 'pending' | 'accepted' | 'rejected'
 }
 
 export interface JoinDetailed extends Join {

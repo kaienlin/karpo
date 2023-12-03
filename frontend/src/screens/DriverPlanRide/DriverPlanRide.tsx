@@ -146,7 +146,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
+          <Button onPress={() => onSubmit({})} size="large" style={{ borderRadius: 12 }}>
             發布行程
           </Button>
         </View>

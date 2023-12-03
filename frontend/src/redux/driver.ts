@@ -48,11 +48,25 @@ export const driverSlice = apiSlice.injectEndpoints({
         method: 'GET'
       })
     }),
-    acceptJoin: builder.mutation<string, { rideId: string; joinId: string }>({
-      query: ({ rideId, joinId }) => ({
-        url: `/rides${rideId}/joins/${joinId}/accept`,
-        method: 'PUT'
-      })
+    respondJoin: builder.mutation<
+      string,
+      { rideId: string; joinId: string; action: 'accept' | 'reject' }
+    >({
+      query: ({ rideId, joinId, action }) => ({
+        url: `/rides/${rideId}/joins/${joinId}/status`,
+        method: 'PUT',
+        body: {
+          action
+        }
+      }),
+      onQueryStarted: async ({ rideId, joinId, action }, { dispatch, queryFulfilled }) => {
+        const patchResult = dispatch(
+          driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, (draft) => {
+            draft.joins = draft.joins.filter(({ joinId: id }) => id !== joinId)
+          })
+        )
+        queryFulfilled.catch(patchResult.undo)
+      }
     }),
     updatePosition: builder.mutation<string, { rideId: string; position: LatLng }>({
       query: ({ rideId, position }) => ({
@@ -71,5 +85,5 @@ export const {
   useGetRideQuery,
   useGetJoinsQuery,
   useGetScheduleQuery,
-  useAcceptJoinMutation
+  useRespondJoinMutation
 } = driverSlice
