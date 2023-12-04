@@ -164,7 +164,10 @@ async def get_accepted_match_dto(
         return None
 
     return await get_match_dto_from_request_and_join(
-        request, join, rides_dao, joins_dao,
+        request,
+        join,
+        rides_dao,
+        joins_dao,
     )
 
 
@@ -178,7 +181,10 @@ async def get_pending_match_dtos(
 
     for join in joins:
         match_dto = await get_match_dto_from_request_and_join(
-            request, join, rides_dao, joins_dao,
+            request,
+            join,
+            rides_dao,
+            joins_dao,
         )
         match_dtos.append(match_dto)
 

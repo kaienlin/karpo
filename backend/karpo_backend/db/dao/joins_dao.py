@@ -80,7 +80,8 @@ class JoinsDAO:
     ) -> Optional[JoinsModel]:
         result = await self.session.scalars(
             select(JoinsModel).where(
-                (JoinsModel.request_id == request_id) & (JoinsModel.status == "accepted")
+                (JoinsModel.request_id == request_id)
+                & (JoinsModel.status == "accepted")
             )
         )
 

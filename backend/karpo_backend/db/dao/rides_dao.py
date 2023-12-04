@@ -74,14 +74,17 @@ class RidesDAO:
         )
 
         return result.one_or_none()
-    
+
     async def get_saved_ride_model_by_user_id(
         self,
         user_id: uuid.UUID,
         limit: int,
     ) -> List[RidesModel]:
         result = await self.session.scalars(
-            select(RidesModel).where(RidesModel.user_id == user_id).order_by(RidesModel.last_update_time.desc()).limit(limit=limit),
+            select(RidesModel)
+            .where(RidesModel.user_id == user_id)
+            .order_by(RidesModel.last_update_time.desc())
+            .limit(limit=limit),
         )
 
         return result.all()
@@ -91,14 +94,16 @@ class RidesDAO:
         ride_id: uuid.UUID,
         phase: int,
         driver_position: LocationWithDescDTO,
-        last_update_time: datetime.datetime
+        last_update_time: datetime.datetime,
     ) -> None:
         await self.session.execute(
             update(RidesModel)
             .where(RidesModel.id == ride_id)
-            .values(phase=phase, 
-                    driver_position=f"POINT({driver_position.longitude} {driver_position.latitude})", 
-                    last_update_time=last_update_time)
+            .values(
+                phase=phase,
+                driver_position=f"POINT({driver_position.longitude} {driver_position.latitude})",
+                last_update_time=last_update_time,
+            )
         )
 
     async def get_phase_position_by_id(

@@ -35,6 +35,7 @@ class ChatRecordDTO(BaseModel):
     message: str
     time: datetime.datetime
 
+
 class SavedRideItemDTO(BaseModel):
     label: str
     origin: LocationWithDescDTO
@@ -75,15 +76,19 @@ class PostRideMessagesRequest(BaseModel):
 
 
 class googleMapAPIrouteDTO(BaseModel):
-    steps: List[List[Tuple[float, float]]] = [[(0, 0), (0, 1)], [(0, 1), (0, 2), (0, 3), (0, 5)]] # for quick test
-    durations: List[int] = [1, 2] # for quick test
+    steps: List[List[Tuple[float, float]]] = [
+        [(0, 0), (0, 1)],
+        [(0, 1), (0, 2), (0, 3), (0, 5)],
+    ]  # for quick test
+    durations: List[int] = [1, 2]  # for quick test
+
 
 class PostRidesRequest(BaseModel):
     label: str = "new ride"
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
     route: googleMapAPIrouteDTO
-    waypoints: List[Tuple[float, float]] = [(0, 0), (0, 1), (0, 5)] # for quick test
+    waypoints: List[Tuple[float, float]] = [(0, 0), (0, 1), (0, 5)]  # for quick test
     departure_time: datetime.datetime
     num_seats: PositiveInt
 

@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import Literal, List
+from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
@@ -32,6 +32,7 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
 router = APIRouter()
+
 
 @router.get(
     "/{ride_id}/status",
@@ -80,17 +81,29 @@ async def post_rides(
     t = req.departure_time
     for step, duration in zip(req.route.steps, req.route.durations):
         ## Except for the step containing the origin, the first point of each step has been considered by the previous step.
-        if(len(timestamps)==0):
+        if len(timestamps) == 0:
             route.append((step[0][0], step[0][1]))
             timestamps.append(req.departure_time)
 
         distance_to_next_point = []
         for point_idx in range(1, len(step)):
-            distance_to_next_point.append(((step[point_idx][0] - step[point_idx-1][0])**2 + (step[point_idx][1] - step[point_idx-1][1])**2) ** 0.5)
-        total_distance = sum(distance_to_next_point) 
+            distance_to_next_point.append(
+                (
+                    (step[point_idx][0] - step[point_idx - 1][0]) ** 2
+                    + (step[point_idx][1] - step[point_idx - 1][1]) ** 2
+                )
+                ** 0.5
+            )
+        total_distance = sum(distance_to_next_point)
         for point_idx in range(1, len(step)):
             route.append((step[point_idx][0], step[point_idx][1]))
-            timestamps.append(timestamps[-1] + datetime.timedelta(seconds=duration * (distance_to_next_point[point_idx-1]/total_distance)))
+            timestamps.append(
+                timestamps[-1]
+                + datetime.timedelta(
+                    seconds=duration
+                    * (distance_to_next_point[point_idx - 1] / total_distance)
+                )
+            )
 
         t += datetime.timedelta(seconds=duration)
 
@@ -150,7 +163,9 @@ async def get_ride_id(
     )
 
 
-@router.get("/saved_rides/{user_id}", response_model=GetRideSavedRidesResponse, tags=["driver"])
+@router.get(
+    "/saved_rides/{user_id}", response_model=GetRideSavedRidesResponse, tags=["driver"]
+)
 async def get_saved_rides(
     user_id: uuid.UUID,
     limit: int = 10,
@@ -158,20 +173,22 @@ async def get_saved_rides(
     user: User = Depends(current_active_user),
 ) -> GetRideSavedRidesResponse:
     """
-    Get past ride records 
+    Get past ride records
 
     #### Query parameters:
     + **limit**: control how many latest rides in the response.
     + **user_id**: user who want to query past rides.
 
     """
-    rides = await rides_dao.get_saved_ride_model_by_user_id(user_id=user_id, limit=limit)
+    rides = await rides_dao.get_saved_ride_model_by_user_id(
+        user_id=user_id, limit=limit
+    )
     if rides is None:
         raise HTTPException(status_code=404, detail="Item not found")
 
     if user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
-    
+
     saved_ride_item_list = []
     for ride in rides:
         origin: Point = wkb.loads(bytes(ride.origin.data))
@@ -194,14 +211,12 @@ async def get_saved_rides(
             departure_time=ride.departure_time,
             num_seats=ride.num_seats,
             last_update_time=ride.last_update_time,
-        ) 
+        )
         saved_ride_item_list.append(saved_ride_item)
-
 
     return GetRideSavedRidesResponse(
         saved_rides=saved_ride_item_list,
     )
-
 
 
 @router.patch("/{ride_id}/status", tags=["driver"])
@@ -223,16 +238,22 @@ async def patch_ride_id_status(
     + 0: pick up first passenger, i.e. depart.
     + len(schedule): arrive driver's destination.
     """
-    
+
     ride = await rides_dao.get_ride_model_by_id(ride_id)
     if ride is None:
-        raise HTTPException(status_code=404, detail="Ride not found, make sure ride_id is correct!")
+        raise HTTPException(
+            status_code=404, detail="Ride not found, make sure ride_id is correct!"
+        )
 
     if ride.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
-    
-    await rides_dao.put_phase_position_by_id(ride_id=ride_id, driver_position=req.driver_position, phase=req.phase, last_update_time=datetime.datetime.now())
- 
+
+    await rides_dao.put_phase_position_by_id(
+        ride_id=ride_id,
+        driver_position=req.driver_position,
+        phase=req.phase,
+        last_update_time=datetime.datetime.now(),
+    )
 
 
 ## TODO
