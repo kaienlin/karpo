@@ -1,14 +1,21 @@
 import uuid
-from typing import List, Tuple
+from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
-from shapely import LineString, Point, wkb
+from fastapi_users.db import SQLAlchemyUserDatabase
+from shapely import Point, wkb
 
+from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.requests_dao import RequestsDAO
-from karpo_backend.db.models.rides import RidesModel
-from karpo_backend.db.models.users import User, current_active_user  # type: ignore
-from karpo_backend.matching import Match
+from karpo_backend.db.dao.rides_dao import RidesDAO
+from karpo_backend.db.models.joins import JoinsModel
+from karpo_backend.db.models.requests import RequestsModel
+from karpo_backend.db.models.users import (  # type: ignore
+    User,
+    current_active_user,
+    get_user_db,
+)
 from karpo_backend.web.api.requests.schema import (
     GetRequestIdMatchesResponse,
     GetRequestIdResponse,
@@ -16,10 +23,166 @@ from karpo_backend.web.api.requests.schema import (
     PostRequestsRequest,
     PostRequestsResponse,
 )
-from karpo_backend.web.api.users.schema import UserInfoForOthersDTO
-from karpo_backend.web.api.utils import LocationWithDescDTO, RouteDTO
+from karpo_backend.web.api.users.utils import get_user_info_for_others
+from karpo_backend.web.api.utils import (
+    LocationWithDescDTO,
+    RouteDTO,
+    get_distance_between_wkb_points,
+)
 
 router = APIRouter()
+
+
+async def get_unasked_match_dtos(
+    request: RequestsModel,
+    limit: int,
+    requests_dao: RequestsDAO,
+    joins_dao: JoinsDAO,
+    user_db: SQLAlchemyUserDatabase,
+) -> List[MatchDTO]:
+    evaled_matches = await requests_dao.get_request_matches(request, limit)
+    match_dtos: List[MatchDTO] = []
+    for ride, evaled_match in evaled_matches:
+        driver_user_info = await get_user_info_for_others(ride.user_id, user_db)
+
+        other_accepted_joins = await joins_dao.get_accepted_joins_model_by_ride_id(
+            ride.id,
+        )
+        other_passengers: List[uuid.UUID] = [
+            join.request_user_id for join in other_accepted_joins
+        ]
+
+        match_dto = MatchDTO(
+            ride_id=ride.id,
+            pick_up_time=evaled_match.pick_up_time,
+            drop_off_time=evaled_match.drop_off_time,
+            pick_up_location=LocationWithDescDTO.from_point(
+                evaled_match.pick_up_location,
+            ),
+            drop_off_location=LocationWithDescDTO.from_point(
+                evaled_match.drop_off_location,
+            ),
+            pick_up_distance=evaled_match.pick_up_distance,
+            drop_off_distance=evaled_match.drop_off_distance,
+            driver_origin=LocationWithDescDTO.from_wkb(
+                ride.origin,
+                ride.origin_description,
+            ),
+            driver_destination=LocationWithDescDTO.from_wkb(
+                ride.destination,
+                ride.destination_description,
+            ),
+            num_available_seat=ride.num_seats - len(other_accepted_joins),
+            other_passengers=other_passengers,
+            fare=0,
+            driver_info=driver_user_info,
+            driver_route=RouteDTO.from_wkb_and_timestamps(
+                ride.route,
+                ride.route_timestamps,
+            ),
+            proximity=evaled_match.estimated_travel_time,
+            status="unasked",
+        )
+        match_dtos.append(match_dto)
+
+    return match_dtos
+
+
+async def get_match_dto_from_request_and_join(
+    request: RequestsModel,
+    join: JoinsModel,
+    rides_dao: RidesDAO,
+    joins_dao: JoinsDAO,
+) -> MatchDTO:
+    pick_up_location = LocationWithDescDTO.from_wkb(
+        join.pick_up_location,
+        join.pick_up_location_description,
+    )
+
+    drop_off_location = LocationWithDescDTO.from_wkb(
+        join.drop_off_location,
+        join.drop_off_location_description,
+    )
+
+    pick_up_distance = get_distance_between_wkb_points(
+        request.origin,
+        join.pick_up_location,
+    )
+    drop_off_distance = get_distance_between_wkb_points(
+        request.destination,
+        join.drop_off_location,
+    )
+
+    ride = await rides_dao.get_ride_model_by_id(join.ride_id)
+    other_accepted_joins = await joins_dao.get_accepted_joins_model_by_ride_id(ride.id)
+    other_passengers: List[uuid.UUID] = [
+        j.request_user_id for j in other_accepted_joins if j.id != join.id
+    ]
+    num_avaiable_seat = ride.num_seats - len(other_passengers)
+    if join.status == "accepted":
+        num_avaiable_seat -= 1
+
+    driver_user_info = await get_user_info_for_others(ride.user_id)
+
+    return MatchDTO(
+        ride_id=join.ride_id,
+        pick_up_time=join.pick_up_time,
+        drop_off_time=join.drop_off_time,
+        pick_up_location=pick_up_location,
+        drop_off_location=drop_off_location,
+        pick_up_distance=pick_up_distance,
+        drop_off_distance=drop_off_distance,
+        driver_origin=LocationWithDescDTO.from_wkb(
+            ride.origin,
+            ride.origin_description,
+        ),
+        driver_destination=LocationWithDescDTO.from_wkb(
+            ride.destination,
+            ride.destination_description,
+        ),
+        num_available_seat=num_avaiable_seat,
+        other_passengers=other_passengers,
+        driver_info=driver_user_info,
+        fare=0,
+        driver_route=RouteDTO.from_wkb_and_timestamps(
+            ride.route,
+            ride.route_timestamps,
+        ),
+        proximity=0,  # TODO: add proximity to JoinsModel
+        status=join.status,
+        join_id=join.id,
+    )
+
+
+async def get_accepted_match_dto(
+    request: RequestsModel,
+    rides_dao: RidesDAO,
+    joins_dao: JoinsDAO,
+) -> Optional[MatchDTO]:
+    join = await joins_dao.get_accepted_joins_by_request_id(request.id)
+    if join is None:
+        return None
+
+    return await get_match_dto_from_request_and_join(
+        request, join, rides_dao, joins_dao,
+    )
+
+
+async def get_pending_match_dtos(
+    request: RequestsModel,
+    rides_dao: RidesDAO,
+    joins_dao: JoinsDAO,
+) -> List[MatchDTO]:
+    joins = await joins_dao.get_pending_joins_by_request_id(request.id)
+    match_dtos: List[MatchDTO] = []
+
+    for join in joins:
+        match_dto = await get_match_dto_from_request_and_join(
+            request, join, rides_dao, joins_dao,
+        )
+        match_dtos.append(match_dto)
+
+    return match_dtos
 
 
 @router.post("/", response_model=PostRequestsResponse, tags=["passenger"])
@@ -27,6 +190,9 @@ async def post_requests(
     req: PostRequestsRequest,
     limit: int = 10,
     requests_dao: RequestsDAO = Depends(),
+    rides_dao: RidesDAO = Depends(),
+    joins_dao: JoinsModel = Depends(),
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
     user: User = Depends(current_active_user),
 ) -> PostRequestsResponse:
     """
@@ -47,14 +213,29 @@ async def post_requests(
     + **request_id**
     + **matches**: the same as the reponse of GET /requests/{request_id}/matches.
     """
-    request_id = await requests_dao.create_requests_model(
+    request = await requests_dao.get_active_request_by_user_id(user.id)
+    if request is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="exists a active request for the current user",
+        )
+
+    request = await requests_dao.create_requests_model(
         user_id=user.id,
         origin=req.origin,
         destination=req.destination,
         num_passengers=req.num_passengers,
         start_time=req.time,
     )
-    return PostRequestsResponse(request_id=request_id, matches=[])
+
+    unasked_matches = await get_unasked_match_dtos(
+        request,
+        limit,
+        requests_dao,
+        joins_dao,
+        user_db,
+    )
+    return PostRequestsResponse(request_id=request.id, matches=unasked_matches)
 
 
 @router.get("/{request_id}", response_model=GetRequestIdResponse, tags=["passenger"])
@@ -107,6 +288,9 @@ async def get_request_id_matches(  # noqa: WPS210
     request_id: uuid.UUID,
     limit: int = 10,
     requests_dao: RequestsDAO = Depends(),
+    rides_dao: RidesDAO = Depends(),
+    joins_dao: JoinsDAO = Depends(),
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
     user: User = Depends(current_active_user),
 ) -> GetRequestIdMatchesResponse:
     """
@@ -126,36 +310,22 @@ async def get_request_id_matches(  # noqa: WPS210
     if request.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    matches: List[Tuple[RidesModel, Match]] = await requests_dao.get_request_matches(
+    resp = GetRequestIdMatchesResponse(matches=[])
+    accepted_match = await get_accepted_match_dto(request, rides_dao, joins_dao)
+    if accepted_match is not None:
+        resp.matches.append(accepted_match)
+        return resp
+
+    pending_matches = await get_pending_match_dtos(request, rides_dao, joins_dao)
+    resp.matches.extend(pending_matches)
+
+    unasked_matches = await get_unasked_match_dtos(
         request,
         limit,
+        requests_dao,
+        joins_dao,
+        user_db,
     )
-    resp = GetRequestIdMatchesResponse(matches=[])
-    for ride, match in matches:
-        driver_origin: Point = wkb.loads(bytes(ride.origin.data))
-        driver_destination: Point = wkb.loads(bytes(ride.destination.data))
-        ride_route: LineString = wkb.loads(bytes(ride.route.data))
-        match_dto = MatchDTO(
-            ride_id=ride.id,
-            pick_up_time=match.pick_up_time,
-            drop_off_time=match.drop_off_time,
-            pick_up_location=LocationWithDescDTO.from_point(match.pick_up_location),
-            drop_off_location=LocationWithDescDTO.from_point(match.drop_off_location),
-            pick_up_distance=match.pick_up_distance,
-            drop_off_distance=match.drop_off_distance,
-            driver_origin=LocationWithDescDTO.from_point(driver_origin),
-            driver_destination=LocationWithDescDTO.from_point(driver_destination),
-            num_available_seat=1,
-            other_passengers=[],
-            fare=0,
-            driver_info=UserInfoForOthersDTO(name="test"),
-            driver_route=RouteDTO.from_linestring_and_timestamps(
-                ride_route,
-                ride.route_timestamps,
-            ),
-            proximity=match.estimated_travel_time,
-            status="unasked",
-        )
-        resp.matches.append(match_dto)
+    resp.matches.extend(unasked_matches)
 
     return resp

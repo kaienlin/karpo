@@ -7,6 +7,7 @@ from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
 from sqlalchemy import func, select, type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import true
 
 from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.models.requests import RequestsModel
@@ -29,7 +30,7 @@ class RequestsDAO:
         num_passengers: int,
         start_time: datetime.datetime,
         is_active: bool = True,
-    ) -> uuid.UUID:
+    ) -> RequestsModel:
         request = RequestsModel(
             user_id=user_id,
             origin=f"POINT({origin.longitude} {origin.latitude})",
@@ -42,7 +43,7 @@ class RequestsDAO:
         )
         self.session.add(request)
         await self.session.flush()
-        return request.id
+        return request
 
     async def get_requests_model_by_id(
         self,
@@ -50,6 +51,19 @@ class RequestsDAO:
     ) -> Optional[RequestsModel]:
         result = await self.session.scalars(
             select(RequestsModel).where(RequestsModel.id == request_id),
+        )
+
+        return result.one_or_none()
+
+    async def get_active_request_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> Optional[RequestsModel]:
+        result = await self.session.scalars(
+            select(RequestsModel).where(
+                (RequestsModel.user_id == user_id)
+                & (RequestsModel.is_active == true()),
+            )
         )
 
         return result.one_or_none()

@@ -1,6 +1,5 @@
-import datetime
 import uuid
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from fastapi import Depends
 from sqlalchemy import select
@@ -8,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.models.joins import JoinsModel
-from karpo_backend.web.api.utils import LocationWithDescDTO
 
 
 class JoinsDAO:
@@ -63,3 +61,39 @@ class JoinsDAO:
         await self.session.commit()
 
         return row_updated
+
+    async def get_accepted_joins_model_by_ride_id(
+        self,
+        ride_id: uuid.UUID,
+    ) -> List[JoinsModel]:
+        result = await self.session.scalars(
+            select(JoinsModel).where(
+                (JoinsModel.ride_id == ride_id) & (JoinsModel.status == "accepted")
+            )
+        )
+
+        return result.all()
+
+    async def get_accepted_joins_by_request_id(
+        self,
+        request_id: uuid.UUID,
+    ) -> Optional[JoinsModel]:
+        result = await self.session.scalars(
+            select(JoinsModel).where(
+                (JoinsModel.request_id == request_id) & (JoinsModel.status == "accepted")
+            )
+        )
+
+        return result.one_or_none()
+
+    async def get_pending_joins_by_request_id(
+        self,
+        request_id: uuid.UUID,
+    ) -> List[JoinsModel]:
+        result = await self.session.scalars(
+            select(JoinsModel).where(
+                (JoinsModel.request_id == request_id) & (JoinsModel.status == "pending")
+            )
+        )
+
+        return result.all()
