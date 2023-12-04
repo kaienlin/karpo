@@ -3,13 +3,17 @@ import uuid
 from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, status
+from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi.param_functions import Depends
 from shapely import LineString, Point, wkb
+import json
 
 from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.requests_dao import RequestsDAO
 from karpo_backend.db.dao.rides_dao import RidesDAO
-from karpo_backend.db.models.users import User, current_active_user  # type: ignore
+from karpo_backend.db.models.users import User, current_active_user, get_user_db # type: ignore
+from karpo_backend.web.api.users.utils import get_user_info_for_others
+
 from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     GetRideIdJoinIdStatusResponse,
     GetRideIdResponse,
@@ -28,6 +32,7 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     PutRideIdJoinsJoinIdStatusRequest,
     RideDTO,
     SavedRideItemDTO,
+    StopoverDTO,
 )
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
@@ -67,7 +72,7 @@ async def post_rides(
 ) -> PostRidesResponse:
     """
     司機發起行程.
-    `route` 和 `durations` 需要至少2個點
+    `route` 中 `steps` 和 `durations` 數量需相同
     """
     if len(req.route.steps) != len(req.route.durations):
         raise HTTPException(
@@ -255,16 +260,53 @@ async def patch_ride_id_status(
         last_update_time=datetime.datetime.now(),
     )
 
+async def update_ride_id_schedule(
+    ride_id: uuid.UUID,
+    rides_dao: RidesDAO,
+) -> None:
+    """When a join is accepted or rejected, should call this function."""
+    await rides_dao.update_schedule_by_ride_id(ride_id)
 
-## TODO
+
 @router.get(
     "/{ride_id}/schedule",
     response_model=GetRideIdScheduleResponse,
     tags=["driver", "passenger"],
 )
-async def get_ride_id_schedule(ride_id: uuid.UUID) -> GetRideIdScheduleResponse:
-    """Get a list of stopovers and current position specified by `ride_id`."""
-    raise NotImplementedError("QQ")
+async def get_ride_id_schedule(
+    ride_id: uuid.UUID, 
+    rides_dao: RidesDAO = Depends(),
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
+) -> GetRideIdScheduleResponse:
+    """Get a list of stopovers specified by `ride_id`."""
+
+    schedule = await rides_dao.get_schedule_by_id(ride_id)
+
+    if schedule is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    stopover_list = []
+    for stopover_json in schedule:
+        stopover_info = json.loads(stopover_json)
+        user_info = await get_user_info_for_others(stopover_info["passenger_id"], user_db)
+        location: Point = wkb.loads(bytes.fromhex(stopover_info["location"]))
+
+        stopover_list.append(
+            StopoverDTO(
+                request_id=stopover_info["request_id"],
+                passenger_info=user_info,
+                time=stopover_info["time"],
+                location=LocationWithDescDTO(
+                    longitude=location.x,
+                    latitude=location.y,
+                    description=stopover_info["description"]
+                ),
+                status=stopover_info["status"],
+            )
+
+        )
+    return GetRideIdScheduleResponse(schedule=stopover_list)
+
 
 
 # to be implemented (add joins entry)
@@ -391,7 +433,7 @@ async def put_ride_id_joins_join_id_status(
     ride_id: uuid.UUID,
     join_id: uuid.UUID,
     req: PutRideIdJoinsJoinIdStatusRequest,
-    # rides_dao: RidesDAO = Depends(),
+    rides_dao: RidesDAO = Depends(),
     joins_dao: JoinsDAO = Depends(),
     user: User = Depends(current_active_user),
 ) -> None:
@@ -417,7 +459,7 @@ async def put_ride_id_joins_join_id_status(
         raise HTTPException(status_code=403, detail="Permission denied")
 
     joins_dao.put_joins_model_by_id(join_id, req.action)
-
+    await update_ride_id_schedule(ride_id, rides_dao)
 
 # to be implemented ("update" a join entry)
 # @router.put("/{ride_id}/joins/{join_id}/accept", tags=["driver"])

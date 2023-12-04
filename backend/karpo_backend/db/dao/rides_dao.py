@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import json
 from typing import List, Optional, Tuple
 
 from fastapi import Depends
@@ -8,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.models.rides import RidesModel
+from karpo_backend.db.models.joins import JoinsModel
 from karpo_backend.web.api.utils import LocationWithDescDTO
 
 
@@ -125,3 +127,47 @@ class RidesDAO:
             select(RidesModel.schedule).where(RidesModel.id == ride_id),
         )
         return result.one_or_none()
+
+    async def update_schedule_by_ride_id(
+        self,
+        ride_id: uuid.UUID,
+    ) -> None:
+        result = await self.session.scalars(
+            select(JoinsModel).where(
+                (JoinsModel.ride_id == ride_id)
+                & (JoinsModel.status == "accepted")
+            )
+        )
+        accepted_requests = result.all()
+        schedule_list = []
+        for accepted_request in accepted_requests:
+            schedule_list.append(
+                {
+                    "request_id": str(accepted_request.request_id),
+                    "passenger_id": str(accepted_request.request_user_id),
+                    "location": str(accepted_request.pick_up_location),
+                    "description": str(accepted_request.pick_up_location_description),
+                    "time": str(accepted_request.pick_up_time),
+                    "status": "pick_up",
+                }
+            )
+            schedule_list.append(
+                {
+                    "request_id": str(accepted_request.request_id),
+                    "passenger_id": str(accepted_request.request_user_id),
+                    "location": str(accepted_request.drop_off_location),
+                    "description": str(accepted_request.drop_off_location_description),
+                    "time": str(accepted_request.drop_off_time),
+                    "status": "drop_off",
+                }
+            )
+        schedule_list = sorted(schedule_list, key=lambda item: item["time"])
+        schedule_string_list = [json.dumps(stopover) for stopover in schedule_list]
+        await self.session.execute(
+            update(RidesModel)
+            .where(RidesModel.id == ride_id)
+            .values(
+                schedule=schedule_string_list
+            )
+        )
+    
