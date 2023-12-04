@@ -12,6 +12,8 @@ ignore =
   D,
   ; Found too short name
   WPS111,
+  ; Found too many local variables
+  WPS210,
   ; Found too many arguments
   WPS211,
   ; Found line with high Jones Complexity
