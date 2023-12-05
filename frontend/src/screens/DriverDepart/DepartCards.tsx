@@ -22,8 +22,8 @@ const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 
 interface PassengerItemProps extends User {
   numPassengers: number
-  onChat?: (userId: string) => () => void
-  onCall?: (phoneNumber: string) => () => void
+  onChat?: (userId: string) => void
+  onCall?: (phoneNumber: string) => void
 }
 
 interface AddonBarProps {
@@ -34,8 +34,8 @@ interface AddonBarProps {
 }
 
 interface PassengerContactAction {
-  handleChat?: (rideId: string, userId: string) => () => void
-  handleCall?: (phoneNumber: string) => () => void
+  handleChat?: (userId: string) => void
+  handleCall?: (phoneNumber: string) => void
 }
 
 interface ReadyCardProps extends PassengerContactAction {
@@ -101,13 +101,17 @@ const PassengerItem = ({
         </View>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Button
-            onPress={onChat(id)}
+            onPress={() => {
+              onChat(id)
+            }}
             accessoryLeft={ChatIcon}
             style={{ borderRadius: 100, width: 40, height: 40 }}
             status="basic"
           />
           <Button
-            onPress={onCall(phoneNumber)}
+            onPress={() => {
+              onCall(phoneNumber)
+            }}
             accessoryLeft={PhoneIcon}
             style={{ borderRadius: 100, width: 40, height: 40 }}
             status="basic"
@@ -144,13 +148,11 @@ export function ReadyCard({
   isLoading,
   onViewDetail,
   onDepart,
-  handleChat = () => () => {},
-  handleCall = () => () => {}
+  handleChat = () => {},
+  handleCall = () => {}
 }: ReadyCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
-
-  const rideId = 'dummy' // TODO: get rideId from context
 
   return (
     <Shadow {...shadowPresets.modal}>
@@ -184,11 +186,7 @@ export function ReadyCard({
         <FlatList
           data={passengers}
           renderItem={({ item }) => (
-            <PassengerItem
-              {...item}
-              onChat={handleChat(rideId, item.id)}
-              onCall={handleCall(item.phoneNumber)}
-            />
+            <PassengerItem {...item} onChat={handleChat} onCall={handleCall} />
           )}
           keyExtractor={(item, index) => `${item.name}-${index}`}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
@@ -212,14 +210,14 @@ export function StageCard({
   passenger,
   isLoading,
   onComplete,
-  handleChat = () => () => {},
-  handleCall = () => () => {}
+  handleChat = () => {},
+  handleCall = () => {}
 }: StageCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
 
   const { name } = passenger
-  const rideId = 'dummy' // TODO: get rideId from context
+
   const headerText = status === 'pick_up' ? `正在前往 ${name} 所在位置` : `接近 ${name} 目的地`
   const swipeButtonText = status === 'pick_up' ? `到達 ${name} 起點` : `已到達 ${name} 目的地`
 
@@ -237,11 +235,7 @@ export function StageCard({
         </View>
         <Divider />
         <View style={{ paddingVertical: 15, paddingHorizontal: 25 }}>
-          <PassengerItem
-            {...passenger}
-            // onChat={handleChat(rideId)}
-            // onCall={handleCall}
-          />
+          <PassengerItem {...passenger} onChat={handleChat} onCall={handleCall} />
         </View>
 
         <View style={{ alignItems: 'center', paddingTop: 10, height: 70 }}>

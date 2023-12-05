@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
+import Chat from '~/screens/Chat'
 import DriverDepart from '~/screens/DriverDepart'
 import DriverPlanRide from '~/screens/DriverPlanRide'
 import DriverSelectJoinScreen from '~/screens/DriverSelectJoin'
@@ -22,6 +23,7 @@ export default function DriverStack() {
       <Stack.Screen name="SelectWaypointScreen" component={SelectWaypoint} />
       <Stack.Screen name="DriverSelectJoinScreen" component={DriverSelectJoinScreen} />
       <Stack.Screen name="DriverDepartScreen" component={DriverDepart} />
+      <Stack.Screen name="ChatScreen" component={Chat} />
       <Stack.Screen
         name="RideCompleteScreen"
         component={RateScreen}

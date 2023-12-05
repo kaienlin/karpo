@@ -1,20 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TouchableOpacity, View } from 'react-native'
-import MapView, { Polyline } from 'react-native-maps'
 import Animated, { Easing, SlideInDown } from 'react-native-reanimated'
 import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, StyleService, useStyleSheet } from '@ui-kitten/components'
-import * as Linking from 'expo-linking'
 
+import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useGetJoinsQuery, useGetRideQuery, useGetScheduleQuery } from '~/redux/driver'
 import { useGetCurrentActivityQuery } from '~/redux/users'
 import { type DriverDepartScreenProps } from '~/types/screens'
+import { makePhoneCall } from '~/utils/device'
 
 import { AddonBar, ReadyCard, StageCard } from './DepartCards'
 
 export default function DriverDepartScreen({ navigation }: DriverDepartScreenProps) {
   const styles = useStyleSheet(themedStyles)
-  const mapRef = useRef<MapView>(null)
   const [stage, setStage] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -59,19 +58,9 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
     navigation.goBack()
   }
 
-  const handleChat = () => {}
-
-  const handleCall = (phoneNumber: string) => async () => {
-    await Linking.openURL(`tel:${phoneNumber}`)
+  const handleChat = (userId: string) => {
+    navigation.navigate('ChatScreen', { rideId })
   }
-
-  useEffect(() => {
-    if (ride?.route?.route) {
-      mapRef.current?.fitToCoordinates(ride.route.route, {
-        edgePadding: { top: 50, right: 50, left: 50, bottom: stage === -1 ? 550 : 300 }
-      })
-    }
-  }, [ride?.route?.route, stage])
 
   useEffect(() => {
     if (stage === schedule?.length) {
@@ -100,6 +89,8 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
           passengers={passengers}
           isLoading={isLoading}
           onDepart={handleSwipe}
+          handleChat={handleChat}
+          handleCall={makePhoneCall}
         />
       </Animated.View>
     )
@@ -112,6 +103,8 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
           passenger={passenger}
           isLoading={isLoading}
           onComplete={handleSwipe}
+          handleChat={handleChat}
+          handleCall={makePhoneCall}
         />
       </Animated.View>
     )
@@ -124,15 +117,12 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
           <Icon style={{ width: 30, height: 30 }} name="arrow-back" />
         </TouchableOpacity>
       </View>
-      <MapView
-        ref={mapRef}
-        style={{ flex: 1, width: '100%', height: '100%' }}
-        provider="google"
-        showsUserLocation={true}
+      <MapViewWithRoute
+        route={ride?.route?.route}
+        edgePadding={{ bottom: stage === -1 ? 550 : 300 }}
       >
         {/* TODO: mark passenger location */}
-        <Polyline coordinates={ride?.route?.route} strokeWidth={5} />
-      </MapView>
+      </MapViewWithRoute>
 
       <View
         style={{
