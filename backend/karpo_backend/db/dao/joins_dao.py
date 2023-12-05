@@ -1,12 +1,15 @@
+import datetime
 import uuid
 from typing import List, Literal, Optional
 
 from fastapi import Depends
+from shapely import LineString, Point, within, wkb
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.models.joins import JoinsModel
+from karpo_backend.web.api.utils import LocationWithDescDTO
 
 
 class JoinsDAO:
@@ -17,20 +20,35 @@ class JoinsDAO:
 
     async def create_joins_model(
         self,
-        ride_id: uuid.UUID,
         request_id: uuid.UUID,
+        ride_id: uuid.UUID,
+        request_user_id: uuid.UUID,
+        ride_user_id: uuid.UUID,
+        num_passengers: int,
+        # fare: int,
+        pick_up_location: LocationWithDescDTO,
+        drop_off_location: LocationWithDescDTO,
+        pick_up_time: datetime.datetime,
+        drop_off_time: datetime.datetime,
+        pick_up_distance: float,
+        drop_off_distance: float,
     ) -> uuid.UUID:
         join = JoinsModel(
             request_id=request_id,
             ride_id=ride_id,
+            request_user_id=request_user_id,
+            ride_user_id=ride_user_id,
+            num_passengers=num_passengers,
             # fare=,                          # TBA
             status="pending",  # status -> driver_response?
-            # pick_up_location=,              # TBA
-            # pick_up_location_description=,  # TBA
-            # drop_off_location=,             # TBA
-            # drop_off_location_description=, # TBA
-            # pick_up_time=,                  # TBA
-            # drop_off_time=,                 # TBA
+            pick_up_location=f"POINT({pick_up_location.longitude} {pick_up_location.latitude})",
+            pick_up_location_description=pick_up_location.description,
+            drop_off_location=f"POINT({drop_off_location.longitude} {drop_off_location.latitude})",
+            drop_off_location_description=drop_off_location.description,
+            pick_up_time=pick_up_time,
+            drop_off_time=drop_off_time,
+            pick_up_distance=pick_up_distance,
+            drop_off_distance=drop_off_distance,
             progress="waiting",
         )
         self.session.add(join)
@@ -71,6 +89,24 @@ class JoinsDAO:
                 (JoinsModel.ride_id == ride_id) & (JoinsModel.status == "accepted")
             )
         )
+
+        return result.all()
+
+    async def get_joins_model_by_ride_id_and_status(
+        self,
+        ride_id: uuid.UUID,
+        status: Literal["pending", "accepted", "rejected", "all"],
+    ) -> List[JoinsModel]:
+        if status == "all":
+            result = await self.session.scalars(
+                select(JoinsModel).where((JoinsModel.ride_id == ride_id))
+            )
+        else:
+            result = await self.session.scalars(
+                select(JoinsModel).where(
+                    (JoinsModel.ride_id == ride_id) & (JoinsModel.status == status)
+                )
+            )
 
         return result.all()
 

@@ -1,6 +1,6 @@
 import datetime
-import uuid
 import json
+import uuid
 from typing import List, Optional, Tuple
 
 from fastapi import Depends
@@ -8,8 +8,8 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
-from karpo_backend.db.models.rides import RidesModel
 from karpo_backend.db.models.joins import JoinsModel
+from karpo_backend.db.models.rides import RidesModel
 from karpo_backend.web.api.utils import LocationWithDescDTO
 
 
@@ -136,8 +136,7 @@ class RidesDAO:
     ) -> None:
         result = await self.session.scalars(
             select(JoinsModel).where(
-                (JoinsModel.ride_id == ride_id)
-                & (JoinsModel.status == "accepted")
+                (JoinsModel.ride_id == ride_id) & (JoinsModel.status == "accepted")
             )
         )
         accepted_requests = result.all()
@@ -168,8 +167,5 @@ class RidesDAO:
         await self.session.execute(
             update(RidesModel)
             .where(RidesModel.id == ride_id)
-            .values(
-                schedule=schedule_string_list
-            )
+            .values(schedule=schedule_string_list)
         )
-    
