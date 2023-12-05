@@ -122,6 +122,7 @@ async def post_rides(
         waypoints=req.waypoints,
         departure_time=req.departure_time,
         num_seats=req.num_seats,
+        num_seats_left=req.num_seats,
         driver_position=req.origin,
         last_update_time=datetime.datetime.now(),
     )
