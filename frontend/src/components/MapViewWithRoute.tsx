@@ -35,7 +35,7 @@ export default function MapViewWithRoute({
 
   useEffect(() => {
     fitToRoute()
-  }, [route])
+  }, [route, edgePadding])
 
   return (
     <>

@@ -1,6 +1,5 @@
 import { GOOGLE_MAPS_API_KEY } from '@env'
 import Qs from 'qs'
-import reactotron from 'reactotron-react-native'
 
 interface AutocompleteItem {
   title: string
