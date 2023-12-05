@@ -34,7 +34,25 @@ module.exports = {
   web: {
     favicon: './assets/favicon.png'
   },
-  plugins: ['@config-plugins/detox'],
+  plugins: [
+    '@config-plugins/detox',
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          extraPods: [
+            // TODO: set flag
+            // only need this pod if running build on Apple Silicon
+            {
+              name: 'Google-Maps-iOS-Utils',
+              git: 'https://github.com/Simon-TechForm/google-maps-ios-utils.git',
+              branch: 'feat/support-apple-silicon'
+            }
+          ]
+        }
+      }
+    ]
+  ],
   extra: {
     eas: {
       projectId: '42364973-7a1b-4f7f-9b73-8ac9720318d6'
