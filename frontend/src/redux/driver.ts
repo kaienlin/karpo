@@ -62,7 +62,8 @@ export const driverSlice = apiSlice.injectEndpoints({
       onQueryStarted: async ({ rideId, joinId, action }, { dispatch, queryFulfilled }) => {
         const patchResult = dispatch(
           driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, (draft) => {
-            draft.joins = draft.joins.filter(({ joinId: id }) => id !== joinId)
+            const target = draft.joins.find(({ joinId: id }) => id === joinId)
+            target.status = action === 'accept' ? 'accepted' : 'rejected'
           })
         )
         queryFulfilled.catch(patchResult.undo)

@@ -36,7 +36,7 @@ export const PassengerAvatarList = ({
       passengerInfo: { name, avatar }
     } = item
     return (
-      <View style={{ alignItems: 'center', gap: 5 }}>
+      <View style={{ alignItems: 'center', justifyContent: 'flex-end', gap: 5, height: 85 }}>
         <View>
           {status === 'pending' && (
             <Pressable onPress={onDeselect(item.joinId)} style={{ zIndex: 1, top: 12, right: 5 }}>

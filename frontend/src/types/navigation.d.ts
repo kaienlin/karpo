@@ -41,6 +41,7 @@ type DriverStackParamList = {
   SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
+  ChatScreen: { rideId: string }
   RideCompleteScreen: undefined
 }
 
