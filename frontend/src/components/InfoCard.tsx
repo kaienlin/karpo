@@ -1,13 +1,9 @@
-<<<<<<< HEAD
 import { 
   View, 
   StyleSheet, 
   TouchableOpacity, 
   GestureResponderEvent 
 } from 'react-native'
-=======
-import { View, StyleSheet } from 'react-native'
->>>>>>> feature/frontend-driver
 import { 
   Button, 
   Card,
@@ -17,22 +13,27 @@ import {
   PopoverPlacements
 } from '@ui-kitten/components'
 import { Header, HeaderProps } from './CardHeader'
+import { useDispatch } from 'react-redux'
+import { changeStatus } from '~/redux/ride'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
 const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
+const TrashIcon = (props: IconProps) => <Icon {...props} name="trash-2" />
 
 interface FooterProps {
   origin2route: number
   destination2route: number
 }
 
-interface CardProps extends HeaderProps, FooterProps {
+export interface RideItem extends HeaderProps, FooterProps {
+  id: string
+  responseStatus: string
   driverOrigin: string
   driverDestination: string
-<<<<<<< HEAD
+}
+
+export interface CardProps extends RideItem {
   onPress: (event: GestureResponderEvent) => void
-=======
->>>>>>> feature/frontend-driver
 }
 
 const styles = StyleSheet.create({
@@ -52,9 +53,11 @@ function Footer ({
   )
 }
 
-export default function InfoCard ({
+export function InfoCard ({
+  id,
   departTime,
   arrivalTime,
+  responseStatus,
   price,
   rating,
   vacuumSeat,
@@ -63,17 +66,18 @@ export default function InfoCard ({
   driverDestination,
   origin2route,
   destination2route,
-<<<<<<< HEAD
   onPress
 }: CardProps) {
+  const dispatch = useDispatch()
+  const handleDelete = () => {
+    dispatch(
+      changeStatus({id: id})
+    )
+  }
+  
   return (
     <Card
       onPress={onPress}
-=======
-}: CardProps) {
-  return (
-    <Card
->>>>>>> feature/frontend-driver
       header={(props) => 
         <Header
           {...props}
@@ -128,16 +132,26 @@ export default function InfoCard ({
           </View>
         </View>
         <View style={{ flex: 1, flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
+          {responseStatus === 'waiting' && (
+            <Button
+              accessoryLeft={TrashIcon}
+              style={{ borderRadius: 100, width: 40, height: 40 }}
+              status="danger"
+              onPress={handleDelete}
+            />
+          )}
           <Button
             accessoryLeft={ChatIcon}
             style={{ borderRadius: 100, width: 40, height: 40 }}
             status="basic"
           />
-          <Button
-            accessoryLeft={PhoneIcon}
-            style={{ borderRadius: 100, width: 40, height: 40 }}
-            status="basic"
-          />  
+          {responseStatus === 'idle' && (
+            <Button
+              accessoryLeft={PhoneIcon}
+              style={{ borderRadius: 100, width: 40, height: 40 }}
+              status="basic"
+            />  
+          )}
         </View>
       </View>
     </Card>

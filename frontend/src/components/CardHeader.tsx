@@ -6,9 +6,6 @@ import {
   IconProps 
 } from '@ui-kitten/components'
 
-const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
-const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
-
 interface RideStatusProps {
   rating: number
   vacuumSeat: number

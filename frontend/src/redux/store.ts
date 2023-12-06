@@ -2,10 +2,12 @@ import { combineReducers, configureStore, type PreloadedState } from '@reduxjs/t
 
 import authReducer from './auth'
 import waypointsReducer from './waypoints'
+import rideReducer from './ride'
 
 export const rootReducer = combineReducers({
   auth: authReducer,
-  waypoints: waypointsReducer
+  waypoints: waypointsReducer,
+  rides: rideReducer
 })
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {

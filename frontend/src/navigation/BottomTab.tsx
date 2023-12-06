@@ -1,3 +1,4 @@
+import { Platform } from 'react-native'
 import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { BottomNavigation, BottomNavigationTab, Icon, type IconProps } from '@ui-kitten/components'
 
@@ -24,7 +25,7 @@ function BottomTabBar({ navigation, state }: BottomTabBarProps) {
       onSelect={(index) => {
         navigation.navigate(state.routeNames[index])
       }}
-      style={{ paddingBottom: 25 }}
+      style={{ paddingBottom: Platform.OS === 'ios' ? 25 : 10 }}
     >
       <BottomNavigationTab title="首頁" icon={HomeIcon} />
       <BottomNavigationTab title="歷史" icon={ArchiveIcon} />
