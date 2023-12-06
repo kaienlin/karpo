@@ -1,6 +1,7 @@
-import { Pressable, View } from 'react-native'
+import { Pressable, TouchableOpacity, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
 import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
@@ -30,12 +31,19 @@ export const PassengerAvatarList = ({
   onConfirm
 }: PassengerAvatarListProps) => {
   const theme = useTheme()
+  const navigation = useNavigation()
+
+  const handleViewProfile = (userId: string) => () => {
+    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
+  }
+
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const {
       status,
-      passengerInfo: { name, avatar }
+      passengerInfo: { id, name, avatar }
     } = item
     return (
+      // TODO: make it a reusable component
       <View style={{ alignItems: 'center', justifyContent: 'flex-end', gap: 5, height: 85 }}>
         <View>
           {status === 'pending' && (
@@ -49,7 +57,9 @@ export const PassengerAvatarList = ({
               )}
             </Pressable>
           )}
-          <Image style={{ height: 50, width: 50, borderRadius: 25 }} source={{ uri: avatar }} />
+          <TouchableOpacity activeOpacity={0.8} onPress={handleViewProfile(id)}>
+            <Image style={{ height: 50, width: 50, borderRadius: 25 }} source={{ uri: avatar }} />
+          </TouchableOpacity>
         </View>
         <Text style={{ fontSize: 13 }}>{name}</Text>
       </View>
@@ -85,9 +95,10 @@ export const PassengerAvatarList = ({
 
 export const PassengerCardList = ({ data, title, onReject, onSelect }: PassengerCardListProps) => {
   const theme = useTheme()
+  const navigation = useNavigation()
 
   const handleViewProfile = (userId: string) => () => {
-    throw new Error('Not implemented')
+    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
   }
 
   const handleChat = (userId: string) => () => {

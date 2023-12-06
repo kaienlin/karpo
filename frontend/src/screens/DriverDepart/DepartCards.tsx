@@ -1,6 +1,7 @@
 import { FlatList, TouchableOpacity, View } from 'react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { Shadow } from 'react-native-shadow-2'
+import { useNavigation } from '@react-navigation/native'
 import {
   Button,
   Divider,
@@ -22,6 +23,7 @@ const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 
 interface PassengerItemProps extends User {
   numPassengers: number
+  onViewProfile?: (userId: string) => void
   onChat?: (userId: string) => void
   onCall?: (phoneNumber: string) => void
 }
@@ -63,12 +65,15 @@ const PassengerItem = ({
   rating,
   phoneNumber,
   numPassengers,
+  onViewProfile = () => () => {},
   onChat = () => () => {},
   onCall = () => () => {}
 }: PassengerItemProps) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
-      <Image source={{ uri: avatar }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+      <TouchableOpacity onPress={onViewProfile(id)} activeOpacity={0.8}>
+        <Image source={{ uri: avatar }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+      </TouchableOpacity>
       <View
         style={{
           flex: 1,
@@ -153,6 +158,10 @@ export function ReadyCard({
 }: ReadyCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
+  const navigation = useNavigation()
+  const handleViewProfile = (userId: string) => () => {
+    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
+  }
 
   return (
     <Shadow {...shadowPresets.modal}>
@@ -186,7 +195,12 @@ export function ReadyCard({
         <FlatList
           data={passengers}
           renderItem={({ item }) => (
-            <PassengerItem {...item} onChat={handleChat} onCall={handleCall} />
+            <PassengerItem
+              {...item}
+              onViewProfile={handleViewProfile}
+              onChat={handleChat}
+              onCall={handleCall}
+            />
           )}
           keyExtractor={(item, index) => `${item.name}-${index}`}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
@@ -215,6 +229,10 @@ export function StageCard({
 }: StageCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
+  const navigation = useNavigation()
+  const handleViewProfile = (userId: string) => () => {
+    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
+  }
 
   const { name } = passenger
 
@@ -235,7 +253,12 @@ export function StageCard({
         </View>
         <Divider />
         <View style={{ paddingVertical: 15, paddingHorizontal: 25 }}>
-          <PassengerItem {...passenger} onChat={handleChat} onCall={handleCall} />
+          <PassengerItem
+            {...passenger}
+            onViewProfile={handleViewProfile}
+            onChat={handleChat}
+            onCall={handleCall}
+          />
         </View>
 
         <View style={{ alignItems: 'center', paddingTop: 10, height: 70 }}>

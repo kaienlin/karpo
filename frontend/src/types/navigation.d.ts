@@ -28,6 +28,8 @@ type MainStackParamList = {
   PassengerStack: NavigatorScreenParams<PassengerStackParamList>
   HistoryStack: NavigatorScreenParams<HistoryStackParamList>
   AccountStack: NavigatorScreenParams<AccountStackParamList>
+  UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
+  ChatScreen: { rideId: string }
 }
 
 type BottomTabParamList = {

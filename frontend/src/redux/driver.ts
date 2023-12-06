@@ -2,9 +2,9 @@ import type { Join, JoinDetailed, Ride, Schedule } from '~/types/data'
 
 import { apiSlice } from './api'
 
-interface GetJoinsResponse {
+interface GetJoinsResponse<T extends Join> {
   numAvailableSeat: number
-  joins: Join[] | JoinDetailed[]
+  joins: T[]
 }
 
 export const driverSlice = apiSlice.injectEndpoints({
@@ -22,13 +22,13 @@ export const driverSlice = apiSlice.injectEndpoints({
         method: 'GET'
       })
     }),
-    getJoins: builder.query<GetJoinsResponse, { rideId: string; status: string }>({
+    getJoins: builder.query<GetJoinsResponse<JoinDetailed>, { rideId: string; status: string }>({
       async queryFn(arg, api, extraOptions, baseQuery) {
         const { rideId, status } = arg
         const joinsResult = await baseQuery(`rides/${rideId}/joins?status=${status}`)
         if (joinsResult.error) return { error: joinsResult.error }
 
-        const { numAvailableSeat, joins } = joinsResult.data as GetJoinsResponse
+        const { numAvailableSeat, joins } = joinsResult.data as GetJoinsResponse<Join>
         const result = await Promise.all(
           joins.map(async (join) => {
             const { data: passengerInfo } = await baseQuery(`users/${join.passengerId}`)

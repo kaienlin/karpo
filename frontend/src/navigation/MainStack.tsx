@@ -1,5 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
+import ChatScreen from '~/screens/Chat'
+import UserProfileScreen from '~/screens/UserProfile'
 import type { MainStackParamList } from '~/types/navigation'
 
 import AccountStack from './AccountStack'
@@ -19,6 +21,10 @@ export default function MainStack() {
       </Stack.Group>
       <Stack.Group>
         <Stack.Screen name="AccountStack" component={AccountStack} />
+      </Stack.Group>
+      <Stack.Group screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
       </Stack.Group>
     </Stack.Navigator>
   )

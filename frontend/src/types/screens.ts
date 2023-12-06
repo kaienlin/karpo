@@ -31,6 +31,8 @@ export type AccountScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParamList>
 >
 
+export type UserProfileScreenProps = NativeStackScreenProps<MainStackParamList, 'UserProfileScreen'>
+
 // Driver stack
 export type DriverPlanRideScreenProps = CompositeScreenProps<
   NativeStackScreenProps<DriverStackParamList, 'DriverPlanRideScreen'>,

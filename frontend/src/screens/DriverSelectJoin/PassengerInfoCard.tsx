@@ -1,9 +1,9 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
 import { Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
 import { Image } from 'expo-image'
 
-import type { Join, JoinDetailed, Passenger } from '~/types/data'
+import type { JoinDetailed } from '~/types/data'
 import { displayDatetime, displayProximity } from '~/utils/format'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
@@ -50,10 +50,13 @@ function PassengerInfoCardHeader({
 }: PassengerInfoCardHeaderProps) {
   return (
     <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 10 }}>
-      <View style={{ padding: 10, paddingLeft: 0 }} onPress={onViewProfile}>
-        {/* <Avatar source={require('~/assets/riceball.jpg')} size="giant" /> */}
+      <TouchableOpacity
+        onPress={onViewProfile}
+        activeOpacity={0.8}
+        style={{ padding: 10, paddingLeft: 0 }}
+      >
         <Image source={{ uri: avatar }} style={{ height: 50, width: 50, borderRadius: 25 }} />
-      </View>
+      </TouchableOpacity>
       <View
         style={{
           flex: 1,
