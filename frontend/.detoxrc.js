@@ -19,7 +19,7 @@ module.exports = {
   devices: {
     simulator: {
       type: 'ios.simulator',
-      device: { type: 'iPhone 15' }
+      device: { type: 'iPhone 14', os: 'iOS 16.4' }
     },
     emulator: {
       type: 'android.emulator',
@@ -30,7 +30,7 @@ module.exports = {
     'ios.karpo': {
       type: 'ios.app',
       build: 'eas build -p ios --profile preview',
-      binaryPath: 'ios/Karpo.app'
+      binaryPath: 'Karpo.app'
     },
     'android.karpo': {
       type: 'android.apk',

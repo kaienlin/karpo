@@ -42,7 +42,7 @@ module.exports = {
         ios: {
           extraPods: [
             // TODO: set flag
-            // only need this pod if running build on Apple Silicon
+            // only needed if building on an Apple silicon Mac without rosetta
             {
               name: 'Google-Maps-iOS-Utils',
               git: 'https://github.com/Simon-TechForm/google-maps-ios-utils.git',

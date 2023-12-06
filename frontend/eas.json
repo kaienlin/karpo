@@ -6,28 +6,18 @@
     "development": {
       "distribution": "internal",
       "developmentClient": true,
-      "android": {
-        "gradleCommand": ":app:assembleDebug"
-      },
+      "android": {},
       "ios": {
-        "simulator": true,
-        "buildConfiguration": "Debug"
+        "simulator": true
       }
     },
     "preview": {
-      "distribution": "internal",
-      "ios": {
-        "simulator": true
-      }
-    },
-    "production": {},
-    "test": {
       "android": {
-        "gradleCommand": ":app:assembleRelease :app:assembleAndroidTest -DtestBuildType=release",
-        "withoutCredentials": true
+        "config": "preview-build-android.yml"
       },
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "config": "preview-build-ios.yml"
       }
     }
   },
