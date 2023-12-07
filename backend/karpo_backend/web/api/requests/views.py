@@ -196,8 +196,7 @@ async def post_requests(
     req: PostRequestsRequest,
     limit: int = 10,
     requests_dao: RequestsDAO = Depends(),
-    rides_dao: RidesDAO = Depends(),
-    joins_dao: JoinsModel = Depends(),
+    joins_dao: JoinsDAO = Depends(),
     user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
     user: User = Depends(current_active_user),
 ) -> PostRequestsResponse:
