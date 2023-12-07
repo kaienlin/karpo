@@ -1,11 +1,13 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import ChatScreen from '~/screens/Chat'
+import SelectWaypoint from '~/screens/SelectWaypoint'
 import UserProfileScreen from '~/screens/UserProfile'
 import type { MainStackParamList } from '~/types/navigation'
 
 import AccountStack from './AccountStack'
 import BottomTab from './BottomTab'
+import { commonScreens } from './commonScreens'
 import DriverStack from './DriverStack'
 import PassengerStack from './PassengerStack'
 
@@ -22,10 +24,7 @@ export default function MainStack() {
       <Stack.Group>
         <Stack.Screen name="AccountStack" component={AccountStack} />
       </Stack.Group>
-      <Stack.Group screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
-        <Stack.Screen name="ChatScreen" component={ChatScreen} />
-      </Stack.Group>
+      {commonScreens(Stack)}
     </Stack.Navigator>
   )
 }
