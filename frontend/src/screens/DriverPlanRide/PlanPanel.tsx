@@ -50,7 +50,7 @@ const InputSeats = ({ name, control }: { name: string; control: Control<any> }) 
   } = useController({
     name,
     control,
-    rules: { required: true, validate: (value) => value !== null && value > new Date() }
+    rules: { required: true, validate: (value) => value !== null && value > 0 }
   })
 
   return (
