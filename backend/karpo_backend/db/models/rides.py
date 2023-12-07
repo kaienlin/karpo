@@ -29,12 +29,13 @@ class RidesModel(Base):
     route: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
     )
-    waypoints: Mapped[WKBElement] = mapped_column(
-        Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
-    )
     route_timestamps = mapped_column(
         ARRAY(DateTime(timezone=True)),
     )
+    waypoints: Mapped[WKBElement] = mapped_column(
+        Geography(geometry_type="LINESTRING", srid=4326, spatial_index=False),
+    )
+    waypoint_descriptions = mapped_column(ARRAY(String))
     departure_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     num_seats: Mapped[int]
     num_seats_left: Mapped[int]
