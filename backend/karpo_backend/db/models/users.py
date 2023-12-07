@@ -10,7 +10,7 @@ from fastapi_users.authentication import (
     RedisStrategy,
 )
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
-from pydantic import Base64Str, Field
+from pydantic import Base64Bytes, Field
 from redis import asyncio as redis_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -40,7 +40,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     rating: Optional[
         Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
     ] = None
-    avatar: Optional[Base64Str] = None
+    avatar: Optional[Base64Bytes] = None
 
 
 class UserCreate(schemas.BaseUserCreate):
@@ -48,7 +48,7 @@ class UserCreate(schemas.BaseUserCreate):
 
     name: str
     phone_number: Optional[str] = None
-    avatar: Optional[Base64Str] = None
+    avatar: Optional[Base64Bytes] = None
 
 
 class UserUpdate(schemas.BaseUserUpdate):
@@ -56,7 +56,7 @@ class UserUpdate(schemas.BaseUserUpdate):
 
     name: Optional[str] = None
     phone_number: Optional[str] = None
-    avatar: Optional[Base64Str] = None
+    avatar: Optional[Base64Bytes] = None
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
