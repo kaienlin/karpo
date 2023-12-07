@@ -11,6 +11,7 @@ from shapely import LineString, Point, wkb
 from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.requests_dao import RequestsDAO
 from karpo_backend.db.dao.rides_dao import RidesDAO
+from karpo_backend.db.dao.messages_dao import MessagesDAO
 from karpo_backend.db.models.users import (  # type: ignore
     User,
     current_active_user,
@@ -37,6 +38,7 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     RideDTO,
     SavedRideItemDTO,
     StopoverDTO,
+    ChatRecordDTO,
 )
 from karpo_backend.web.api.users.utils import get_user_info_for_others
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
@@ -397,22 +399,46 @@ async def get_ride_id_join_id_status(
 async def get_chatroom_messages(
     ride_id: uuid.UUID,
     from_time: datetime.datetime,
+    messages_dao: MessagesDAO = Depends(),
 ) -> GetRideMessagesResponse:
     """Get Chatroom messages
 
     :param ride_id: id of ride, tpye is uuid.UUID.
     :param from_time: time when the messages need to return from.
     """
-    raise NotImplementedError("QQ")
+
+    messages = await messages_dao.get_message_model_by_ride_id(ride_id=ride_id, from_time=from_time)
+    messages_list = []
+    for message in messages:
+        messages_list.append(
+            ChatRecordDTO(
+                user_id=message.user_id,
+                content=message.content,
+                time=message.created_at,
+            )
+        )
+    return GetRideMessagesResponse(chat_records=messages_list)
 
 
 @router.post("/{ride_id}/messages", tags=["chat"])
 async def post_chatroom_messages(
     ride_id: uuid.UUID,
     req: PostRideMessagesRequest,
+    messages_dao: MessagesDAO = Depends(),
+    user: User = Depends(current_active_user),
 ) -> None:
     """Post Chatroom messages"""
-    raise NotImplementedError("QQ")
+
+    if req.chat_record.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    message = await messages_dao.create_message_model(
+        user_id=user.id,
+        ride_id=ride_id,
+        content=req.chat_record.content,
+        created_at=req.chat_record.time,
+    )
+    
 
 
 @router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse, tags=["driver"])

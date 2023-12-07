@@ -32,7 +32,7 @@ class PatchRideIdStatusRequest(BaseModel):
 
 class ChatRecordDTO(BaseModel):
     user_id: uuid.UUID
-    message: str
+    content: str
     time: datetime.datetime
 
 
