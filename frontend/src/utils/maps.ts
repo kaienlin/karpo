@@ -1,20 +1,21 @@
 import { decode } from '@mapbox/polyline'
 
-export const flattenLegs = (legs: Leg[]): { route: LatLng[]; durations: string[] } => {
-  const route = legs.reduce((total, leg) => {
-    return total.concat(
-      decode(leg.polyline.encodedPolyline).map(([lat, lng]: number[]) => ({
-        latitude: lat,
-        longitude: lng
-      }))
-    )
+export const flattenLegs = (
+  legs: Leg[]
+): { route: LatLng[]; steps: number[][2]; durations: string[] } => {
+  const steps = legs.reduce((total, leg) => {
+    return total.concat(leg.steps.map(({ polyline }) => decode(polyline.encodedPolyline)))
+  }, [])
+
+  const route = steps.reduce((total, step) => {
+    return total.concat(step.map(([latitude, longitude]: number[]) => ({ latitude, longitude })))
   }, [])
 
   const durations = legs.reduce((total, leg) => {
-    return total.concat(leg.steps.map(({ staticDuration }) => staticDuration))
+    return total.concat(leg.steps.map(({ staticDuration }) => parseInt(staticDuration)))
   }, [])
 
-  return { route, durations }
+  return { route, steps, durations }
 }
 
 export const isValidWaypoint = (waypoint: Waypoint): boolean => {

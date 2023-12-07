@@ -66,13 +66,29 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
 
   const { location: currentLocation } = useCurrentLocation()
   const [createRide] = useCreateRideMutation()
-  const { data: rideRoute } = useGetRouteQuery(
+  const { rideRoute, steps, durations } = useGetRouteQuery(
     isValidWaypoints(waypoints) ? waypoints : skipToken,
-    { selectFromResult: ({ data }) => ({ data: data?.route }) }
+    {
+      selectFromResult: ({ data }) => ({
+        rideRoute: data?.route,
+        steps: data?.steps,
+        durations: data?.durations
+      })
+    }
   )
 
   const onSubmit = async (data: RidePlan) => {
-    await createRide(data)
+    await createRide({
+      departureTime: data.time.toISOString(),
+      numSeats: data.numSeats,
+      origin: data.waypoints[0],
+      destination: data.waypoints[data.waypoints.length - 1],
+      intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
+      route: {
+        steps,
+        durations
+      }
+    })
     navigation.navigate('DriverSelectJoinScreen')
   }
 
@@ -146,7 +162,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={() => onSubmit({})} size="large" style={{ borderRadius: 12 }}>
+          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
             發布行程
           </Button>
         </View>
