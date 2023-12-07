@@ -1,11 +1,15 @@
 import { useState, useRef } from 'react'
-import { View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Toggle, Text, Avatar, Button } from '@ui-kitten/components'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import MapView from 'react-native-maps'
-import { Header } from '../components/CardHeader'
+import { Header } from '~/components/CardHeader'
+import { PassengerStackParamList } from '~/navigation/PassengerStack'
+import { useDispatch, useSelector } from 'react-redux'
+import { changeStatus } from '~/redux/ride'
+import { useAppSelector } from '~/redux/hooks'
 
-type RideInfoScreenProps = NativeStackScreenProps<HomeStackParamList, 'RideInfoScreen'>
+type RideInfoScreenProps = NativeStackScreenProps<PassengerStackParamList, 'RideInfoScreen'>
 
 export default function RideInfo ({ route, navigation }: RideInfoScreenProps) {
   const [checked, setChecked] = useState(false);
@@ -17,11 +21,24 @@ export default function RideInfo ({ route, navigation }: RideInfoScreenProps) {
   };
   
   const mapRef = useRef<MapView>(null)
-  
+  const ride = useAppSelector(state => {
+    // https://stackoverflow.com/questions/54496398/typescript-type-string-undefined-is-not-assignable-to-type-string
+    // but the ride could be deleted
+    return state.rides.find(ride => ride.id === route.params.rideId)!
+  })
+
+  const dispatch = useDispatch()
+  const handlePress = () => {
+    dispatch(
+      changeStatus({id: route.params.rideId})
+    )
+    navigation.push('WaitingListScreen', { query: route.params.query})
+  }
+
   return (
     <>
       <View style={{ padding: 10 }}>
-        <Header {...route.params} />
+        <Header {...ride} />
       </View>
       
       <View style={{ 
@@ -68,13 +85,20 @@ export default function RideInfo ({ route, navigation }: RideInfoScreenProps) {
         </View>
       </View>
       <View style={{ paddingVertical: 10 }}>
-        <Button 
-          style={{ 
-            borderRadius: 30,
-            marginVertical: 10,
-            marginHorizontal: 40,
-          }}
-        >預    約</Button>
+        <View style={{ padding: 20 }}>
+          {ride.responseStatus === 'idle' ? (
+            <Button 
+              style={{ borderRadius: 12 }}
+              onPress={handlePress}
+            >預    約</Button>
+          ) : (
+            <Button 
+              style={{ borderRadius: 12 }}
+              disabled={true}
+            >已    預    約</Button>
+          )}
+        </View>
+        
       </View>
     </>
   )
