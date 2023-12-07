@@ -5,12 +5,7 @@ import { BottomNavigation, BottomNavigationTab, Icon, type IconProps } from '@ui
 import AccountScreen from '~/screens/Account'
 import HistoryScreen from '~/screens/History'
 import HomeScreen from '~/screens/Home'
-
-export type BottomTabParamList = {
-  HomeScreen: undefined
-  HistoryScreen: undefined
-  AccountScreen: undefined
-}
+import type { BottomTabParamList } from '~/types/navigation'
 
 const HomeIcon = (props: IconProps) => <Icon {...props} name="home-outline" />
 const ArchiveIcon = (props: IconProps) => <Icon {...props} name="archive-outline" />

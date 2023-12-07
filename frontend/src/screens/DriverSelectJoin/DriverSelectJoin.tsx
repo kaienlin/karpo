@@ -1,110 +1,84 @@
-import { useEffect, useRef, useState } from 'react'
-import MapView, { Polyline } from 'react-native-maps'
+import React, { useRef, useState } from 'react'
+import { Marker } from 'react-native-maps'
 import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Shadow } from 'react-native-shadow-2'
 import BottomSheet from '@gorhom/bottom-sheet'
+import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
-import { type JoinInfo } from '~/types/data'
+import MapViewWithRoute from '~/components/MapViewWithRoute'
+import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/driver'
+import { useGetCurrentActivityQuery } from '~/redux/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
-import { fakeRoute } from '../DriverDepart/DriverDepart'
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
-
-const rideInfoList = [
-  {
-    status: 'pending',
-    joinInfo: {
-      time: new Date(),
-      fare: 300,
-      numPassenger: 1,
-      origin: '台積電 12 廠',
-      destination: '竹北市光明六路 16 號',
-      proximity: '很順路'
-    },
-    passengerProfile: {
-      name: 'Topi',
-      rating: 5.0,
-      phone: '0912345678'
-    }
-  },
-  {
-    status: 'pending',
-    joinInfo: {
-      time: new Date(),
-      fare: 280,
-      numPassenger: 1,
-      origin: '園區二路 57 號',
-      destination: '竹北市光明六路 116 號',
-      proximity: '非常順路'
-    },
-    passengerProfile: {
-      name: 'Chako',
-      rating: 4.8,
-      phone: '0912345678'
-    }
-  }
-  //   {
-  //     time: new Date(),
-  //     price: 320,
-  //     rating: 4.5,
-  //     numPassenger: 1,
-  //     rideStatus: '有點繞路',
-  //     origin: '實驗中學',
-  //     destination: '博愛國小'
-  //   },
-  //   {
-  //     time: new Date(),
-  //     price: 320,
-  //     rating: 4.5,
-  //     numPassenger: 1,
-  //     rideStatus: '有點繞路',
-  //     origin: '實驗中學',
-  //     destination: '博愛國小'
-  //   }
-]
-
-const query = {
-  origin: '台積電 12 廠',
-  destination: '十興國小',
-  date: '2023/11/21'
-}
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 
 export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinScreenProps) {
-  const [joins, setJoins] = useState<JoinInfo[]>(rideInfoList)
-  const [selectedJoins, setSelectedJoins] = useState<JoinInfo[]>([])
-
-  const mapRef = useRef<MapView>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
 
-  useEffect(() => {
-    mapRef.current?.fitToCoordinates(fakeRoute, {
-      edgePadding: { top: 50, right: 50, left: 50, bottom: 350 }
+  const { rideId } = useGetCurrentActivityQuery(undefined, {
+    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+  })
+  const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
+    selectFromResult: ({ data }) => ({ rideRoute: data?.ride.route.route })
+  })
+  const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
+    selectFromResult: ({ data }) => ({
+      pendingJoins: data?.joins
     })
-  }, [fakeRoute])
+  })
+  const { acceptedJoins, numAvailableSeat } = useGetJoinsQuery(
+    !rideId ? skipToken : { rideId, status: 'accepted' },
+    {
+      selectFromResult: ({ data }) => ({
+        acceptedJoins: data?.joins,
+        numAvailableSeat: data?.numAvailableSeat
+      })
+    }
+  )
+
+  const [respondJoin] = useRespondJoinMutation()
+
+  const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
+  const selectedJoins = pendingJoins?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+  const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
 
   // TODO: implement
-  const handleConfirm = () => {
-    // send accept request to server
-    // navigate to RideDepartScreen
+  const handleConfirm = async () => {
+    if (selectedJoinIds.length > numAvailableSeat) {
+      // TODO: show error message
+      return
+    }
+
+    // TODO: send accept request to server
+    try {
+      for (const joinId of selectedJoinIds) {
+        await respondJoin({ rideId, joinId, action: 'accept' })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
     navigation.navigate('DriverDepartScreen')
   }
 
-  const handleReject = (index: number) => () => {
-    setJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
+  const handleReject = (joinId: string) => async () => {
+    try {
+      await respondJoin({ rideId, joinId, action: 'reject' })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  const handleSelect = (index: number) => () => {
-    setSelectedJoins((prev) => [...prev, { ...joins[index], status: 'pending' }])
-    setJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
+  const handleSelect = (joinId: string) => () => {
+    setSelectedJoinIds((prev) => [...prev, joinId])
   }
 
-  const handleDeselect = (index: number) => () => {
-    setJoins((prev) => [...prev, { ...selectedJoins[index], status: 'available' }])
-    setSelectedJoins((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)])
+  const handleDeselect = (joinId: string) => () => {
+    setSelectedJoinIds((prev) => prev.filter((id) => id !== joinId))
   }
 
   return (
@@ -129,43 +103,61 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
         />
       </Shadow>
 
-      <MapView ref={mapRef} style={{ flex: 1, width: '100%', height: '100%' }} provider="google">
-        <Polyline coordinates={fakeRoute} strokeWidth={5} />
-      </MapView>
+      <MapViewWithRoute route={rideRoute} edgePadding={{ bottom: 170 }}>
+        {/* {pendingJoins?.map(({ passengerInfo, ...join }) => (
+          <React.Fragment key={join.passengerId}>
+            <Marker
+              key={`${join.passengerId}-pickUp`}
+              coordinate={{
+                latitude: join.pickUpLocation.latitude,
+                longitude: join.pickUpLocation.longitude
+              }}
+            >
+              <Shadow>
+                <Image
+                  source={{ uri: passengerInfo.avatar }}
+                  style={{ width: 40, height: 40, borderRadius: 20 }}
+                />
+              </Shadow>
+            </Marker>
+            <Marker
+              key={`${join.passengerId}-dropOff`}
+              coordinate={{
+                latitude: join.dropOffLocation.latitude,
+                longitude: join.dropOffLocation.longitude
+              }}
+            >
+              <Shadow>
+                <Image
+                  source={{ uri: passengerInfo.avatar }}
+                  style={{ width: 40, height: 40, borderRadius: 20 }}
+                />
+              </Shadow>
+            </Marker>
+          </React.Fragment>
+        ))} */}
+      </MapViewWithRoute>
 
       <BottomSheet
         ref={bottomSheetRef}
         style={{ zIndex: 1 }}
         index={1}
-        topInset={30}
-        snapPoints={['19%', '45%', '75%']}
-        onChange={(index) => {
-          if (index === 0) {
-            mapRef.current?.fitToCoordinates(fakeRoute, {
-              edgePadding: { top: 50, right: 50, left: 50, bottom: 200 }
-            })
-          } else if (index === 1) {
-            mapRef.current?.fitToCoordinates(fakeRoute, {
-              edgePadding: { top: 50, right: 50, left: 50, bottom: 350 }
-            })
-          }
-        }}
+        snapPoints={['18%', '45%', '75%']}
       >
-        {selectedJoins.length > 0 && (
+        {(acceptedJoins?.length > 0 || selectedJoins?.length > 0) && (
           <Animated.View entering={FadeIn.delay(100)}>
             <PassengerAvatarList
               title="已選擇的乘客"
-              data={selectedJoins}
+              data={[...(acceptedJoins ?? []), ...(selectedJoins ?? [])]}
               onDeselect={handleDeselect}
               onConfirm={handleConfirm}
             />
           </Animated.View>
         )}
-
         <Animated.View style={{ flex: 1 }} layout={CurvedTransition}>
           <PassengerCardList
             title="已發出請求的乘客"
-            data={joins}
+            data={unselectedJoins ?? []}
             onReject={handleReject}
             onSelect={handleSelect}
           />

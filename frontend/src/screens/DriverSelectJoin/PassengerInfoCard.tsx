@@ -1,28 +1,31 @@
 import { StyleSheet, View } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
-import { Avatar, Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
+import { Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
+import { Image } from 'expo-image'
 
-import { type JoinInfo } from '~/types/data'
-import { displayDatetime } from '~/utils/format'
+import type { Join, JoinDetailed, Passenger } from '~/types/data'
+import { displayDatetime, displayProximity } from '~/utils/format'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
 const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 
-interface PassengerProfile {
-  userId: string
-  avatar: string
-  rating: number
-  phone: string
-}
-
 interface PassengerInfoCardHeaderProps {
-  data: Pick<PassengerProfile, 'avatar' | 'rating'> &
-    Omit<JoinInfo, 'joinId' | 'origin' | 'destination'>
+  data: {
+    time: Date
+    avatar: string
+    proximity: number
+    fare: number
+    rating: number
+    numPassengers: number
+  }
   onViewProfile: () => void
 }
 
 interface PassengerInfoCardBodyProps {
-  data: Pick<JoinInfo, 'origin' | 'destination'>
+  data: {
+    origin: string
+    destination: string
+  }
   onChat: () => void
   onCall: () => void
 }
@@ -33,8 +36,7 @@ interface PassengerInfoCardFooterProps {
 }
 
 interface PassengerInfoCardProps {
-  joinInfo: JoinInfo
-  passengerProfile: PassengerProfile
+  data: JoinDetailed
   onViewProfile: () => void
   onChat: () => void
   onCall: () => void
@@ -43,13 +45,14 @@ interface PassengerInfoCardProps {
 }
 
 function PassengerInfoCardHeader({
-  data: { avatar, time, proximity, fare, rating, numPassenger },
+  data: { avatar, time, proximity, fare, rating, numPassengers },
   onViewProfile
 }: PassengerInfoCardHeaderProps) {
   return (
     <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 10 }}>
-      <View style={{ padding: 10 }} onPress={onViewProfile}>
-        <Avatar source={require('~/assets/riceball.jpg')} size="giant" />
+      <View style={{ padding: 10, paddingLeft: 0 }} onPress={onViewProfile}>
+        {/* <Avatar source={require('~/assets/riceball.jpg')} size="giant" /> */}
+        <Image source={{ uri: avatar }} style={{ height: 50, width: 50, borderRadius: 25 }} />
       </View>
       <View
         style={{
@@ -67,7 +70,7 @@ function PassengerInfoCardHeader({
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ fontSize: 18, fontWeight: '500' }}>{displayDatetime(time, true)}</Text>
-            <Text style={{ fontSize: 12, color: '#F0C414' }}>{proximity}</Text>
+            <Text style={{ fontSize: 12, color: '#F0C414' }}>{displayProximity(proximity)}</Text>
           </View>
           <Text style={{ fontSize: 18 }}>NT${fare}</Text>
         </View>
@@ -83,7 +86,7 @@ function PassengerInfoCardHeader({
               <Text style={styles.lightText}>{rating.toFixed(1)}</Text>
             </View>
             <Text style={styles.lightText}>|</Text>
-            <Text style={styles.lightText}>{numPassenger} 人</Text>
+            <Text style={styles.lightText}>{numPassengers} 人</Text>
             <Text style={styles.lightText}>|</Text>
             <Text style={styles.lightText}>願拼車</Text>
           </View>
@@ -162,8 +165,15 @@ function PassengerInfoCardFooter({ onReject, onSelect }: PassengerInfoCardFooter
 }
 
 export function PassengerInfoCard({
-  joinInfo: { time, origin, destination, numPassenger, proximity, fare },
-  passengerProfile: { userId, avatar, rating, phone },
+  data: {
+    pickUpTime,
+    pickUpLocation,
+    dropOffLocation,
+    numPassengers,
+    proximity,
+    fare,
+    passengerInfo: { id, avatar, rating, phoneNumber }
+  },
   onViewProfile,
   onChat,
   onCall,
@@ -178,24 +188,27 @@ export function PassengerInfoCard({
         marginHorizontal: 10
       }}
     >
-      <View
-        style={{
-          borderRadius: 10
-        }}
-      >
+      <View style={{ borderRadius: 10 }}>
         <PassengerInfoCardHeader
           data={{
+            time: pickUpTime,
             avatar,
-            time,
             rating,
             proximity,
             fare,
-            numPassenger
+            numPassengers
           }}
           onViewProfile={onViewProfile}
         />
         <Divider />
-        <PassengerInfoCardBody data={{ origin, destination }} onChat={onChat} onCall={onCall} />
+        <PassengerInfoCardBody
+          data={{
+            origin: pickUpLocation.description,
+            destination: dropOffLocation.description
+          }}
+          onChat={onChat}
+          onCall={onCall}
+        />
         <Divider />
         <PassengerInfoCardFooter onReject={onReject} onSelect={onSelect} />
       </View>

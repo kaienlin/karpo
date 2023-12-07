@@ -28,6 +28,10 @@
           "attributes": false
         }
       }
+    ],
+    "@typescript-eslint/strict-boolean-expressions": [
+      "error",
+      { "allowString": true, "allowNullableString": true, "allowNullableObject": true }
     ]
   }
 }
