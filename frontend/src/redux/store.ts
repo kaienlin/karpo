@@ -8,7 +8,8 @@ import waypointsReducer from './waypoints'
 export const rootReducer = combineReducers({
   auth: authReducer,
   waypoints: waypointsReducer,
-  rides: rideReducer
+  rides: rideReducer,
+  [apiSlice.reducerPath]: apiSlice.reducer
 })
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {

@@ -1,77 +1,104 @@
-import { TouchableOpacity, View } from 'react-native'
-import { Icon, Text, useTheme } from '@ui-kitten/components'
+import { useState } from 'react'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { Button, Icon, Input, Text } from '@ui-kitten/components'
 
-import type { SavedRide } from '~/types/data'
+import { useGetSavedRidesQuery } from '~/redux/users'
 
 import { SavedRideCard } from './components/SavedRideCard'
 
-interface PassengerSubScreenProps {
-  onMainPress: () => void
-  onSelectSavedRide: (ride: SavedRide) => void
-  onManageSavedRide?: () => void
-  savedRides?: SavedRide[]
-}
+export function PassengerSubScreen() {
+  const navigation = useNavigation()
+  const { data: savedRides } = useGetSavedRidesQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data: data?.savedRides })
+  })
 
-export function PassengerSubScreen({
-  onMainPress,
-  onSelectSavedRide,
-  onManageSavedRide,
-  savedRides
-}: PassengerSubScreenProps) {
-  const theme = useTheme()
+  const [origin, setOrigin] = useState('')
+  const [destination, setDestination] = useState('')
+
+  const handleMainPress = () => {
+    navigation.navigate('PassengerStack', { screen: 'SelectRideScreen' })
+  }
+
   return (
-    <>
+    <View style={{ gap: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Icon name="radio-button-on" fill={'#F0C414'} style={{ width: 32, height: 32 }} />
+        <Input
+          placeholder="上車地點"
+          value={origin}
+          onChangeText={(nextOrigin) => setOrigin(nextOrigin)}
+          style={{ flex: 1 }}
+        />
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Icon name="pin" style={{ width: 32, height: 32 }} />
+        <Input
+          placeholder="要去哪裡"
+          value={destination}
+          onChangeText={(nextDestination) => setDestination(nextDestination)}
+          style={{ flex: 1 }}
+        />
+      </View>
       <View
         style={{
-          backgroundColor: theme['background-basic-color-2'],
-          borderRadius: 100
+          marginHorizontal: 6,
+          marginVertical: 15,
+          gap: 20
         }}
       >
-        <TouchableOpacity
-          onPress={onMainPress}
-          activeOpacity={0.7}
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-            paddingVertical: 15,
-            paddingHorizontal: 20
-          }}
-        >
-          <Icon
-            style={{ width: 20, height: 20 }}
-            name="search-outline"
-            fill={theme['text-hint-color']}
-          />
-          <Text category="h5" style={{ color: theme['text-hint-color'] }}>
-            要去哪裡？
-          </Text>
+        <TouchableOpacity>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 30
+            }}
+          >
+            <Icon name="clock" style={{ width: 20, height: 20 }} fill={'#C3C3C3'} />
+            <Text style={{ fontSize: 16, color: '#C3C3C3' }}>出發時間</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 30
+            }}
+          >
+            <Icon name="person" style={{ width: 20, height: 20 }} fill={'#C3C3C3'} />
+            <Text style={{ fontSize: 16, color: '#C3C3C3' }}>人數</Text>
+          </View>
         </TouchableOpacity>
       </View>
-      <View style={{ marginTop: 30, gap: 10 }}>
+      <View style={{ marginTop: 20, gap: 10 }}>
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
           <Text category="h5">常用行程</Text>
-          <TouchableOpacity
-            onPress={onManageSavedRide}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-          >
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text>管理</Text>
             <Icon style={{ width: 15, height: 15 }} name="arrow-ios-forward" />
           </TouchableOpacity>
         </View>
         {savedRides?.map((ride, index) => (
-          <SavedRideCard
-            {...ride}
-            key={`${ride.label}-${index}`}
-            onPress={() => {
-              onSelectSavedRide(ride)
-            }}
-          />
+          <SavedRideCard {...ride} key={`${ride.label}-${index}`} />
         ))}
       </View>
-    </>
+      <View style={styles.submitButtonContainer}>
+        <Button size="large" style={{ borderRadius: 12 }} onPress={handleMainPress}>
+          搜尋
+        </Button>
+      </View>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  submitButtonContainer: {
+    width: '100%',
+    padding: 20
+  }
+})
