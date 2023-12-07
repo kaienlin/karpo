@@ -1,22 +1,24 @@
 import { FlatList, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
+import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
 import RateCard from '~/components/RateCard'
+import { useGetUserProfileBatchQuery } from '~/redux/users'
 
 // interface RateScreenProps {
 //   navigation: any; // 根據實際情況更改類型
 // }
-const driverInfoList = [
-  { id: '000', name: '本丸' },
-  { id: '001', name: 'Topi' },
-  { id: '002', name: 'Chako' }
-]
 
 type RateScreenProps = NativeStackScreenProps<HomeStackParamList, 'RateScreen'>
 
-export default function RateScreen({ navigation }: RateScreenProps) {
+export default function RateScreen({ navigation, route }: RateScreenProps) {
+  const { userIds } = route.params
+  const { data: users, isSuccess } = useGetUserProfileBatchQuery(userIds ?? skipToken)
+
+  // TODO: onSubmit send to backend
+
   return (
     <SafeAreaView style={styles.root}>
       <TopNavigation
@@ -32,7 +34,9 @@ export default function RateScreen({ navigation }: RateScreenProps) {
         )}
       />
 
-      <FlatList data={driverInfoList} renderItem={({ item }) => <RateCard userInfo={item} />} />
+      {isSuccess && (
+        <FlatList data={users} renderItem={({ item }) => <RateCard userInfo={item} />} />
+      )}
     </SafeAreaView>
   )
 }

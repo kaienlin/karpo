@@ -66,7 +66,9 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
 
   useEffect(() => {
     if (stage === schedule?.length) {
-      navigation.navigate('RideCompleteScreen')
+      navigation.navigate('RideCompleteScreen', {
+        userIds: passengers?.map((passenger) => passenger.id)
+      })
     }
   }, [stage])
 
