@@ -32,7 +32,7 @@ interface RidePlan {
   waypoints: Waypoint[]
 }
 
-const defaultValues = {
+const defaultValues: RidePlan = {
   time: null,
   numSeats: 0,
   waypoints: [emptyWaypoint, emptyWaypoint]
@@ -41,7 +41,7 @@ const defaultValues = {
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
   const theme = useTheme()
 
-  const { savedRideIndex } = route?.params ?? undefined
+  const { savedRideIndex } = route?.params
   const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
     selectFromResult: ({ data, ...rest }) => {
       const ride = data?.savedRides[savedRideIndex]
@@ -59,7 +59,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   })
 
   const { control, watch, handleSubmit } = useForm<RidePlan>({
-    defaultValues: savedRide ?? defaultValues
+    defaultValues: (savedRide as RidePlan) ?? defaultValues
   })
 
   const waypoints = watch('waypoints')

@@ -96,7 +96,7 @@ const initMapsAPI = (apiKey: string) => ({
   },
   getRoute: async (
     coordinates: Waypoint[]
-  ): Promise<Partial<{ polyline: string; legs: any[] }>> => {
+  ): Promise<Partial<{ polyline: string; legs: RouteLeg[] }>> => {
     const [origin, ...intermediates] = coordinates
     const destination = intermediates.pop()
 
