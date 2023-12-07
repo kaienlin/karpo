@@ -1,13 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { useController, useFieldArray, type Control } from 'react-hook-form'
-import { type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { Button, Icon, Input, Text, useTheme, type IconProps } from '@ui-kitten/components'
 
-import Counter from '~/components/Counter'
-import DateTimePicker from '~/components/DateTimePicker'
-import { InputModal } from '~/components/InputModals'
+import { InputCounter, InputTime as InputTimeModal } from '~/components/InputModals'
 import { displayDatetime } from '~/utils/format'
 
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
@@ -22,43 +19,27 @@ const InputTime = ({ name, control }: { name: string; control: Control<any> }) =
     rules: { required: true, validate: (value) => value !== null && value > new Date() }
   })
 
-  const [tempValue, setTempValue] = useState<Date>(value ?? new Date())
-  const modalRef = useRef<BottomSheetModal>(null)
-
   return (
-    <>
-      <Button
-        onPress={() => {
-          modalRef.current?.present()
-        }}
-        size="small"
-        appearance={value == null ? 'filled' : 'outline'}
-        status={invalid ? 'danger' : value == null ? 'input' : 'primary'}
-        style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
-        accessoryLeft={(props) => <Icon {...props} name="clock" />}
-        accessoryRight={(props) => (
-          <Icon {...props} name={value == null ? 'arrow-ios-downward' : 'checkmark'} />
-        )}
-      >
-        {value == null ? '立即出發' : `${displayDatetime(value)} 出發`}
-      </Button>
-      <InputModal ref={modalRef} height="55%">
-        <Text category="h5">設定出發時間</Text>
-        <DateTimePicker date={tempValue} setDate={setTempValue} />
-        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-          <Button
-            size="giant"
-            style={{ borderRadius: 100 }}
-            onPress={() => {
-              onChange(tempValue)
-              modalRef.current?.dismiss()
-            }}
-          >
-            確定
-          </Button>
-        </View>
-      </InputModal>
-    </>
+    <InputTimeModal
+      title="設定出發時間"
+      value={value}
+      onChange={onChange}
+      renderTriggerComponent={({ onOpen, value }) => (
+        <Button
+          onPress={onOpen}
+          size="small"
+          appearance={value == null ? 'filled' : 'outline'}
+          status={invalid ? 'danger' : value == null ? 'input' : 'primary'}
+          style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
+          accessoryLeft={(props) => <Icon {...props} name="clock" />}
+          accessoryRight={(props) => (
+            <Icon {...props} name={value == null ? 'arrow-ios-downward' : 'checkmark'} />
+          )}
+        >
+          {value == null ? '立即出發' : `${displayDatetime(value)} 出發`}
+        </Button>
+      )}
+    />
   )
 }
 
@@ -69,45 +50,30 @@ const InputSeats = ({ name, control }: { name: string; control: Control<any> }) 
   } = useController({
     name,
     control,
-    rules: { required: true, validate: (value) => value > 0 }
+    rules: { required: true, validate: (value) => value !== null && value > new Date() }
   })
-  const [tempValue, setTempValue] = useState<number>(value ?? 0)
-  const modalRef = useRef<BottomSheetModal>(null)
 
   return (
-    <>
-      <Button
-        onPress={() => {
-          modalRef.current?.present()
-        }}
-        size="small"
-        appearance={value === 0 ? 'filled' : 'outline'}
-        status={invalid ? 'danger' : value === 0 ? 'input' : 'primary'}
-        style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
-        accessoryLeft={(props) => <Icon {...props} name="person" />}
-        accessoryRight={(props) => (
-          <Icon {...props} name={value === 0 ? 'arrow-ios-downward' : 'checkmark'} />
-        )}
-      >
-        {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
-      </Button>
-      <InputModal ref={modalRef} height="40%">
-        <Text category="h5">可搭載人數</Text>
-        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-          <Counter value={tempValue} onValueChange={setTempValue} />
-          <Button
-            size="giant"
-            style={{ borderRadius: 100 }}
-            onPress={() => {
-              onChange(tempValue)
-              modalRef.current?.dismiss()
-            }}
-          >
-            確定
-          </Button>
-        </View>
-      </InputModal>
-    </>
+    <InputCounter
+      title="可搭載人數"
+      value={value}
+      onChange={onChange}
+      renderTriggerComponent={({ onOpen, value }) => (
+        <Button
+          onPress={onOpen}
+          size="small"
+          appearance={value === 0 ? 'filled' : 'outline'}
+          status={invalid ? 'danger' : value === 0 ? 'input' : 'primary'}
+          style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
+          accessoryLeft={(props) => <Icon {...props} name="person" />}
+          accessoryRight={(props) => (
+            <Icon {...props} name={value === 0 ? 'arrow-ios-downward' : 'checkmark'} />
+          )}
+        >
+          {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
+        </Button>
+      )}
+    />
   )
 }
 

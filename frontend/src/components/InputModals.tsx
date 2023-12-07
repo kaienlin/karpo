@@ -107,10 +107,10 @@ export const InputCounter = ({
     <>
       {renderTriggerComponent({ onOpen, value })}
 
-      <InputModal ref={modalRef} height="55%">
+      <InputModal ref={modalRef} height="40%">
         <Text category="h5">{title}</Text>
-        <Counter value={tempValue} onValueChange={setTempValue} />
         <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+          <Counter value={tempValue} onValueChange={setTempValue} />
           <Button
             size="giant"
             style={{ borderRadius: 100 }}
