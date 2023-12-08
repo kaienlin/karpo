@@ -52,7 +52,7 @@ export default function MapViewWithRoute({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={fitToRoute}
-        style={[{ position: 'absolute', zIndex: 0 }, fitToRouteButtonPosition]}
+        style={[{ position: 'absolute', zIndex: 1 }, fitToRouteButtonPosition]}
       >
         <Shadow startColor="#00000010">
           <View
