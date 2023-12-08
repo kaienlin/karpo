@@ -6,12 +6,12 @@ from fastapi import Depends
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, schemas
 from fastapi_users.authentication import (
     AuthenticationBackend,
-    CookieTransport,
+    BearerTransport,
     RedisStrategy,
 )
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from pydantic import Base64Bytes, Field
-from redis import asyncio as redis_asyncio
+from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import String
@@ -19,6 +19,7 @@ from typing_extensions import Annotated
 
 from karpo_backend.db.base import Base
 from karpo_backend.db.dependencies import get_db_session
+from karpo_backend.services.redis.dependency import get_redis_pool
 from karpo_backend.settings import settings
 
 
@@ -90,23 +91,22 @@ async def get_user_manager(
     yield UserManager(user_db)
 
 
-def get_redis_strategy() -> RedisStrategy:
+async def get_redis_strategy(
+    redis_pool: ConnectionPool = Depends(get_redis_pool),
+) -> RedisStrategy:
     """
     Return a RedisStrategy in order to instantiate it dynamically.
 
     :returns: instance of RedisStrategy with provided settings.
     """
-    redis_client = redis_asyncio.from_url(
-        str(settings.redis_url),
-        decode_responses=True,
-    )
-    return RedisStrategy(redis_client, lifetime_seconds=86400)
+    async with Redis(connection_pool=redis_pool, decode_responses=True) as redis:
+        yield RedisStrategy(redis, lifetime_seconds=86400)
 
 
-cookie_transport = CookieTransport()
+bearer_transport = BearerTransport(tokenUrl="/api/auth/cookie/login")
 auth_cookie = AuthenticationBackend(
     name="cookie",
-    transport=cookie_transport,
+    transport=bearer_transport,
     get_strategy=get_redis_strategy,
 )
 

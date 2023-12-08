@@ -1,12 +1,12 @@
 from typing import AsyncGenerator
 
-from redis.asyncio import Redis
+from redis.asyncio import ConnectionPool
 from starlette.requests import Request
 
 
 async def get_redis_pool(
     request: Request,
-) -> AsyncGenerator[Redis, None]:  # pragma: no cover
+) -> AsyncGenerator[ConnectionPool, None]:  # pragma: no cover
     """
     Returns connection pool.
 

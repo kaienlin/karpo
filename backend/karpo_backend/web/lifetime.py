@@ -154,16 +154,20 @@ async def create_and_login_test_user(
                     )
                 )
                 logger.info(f"User created {user.email}")
-                async with Redis(connection_pool=app.state.redis_pool) as redis:
-                    await redis.set(f"fastapi_users_token:{token}", str(user.id))
-        await session.commit()
-        await session.close()
     except UserAlreadyExists:
         logger.info(f"User {email} already exists")
 
+    user = await user_manager.get_by_email(email)
+    async with Redis(connection_pool=app.state.redis_pool) as redis:
+        await redis.set(f"fastapi_users_token:{token}", str(user.id))
+        logger.info(f"User {user.email} logged in")
+
+    await session.commit()
+    await session.close()
+
 
 async def setup_test_users(app: FastAPI):
-    if settings.environment != "dev":
+    if settings.environment not in ("dev", "pytest"):
         return
 
     await create_and_login_test_user(

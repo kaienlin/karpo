@@ -18,6 +18,7 @@ from karpo_backend.db.utils import create_database, drop_database
 from karpo_backend.services.redis.dependency import get_redis_pool
 from karpo_backend.settings import settings
 from karpo_backend.web.application import get_app
+from karpo_backend.web.lifetime import _setup_db, setup_test_users
 
 
 @pytest.fixture(scope="session")
@@ -94,7 +95,9 @@ async def fake_redis_pool() -> AsyncGenerator[ConnectionPool, None]:
     """
     server = FakeServer()
     server.connected = True
-    pool = ConnectionPool(connection_class=FakeConnection, server=server)
+    pool = ConnectionPool(
+        connection_class=FakeConnection, server=server, decode_responses=True
+    )
 
     yield pool
 
@@ -102,7 +105,7 @@ async def fake_redis_pool() -> AsyncGenerator[ConnectionPool, None]:
 
 
 @pytest.fixture
-def fastapi_app(
+async def fastapi_app(
     dbsession: AsyncSession,
     fake_redis_pool: ConnectionPool,
 ) -> FastAPI:
@@ -112,8 +115,13 @@ def fastapi_app(
     :return: fastapi app with mocked dependencies.
     """
     application = get_app()
+    application.state.redis_pool = fake_redis_pool
     application.dependency_overrides[get_db_session] = lambda: dbsession
     application.dependency_overrides[get_redis_pool] = lambda: fake_redis_pool
+
+    _setup_db(application)
+    await setup_test_users(application)
+
     return application  # noqa: WPS331
 
 
@@ -130,3 +138,18 @@ async def client(
     """
     async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture
+async def client_test(
+    client: AsyncClient,
+) -> AsyncGenerator[AsyncClient, None]:
+    """
+    Fixture that creates client with the credential of test user (TestUser)
+    """
+    client.headers.update(
+        {
+            "Authorization": "Bearer test",
+        },
+    )
+    yield client
