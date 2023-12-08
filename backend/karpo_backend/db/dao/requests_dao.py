@@ -2,6 +2,7 @@ import datetime
 import uuid
 from typing import List, Optional, Tuple
 
+from shapely import Point
 from fastapi import Depends
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
@@ -73,8 +74,12 @@ class RequestsDAO:
         requests_model: RequestsModel,
         limit: int,
     ) -> List[Tuple[RidesModel, Match]]:
-        origin = to_shape(requests_model.origin).wkt
-        destination = to_shape(requests_model.destination).wkt
+        origin = requests_model.origin
+        destination = requests_model.destination
+        if not isinstance(origin, str):
+            origin = to_shape(origin).wkt
+            destination = to_shape(destination).wkt
+
         query = (
             select(RidesModel)
             .where(
