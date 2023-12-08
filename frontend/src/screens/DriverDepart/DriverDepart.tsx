@@ -5,7 +5,13 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, StyleService, useStyleSheet } from '@ui-kitten/components'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
-import { useGetJoinsQuery, useGetRideQuery, useGetScheduleQuery } from '~/redux/driver'
+import { useCurrentLocation } from '~/hooks/useCurrentLocation'
+import {
+  useGetJoinsQuery,
+  useGetRideQuery,
+  useGetScheduleQuery,
+  useUpdateStatusMutation
+} from '~/redux/driver'
 import { useGetCurrentActivityQuery } from '~/redux/users'
 import { type DriverDepartScreenProps } from '~/types/screens'
 import { makePhoneCall } from '~/utils/device'
@@ -17,12 +23,16 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const [stage, setStage] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+  const { location: currentLocation } = useCurrentLocation()
+
+  const { data: rideId } = useGetCurrentActivityQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data: data?.driverState.rideId })
   })
+
   const { data: ride, isSuccess: isRideSuccess } = useGetRideQuery(rideId ?? skipToken, {
     selectFromResult: ({ data, ...rest }) => ({ data: data?.ride, ...rest })
   })
+
   const {
     data: { numAvailableSeat, passengers },
     isSuccess: isJoinsSuccess
@@ -40,16 +50,22 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
       ...rest
     })
   })
+
   const { data: schedule, isSuccess: isScheduleSuccess } = useGetScheduleQuery(
     rideId ?? skipToken,
-    {
-      selectFromResult: ({ data, ...rest }) => ({ data: data?.schedule, ...rest })
-    }
+    { selectFromResult: ({ data, ...rest }) => ({ data: data?.schedule, ...rest }) }
   )
   const passenger = passengers?.find((passenger) => passenger.id === schedule?.[stage]?.passengerId)
 
-  const handleSwipe = () => {
+  const [updateStatus] = useUpdateStatusMutation()
+
+  const handleSwipe = async () => {
     setIsLoading(true)
+    await updateStatus({
+      rideId,
+      position: currentLocation,
+      phase: stage + 1
+    })
     setTimeout(() => {
       setStage((prev) => prev + 1)
       setIsLoading(false)

@@ -69,12 +69,13 @@ export const driverSlice = apiSlice.injectEndpoints({
         queryFulfilled.catch(patchResult.undo)
       }
     }),
-    updatePosition: builder.mutation<string, { rideId: string; position: LatLng }>({
-      query: ({ rideId, position }) => ({
-        url: `/rides/${rideId}/position`,
-        method: 'PUT',
+    updateStatus: builder.mutation<string, { rideId: string; position: LatLng; phase: number }>({
+      query: ({ rideId, position, phase }) => ({
+        url: `/rides/${rideId}/status`,
+        method: 'PATCH',
         body: {
-          position
+          driverPosition: position,
+          phase
         }
       })
     })
@@ -86,5 +87,6 @@ export const {
   useGetRideQuery,
   useGetJoinsQuery,
   useGetScheduleQuery,
-  useRespondJoinMutation
+  useRespondJoinMutation,
+  useUpdateStatusMutation
 } = driverSlice
