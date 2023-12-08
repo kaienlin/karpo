@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from fastapi import Depends
 from shapely import LineString, Point, within, wkb
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
@@ -39,12 +39,14 @@ class JoinsDAO:
             request_user_id=request_user_id,
             ride_user_id=ride_user_id,
             num_passengers=num_passengers,
-            # fare=,                          # TBA
+            fare=0,                          # TBA
             status="pending",  # status -> driver_response?
             pick_up_location=f"POINT({pick_up_location.longitude} {pick_up_location.latitude})",
-            pick_up_location_description=pick_up_location.description,
+            pick_up_location_description="string",      # TBA
+            # pick_up_location_description=pick_up_location.description,
             drop_off_location=f"POINT({drop_off_location.longitude} {drop_off_location.latitude})",
-            drop_off_location_description=drop_off_location.description,
+            drop_off_location_description="string",     # TBA
+            # drop_off_location_description=drop_off_location.description,
             pick_up_time=pick_up_time,
             drop_off_time=drop_off_time,
             pick_up_distance=pick_up_distance,
@@ -67,18 +69,20 @@ class JoinsDAO:
 
     async def put_joins_model_by_id(
         self, join_id: uuid.UUID, action: Literal["accpet", "reject"]
-    ) -> Optional[JoinsModel]:
+    ):
         if action == "accept":
-            row_updated = self.session.query.filter(JoinsModel.join == join_id).update(
-                status="accepted"
+            await self.session.execute(
+                update(JoinsModel)
+                .where(JoinsModel.id == join_id)
+                .values(status="accepted")
             )
         else:
-            row_updated = self.session.query.filter(JoinsModel.join == join_id).update(
-                status="rejected"
+            await self.session.execute(
+                update(JoinsModel)
+                .where(JoinsModel.id == join_id)
+                .values(status="rejected")
             )
-        await self.session.commit()
-
-        return row_updated
+        await self.session.flush()
 
     async def get_accepted_joins_model_by_ride_id(
         self,

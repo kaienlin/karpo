@@ -381,7 +381,7 @@ async def get_ride_id_join_id_status(
     user: User = Depends(current_active_user),
 ) -> GetRideIdJoinIdStatusResponse:
     """Get the status of a join request (`accepted`, `rejected` or `pending`)"""
-    join = joins_dao.get_joins_model_by_id(join_id)
+    join = await joins_dao.get_joins_model_by_id(join_id)
     if join is None:
         raise HTTPException(status_code=404, detail="Join not found")
 
@@ -457,13 +457,13 @@ async def get_ride_id_joins(
     + **status**: which status of joins want to get.
     """
 
-    ride = rides_dao.get_ride_model_by_id(ride_id)
+    ride = await rides_dao.get_ride_model_by_id(ride_id)
     if ride is None:
         raise HTTPException(status_code=404, detail="Ride not found")
     if ride.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    joins_model = joins_dao.get_joins_model_by_ride_id_and_status(
+    joins_model = await joins_dao.get_joins_model_by_ride_id_and_status(
         ride_id=ride_id, status=status
     )
 
@@ -471,7 +471,7 @@ async def get_ride_id_joins(
     for join_model in joins_model:
         joins.append(
             JoinDTO(
-                join_id=join_model.join_id,
+                join_id=join_model.id,
                 passenger_id=join_model.request_user_id,
                 pick_up_time=join_model.pick_up_time,
                 drop_off_time=join_model.drop_off_time,
@@ -486,7 +486,7 @@ async def get_ride_id_joins(
                 passenger_pick_up_distance=join_model.pick_up_distance,
                 passenger_drop_off_distance=join_model.drop_off_distance,
                 num_passengers=join_model.num_passengers,
-                # fare=,
+                fare=0,     # TBA
             )
         )
 
@@ -518,24 +518,23 @@ async def put_ride_id_joins_join_id_status(
     + **action**: `"reject"` or `"accept"`.
     """
 
-    ride = rides_dao.get_ride_model_by_id(ride_id)
+    ride = await rides_dao.get_ride_model_by_id(ride_id)
     if ride is None:
         raise HTTPException(status_code=404, detail="Ride not found")
     if ride.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    join = joins_dao.get_joins_model_by_id(join_id)
+    join = await joins_dao.get_joins_model_by_id(join_id)
     if join is None:
         raise HTTPException(status_code=404, detail="Join not found")
     if join.ride_id != ride_id:
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    # TODO: update num_seats_left in rides table
     if req.action == "accept" and ride.num_seats_left < join.num_passengers:
         raise HTTPException(
             status_code=403,
             detail="Number of passengers > number of available seats",
         )
 
-    joins_dao.put_joins_model_by_id(join_id, req.action)
+    await joins_dao.put_joins_model_by_id(join_id, req.action)
     await rides_dao.update_schedule_by_ride_id(ride_id)
