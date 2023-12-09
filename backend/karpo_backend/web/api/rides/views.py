@@ -6,7 +6,7 @@ from typing import List, Literal
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from fastapi_users.db import SQLAlchemyUserDatabase
-from shapely import LineString, Point, wkb
+from shapely import LineString, Point, wkb, wkt
 
 from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.requests_dao import RequestsDAO
@@ -126,7 +126,7 @@ async def post_rides(
         destination=req.destination,
         route=route,
         route_timestamps=timestamps,
-        waypoints=req.waypoints,
+        intermediates=req.intermediates,
         departure_time=req.departure_time,
         num_seats=req.num_seats,
         num_seats_left=req.num_seats,
@@ -149,7 +149,16 @@ async def get_ride_id(
     origin: Point = wkb.loads(bytes(ride.origin.data))
     destination: Point = wkb.loads(bytes(ride.destination.data))
     route: LineString = wkb.loads(bytes(ride.route.data))
-    waypoints: LineString = wkb.loads(bytes(ride.waypoints.data))
+
+    intermediateDTO_list = []
+    for intermediate, intermediate_description in zip(ride.intermediates, ride.intermediate_descriptions):
+        intermediateDTO_list.append(
+            LocationWithDescDTO(
+                longitude=wkt.loads(intermediate).x,
+                latitude=wkt.loads(intermediate).y,
+                description=intermediate_description,
+            )
+        )
 
     return GetRideIdResponse(
         ride=RideDTO(
@@ -168,7 +177,7 @@ async def get_ride_id(
                 route=list(route.coords),
                 timestamps=ride.route_timestamps,
             ),
-            waypoints=list(waypoints.coords),
+            intermediates=intermediateDTO_list,
             departure_time=ride.departure_time,
             num_seats=ride.num_seats,
             last_update_time=ride.last_update_time,
@@ -206,8 +215,18 @@ async def get_saved_rides(
     for ride in rides:
         origin: Point = wkb.loads(bytes(ride.origin.data))
         destination: Point = wkb.loads(bytes(ride.destination.data))
-        waypoints: LineString = wkb.loads(bytes(ride.waypoints.data))
         driver_position: Point = wkb.loads(bytes(ride.driver_position.data))
+
+        intermediateDTO_list = []
+        for intermediate, intermediate_description in zip(ride.intermediates, ride.intermediate_descriptions):
+            intermediateDTO_list.append(
+                LocationWithDescDTO(
+                    longitude=wkt.loads(intermediate).x,
+                    latitude=wkt.loads(intermediate).y,
+                    description=intermediate_description,
+                )
+            )
+
         saved_ride_item = SavedRideItemDTO(
             label=ride.label,
             origin=LocationWithDescDTO(
@@ -220,7 +239,7 @@ async def get_saved_rides(
                 latitude=destination.y,
                 description=ride.destination_description,
             ),
-            waypoints=list(waypoints.coords),
+            intermediates=intermediateDTO_list,
             departure_time=ride.departure_time,
             num_seats=ride.num_seats,
             last_update_time=ride.last_update_time,

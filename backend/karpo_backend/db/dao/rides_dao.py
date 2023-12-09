@@ -26,7 +26,7 @@ class RidesDAO:
         origin: LocationWithDescDTO,
         destination: LocationWithDescDTO,
         route: List[Tuple[float, float]],
-        waypoints: List[Tuple[float, float]],
+        intermediates: List[LocationWithDescDTO],
         route_timestamps: List[datetime.datetime],
         departure_time: datetime.datetime,
         num_seats: int,
@@ -41,11 +41,13 @@ class RidesDAO:
             route_str += f"{route_point[0]} {route_point[1]}, "
         route_str = route_str[:-2]
         route_str += ")"
-        waypoints_str = "LINESTRING("
-        for waypoint in waypoints:
-            waypoints_str += f"{waypoint[0]} {waypoint[1]}, "
-        waypoints_str = waypoints_str[:-2]
-        waypoints_str += ")"
+
+        intermediate_list = []
+        intermediate_description_list = []
+        for intermediate in intermediates:
+            intermediate_list.append(f"POINT({intermediate.longitude} {intermediate.latitude})")
+            intermediate_description_list.append(intermediate.description)
+        
 
         ride = RidesModel(
             user_id=user_id,
@@ -55,8 +57,9 @@ class RidesDAO:
             origin_description=origin.description,
             destination_description=destination.description,
             route=route_str,
-            waypoints=waypoints_str,
             route_timestamps=route_timestamps,
+            intermediates=intermediate_list,
+            intermediate_descriptions=intermediate_description_list,
             departure_time=departure_time,
             num_seats=num_seats,
             num_seats_left=num_seats_left,

@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: 0103d3841e04
+Revision ID: 3b7641963e45
 Revises: 2b7380507a71
-Create Date: 2023-12-07 12:55:25.417953
+Create Date: 2023-12-09 22:04:24.211884
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "0103d3841e04"
+revision = "3b7641963e45"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -131,23 +131,9 @@ def upgrade() -> None:
         sa.Column(
             "route_timestamps", sa.ARRAY(sa.DateTime(timezone=True)), nullable=True
         ),
-        sa.Column(
-            "waypoints",
-            Geography(
-                geometry_type="LINESTRING",
-                srid=4326,
-                spatial_index=False,
-                from_text="ST_GeogFromText",
-                name="geography",
-                nullable=False,
-            ),
-            nullable=False,
-        ),
-        sa.Column("waypoint_descriptions", sa.ARRAY(sa.String()), nullable=True),
+        sa.Column("intermediates", sa.ARRAY(sa.String()), nullable=True),
+        sa.Column("intermediate_descriptions", sa.ARRAY(sa.String()), nullable=True),
         sa.Column("departure_time", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("num_seats", sa.Integer(), nullable=False),
-        sa.Column("num_seats_left", sa.Integer(), nullable=False),
-        sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("schedule", sa.ARRAY(sa.String()), nullable=True),
         sa.Column(
             "driver_position",
@@ -160,6 +146,9 @@ def upgrade() -> None:
             ),
             nullable=True,
         ),
+        sa.Column("num_seats", sa.Integer(), nullable=False),
+        sa.Column("num_seats_left", sa.Integer(), nullable=False),
+        sa.Column("phase", sa.Integer(), nullable=False),
         sa.Column("last_update_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "created_at",

@@ -40,7 +40,7 @@ class SavedRideItemDTO(BaseModel):
     label: str
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
-    waypoints: List[Tuple[float, float]]
+    intermediates: List[LocationWithDescDTO]
     departure_time: datetime.datetime
     num_seats: int
     last_update_time: datetime.datetime
@@ -88,7 +88,7 @@ class PostRidesRequest(BaseModel):
     origin: LocationWithDescDTO
     destination: LocationWithDescDTO
     route: googleMapAPIrouteDTO
-    waypoints: List[Tuple[float, float]] = [(0, 0), (0, 1), (0, 5)]  # for quick test
+    intermediates: Optional[List[LocationWithDescDTO]] = []  # for quick test
     departure_time: datetime.datetime
     num_seats: PositiveInt
 
