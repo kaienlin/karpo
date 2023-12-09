@@ -3,7 +3,7 @@ import datetime
 from typing import List, Optional, Tuple
 
 from pyproj import Geod
-from shapely import LineString, Point, within, wkb
+from shapely import LineString, Point, within, wkb, wkt
 from shapely.ops import nearest_points
 
 from karpo_backend.db.models.requests import RequestsModel
@@ -84,8 +84,13 @@ def evaluate_match(  # noqa: WPS210
         return None
 
     route = wkb.loads(bytes(ride.route.data))
-    origin: Point = wkb.loads(bytes(req.origin.data))
-    destination: Point = wkb.loads(bytes(req.destination.data))
+
+    if isinstance(req.origin, str):
+        origin: Point = wkt.loads(req.origin)
+        destination: Point = wkt.loads(req.destination)
+    else:
+        origin: Point = wkb.loads(bytes(req.origin.data))
+        destination: Point = wkb.loads(bytes(req.destination.data))
 
     sub_route, sub_ts = clip_route_by_start_time(
         route,
