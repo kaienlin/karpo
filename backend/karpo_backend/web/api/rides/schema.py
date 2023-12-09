@@ -99,7 +99,7 @@ class PostRidesResponse(BaseModel):
 
 class PostCommentsRequest(BaseModel):
     user_id: uuid.UUID
-    rate: int
+    rate: PositiveInt
     comment: str
 
 

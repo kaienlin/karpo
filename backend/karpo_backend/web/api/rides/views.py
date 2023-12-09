@@ -40,7 +40,7 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     StopoverDTO,
     ChatRecordDTO,
 )
-from karpo_backend.web.api.users.utils import get_user_info_for_others
+from karpo_backend.web.api.users.utils import get_user_info_for_others, update_user_rating_by_id
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
 router = APIRouter()
@@ -511,14 +511,33 @@ async def get_ride_id_joins(
 
     return GetRideJoinsResponse(num_available_seat=ride.num_seats_left, joins=joins)
 
-
 @router.post("/{ride_id}/comments", tags=["driver", "passenger"])
 async def post_comments(
     ride_id: uuid.UUID,
     req: PostCommentsRequest,
+    joins_dao: JoinsDAO = Depends(),
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
+    user: User = Depends(current_active_user),
 ) -> None:
-    """對參與該行程的用戶添加評論"""
-    raise NotImplementedError("QQ")
+    """對參與該行程的用戶添加評分"""
+    
+    accepted_joins_in_ride = await joins_dao.get_accepted_joins_model_by_ride_id(ride_id=ride_id)
+    if len(accepted_joins_in_ride) == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    users: List[uuid.UUID] = [ j.request_user_id for j in accepted_joins_in_ride ]
+    users.append(accepted_joins_in_ride[0].ride_user_id)
+
+    if user.id not in users:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    if req.user_id not in users:
+        raise HTTPException(status_code=404, detail="No such user")
+
+    await update_user_rating_by_id(
+        user_id=req.user_id,
+        rating=req.rate,
+        user_db=user_db,
+    )
 
 
 @router.put("/{ride_id}/joins/{join_id}/status", tags=["driver"])
