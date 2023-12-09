@@ -153,3 +153,18 @@ async def client_test(
         },
     )
     yield client
+
+
+@pytest.fixture
+async def client_test0(
+    client: AsyncClient,
+) -> AsyncGenerator[AsyncClient, None]:
+    """
+    Fixture that creates client with the credential of test user (TestUser)
+    """
+    client.headers.update(
+        {
+            "Authorization": "Bearer test0",
+        },
+    )
+    yield client
