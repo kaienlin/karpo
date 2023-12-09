@@ -2,6 +2,7 @@ import dataclasses
 import datetime
 from typing import List, Optional, Tuple
 
+from loguru import logger
 from pyproj import Geod
 from shapely import LineString, Point, within, wkb, wkt
 from shapely.ops import nearest_points
@@ -106,15 +107,28 @@ def evaluate_match(  # noqa: WPS210
 
     pick_up_time_lb = sub_ts[find_point_idx_on_linestring(pick_up_loc, sub_route)]
     if pick_up_time_lb < req.start_time + estimate_walking_time(dist_origin):
+        logger.debug(
+            f"rejecting the match between request {req.id} and ride {ride.id} because the passenger cannot arrive on time"
+        )
         return None
 
     walking_dist: float = dist_origin + dist_destination
     estimated_walking_time = estimate_walking_time(walking_dist).total_seconds()
     if estimated_walking_time > 60 * 30:
+        logger.debug(
+            f"rejecting the match between request {req.id} and ride {ride.id} due to long walking time"
+        )
         return None
 
     drop_off_time_ub = sub_ts[find_point_idx_on_linestring(drop_off_loc, sub_route) + 1]
     estimated_arrival_time = drop_off_time_ub + estimate_walking_time(dist_destination)
+
+    logger.debug(
+        f"evaluated the match between request {req.id} and ride {ride.id}. "
+        f"pick_up_distance={dist_origin}, drop_off_distance={dist_destination}, "
+        f"pick_up_location=({pick_up_loc.x}, {pick_up_loc.y}), drop_off_location=({drop_off_loc.x}, {drop_off_loc.y}), "
+        f"pick_up_time={pick_up_time_lb}, drop_off_time={drop_off_time_ub}"
+    )
 
     return Match(
         pick_up_location=pick_up_loc,
