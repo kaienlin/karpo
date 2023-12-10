@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import httpx
 import pytest
@@ -12,37 +12,9 @@ from karpo_backend.db.dao.rides_dao import RidesDAO
 from karpo_backend.web.api.rides.schema import PostRidesResponse, GetRideSavedRidesResponse
 
 
-@pytest.fixture
-def ride_data():
-    return {
-        "label": "new ride",
-        "origin": {
-            "latitude": 0,
-            "longitude": 0,
-            "description": "string"
-        },
-        "destination": {
-            "latitude": 0,
-            "longitude": 0,
-            "description": "string"
-        },
-        "route": {
-            "steps": [
-                [(0, 0), (0, 1)],
-                [(0, 1), (0, 2), (0, 3), (0, 5)]
-            ],
-            "durations": [1,2]
-        },
-        "waypoints": [
-            (0, 0), (0, 1), (0, 5)
-        ],
-        "departure_time": "2023-12-09T08:22:43.556Z",
-        "num_seats": 4
-    }
-
 @pytest.mark.anyio
 async def test_creation(
-    ride_data: Dict,
+    ride_data_1 : Dict,
     fastapi_app: FastAPI,
     client_test: AsyncClient,
     dbsession: AsyncSession,
@@ -52,7 +24,7 @@ async def test_creation(
     
     resp = await client_test.post(
         url,
-        json=ride_data,
+        json=ride_data_1,
     )
     assert resp.status_code == status.HTTP_200_OK
 
@@ -67,22 +39,24 @@ async def test_creation(
 
 @pytest.mark.anyio
 async def test_get_saved_rides_by_user_id(
-    ride_data: Dict,
+    ride_datas: List[Dict],
     fastapi_app: FastAPI,
     client_test: AsyncClient,
     dbsession: AsyncSession,
 ) -> None:
     """Tests get saved rides by user id."""
 
-    user_id = await test_creation(ride_data, fastapi_app, client_test, dbsession)
+    for ride_data in ride_datas:
+        user_id = await test_creation(ride_data, fastapi_app, client_test, dbsession)
     
     url = f"/api/rides/saved_rides/{user_id}"
 
+    limit = 10
     resp = await client_test.get(
         url=url,
         params={
             "user_id" : user_id,
-            "limit": 10,
+            "limit": limit,
         },
     )
     assert resp.status_code == status.HTTP_200_OK
@@ -93,3 +67,8 @@ async def test_get_saved_rides_by_user_id(
         pytest.fail("invalid response")
     
     assert resp_obj is not None
+    resp_saved_rides = resp_obj.saved_rides
+    assert len(resp_saved_rides) == min(len(ride_datas), limit), "The length of the response is wrong"
+    
+    for i in range(len(resp_saved_rides) - 1):
+        assert resp_saved_rides[i].last_update_time >= resp_saved_rides[i+1].last_update_time, f"The results must be sorted from newest to oldest based on the last update time"

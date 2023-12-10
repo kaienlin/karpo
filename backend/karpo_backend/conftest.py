@@ -19,6 +19,7 @@ from karpo_backend.services.redis.dependency import get_redis_pool
 from karpo_backend.settings import settings
 from karpo_backend.web.application import get_app
 from karpo_backend.web.lifetime import _setup_db, setup_test_users
+from karpo_backend.tests.data_fixtures.ride_data_fixtures import *
 
 
 @pytest.fixture(scope="session")
