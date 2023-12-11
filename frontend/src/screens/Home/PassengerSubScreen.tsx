@@ -16,10 +16,6 @@ export function PassengerSubScreen() {
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
 
-  const handleMainPress = () => {
-    navigation.navigate('PassengerStack', { screen: 'SelectRideScreen' })
-  }
-
   return (
     <View style={{ gap: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -87,18 +83,6 @@ export function PassengerSubScreen() {
           <SavedRideCard {...ride} key={`${ride.label}-${index}`} />
         ))}
       </View>
-      <View style={styles.submitButtonContainer}>
-        <Button size="large" style={{ borderRadius: 12 }} onPress={handleMainPress}>
-          搜尋
-        </Button>
-      </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  submitButtonContainer: {
-    width: '100%',
-    padding: 20
-  }
-})

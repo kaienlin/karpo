@@ -25,7 +25,12 @@ type AuthStackParamList = {
 type MainStackParamList = {
   BottomTab: NavigatorScreenParams<BottomTabParamList>
   DriverStack: NavigatorScreenParams<DriverStackParamList>
-  PassengerStack: NavigatorScreenParams<PassengerStackParamList>
+  PassengerStack: {
+    screen: string
+    params: {
+      requestId: string5
+    }
+  }
   HistoryStack: NavigatorScreenParams<HistoryStackParamList>
   AccountStack: NavigatorScreenParams<AccountStackParamList>
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
@@ -48,7 +53,17 @@ type DriverStackParamList = {
 }
 
 type PassengerStackParamList = {
-  // TODO:
+  SelectRideScreen: {
+    requestId: string
+  }
+  RideInfoScreen: {
+    requestId: string
+    match: Match
+  }
+  WaitingListScreen: {
+    requestId: string
+  }
+  UserProfileScreen: undefined
 }
 
 type HistoryStackParamList = {

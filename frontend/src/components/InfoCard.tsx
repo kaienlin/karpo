@@ -1,28 +1,20 @@
 import { GestureResponderEvent, StyleSheet, TouchableOpacity, View } from 'react-native'
-import { useDispatch } from 'react-redux'
 import { Button, Card, Icon, IconProps, PopoverPlacements, Text } from '@ui-kitten/components'
 
-import { changeStatus } from '~/redux/ride'
-
 import { Header, HeaderProps } from './CardHeader'
+import { Match } from '~/types/data'
+import { useGetUserProfileQuery } from '~/redux/users'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
 const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 const TrashIcon = (props: IconProps) => <Icon {...props} name="trash-2" />
 
 interface FooterProps {
-  origin2route: number
-  destination2route: number
+  pickUpDistance: number
+  dropOffDistance: number
 }
 
-export interface RideItem extends HeaderProps, FooterProps {
-  id: string
-  responseStatus: string
-  driverOrigin: string
-  driverDestination: string
-}
-
-export interface CardProps extends RideItem {
+export interface CardProps extends Match {
   onPress: (event: GestureResponderEvent) => void
 }
 
@@ -32,52 +24,38 @@ const styles = StyleSheet.create({
   }
 })
 
-function Footer({ origin2route, destination2route }: FooterProps) {
+function Footer({ pickUpDistance, dropOffDistance }: FooterProps) {
   return (
     <View style={{ margin: 10 }}>
       <Text style={styles.lightText}>
-        起點 / 終點與路線最短距離： {origin2route} km / {destination2route} km
+        起點 / 終點與路線最短距離： {pickUpDistance} km / {dropOffDistance} km
       </Text>
     </View>
   )
 }
 
-export function InfoCard({
-  id,
-  departTime,
-  arrivalTime,
-  responseStatus,
-  price,
-  rating,
-  vacuumSeat,
-  rideStatus,
-  driverOrigin,
-  driverDestination,
-  origin2route,
-  destination2route,
-  onPress
-}: CardProps) {
-  const dispatch = useDispatch()
-  const handleDelete = () => {
-    dispatch(changeStatus({ id: id }))
-  }
+export function InfoCard(cardProps: CardProps) {
 
   return (
     <Card
-      onPress={onPress}
+      onPress={cardProps.onPress}
       header={(props) => (
         <Header
           {...props}
-          rating={rating}
-          vacuumSeat={vacuumSeat}
-          rideStatus={rideStatus}
-          departTime={departTime}
-          arrivalTime={arrivalTime}
-          price={price}
+          rating={cardProps.driverInfo.rating}
+          numAvailableSeat={cardProps.numAvailableSeat}
+          proximity={cardProps.proximity}
+          pickUpTime={cardProps.pickUpTime}
+          dropOffTime={cardProps.dropOffTime}
+          fare={cardProps.fare}
         />
       )}
       footer={(props) => (
-        <Footer {...props} origin2route={origin2route} destination2route={destination2route} />
+        <Footer 
+          {...props} 
+          pickUpDistance={cardProps.pickUpDistance} 
+          dropOffDistance={cardProps.dropOffDistance} 
+        />
       )}
       style={{
         marginHorizontal: 20,
@@ -99,23 +77,27 @@ export function InfoCard({
           <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
             <Icon name="radio-button-on" style={{ width: 24, height: 24 }} fill={'#F0C414'} />
             <View style={{ marginHorizontal: 10 }}>
-              <Text style={styles.lightText}>{driverOrigin}</Text>
+              <Text style={styles.lightText}>
+                {cardProps.driverOrigin.description}
+              </Text>
             </View>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
             <Icon name="pin-outline" style={{ width: 24, height: 24 }} />
             <View style={{ marginHorizontal: 10 }}>
-              <Text style={styles.lightText}>{driverDestination}</Text>
+              <Text style={styles.lightText}>
+                {cardProps.driverDestination.description}
+              </Text>
             </View>
           </View>
         </View>
         <View style={{ flex: 1, flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
-          {responseStatus === 'waiting' && (
+          {cardProps.status === 'pending' && (
             <Button
               accessoryLeft={TrashIcon}
               style={{ borderRadius: 100, width: 40, height: 40 }}
               status="danger"
-              onPress={handleDelete}
+              // onPress={handleDelete}
             />
           )}
           <Button
@@ -123,7 +105,7 @@ export function InfoCard({
             style={{ borderRadius: 100, width: 40, height: 40 }}
             status="basic"
           />
-          {responseStatus === 'idle' && (
+          {cardProps.status === 'unasked' && (
             <Button
               accessoryLeft={PhoneIcon}
               style={{ borderRadius: 100, width: 40, height: 40 }}

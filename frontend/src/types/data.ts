@@ -86,6 +86,12 @@ export interface Match {
   driverDestination: Waypoint
   numAvailableSeat: number
   otherPassengers: string[]
+  
+  driverInfo: {
+    name: string
+    rating: number
+    avatar: string
+  }
   fare: number
   driverRoute: {
     route: LatLng[]

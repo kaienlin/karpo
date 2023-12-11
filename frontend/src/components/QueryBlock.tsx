@@ -1,16 +1,23 @@
 import { View } from "react-native";
 import { Icon, Text } from '@ui-kitten/components'
+import { PassengerRequest } from "~/types/data";
 
 export interface QueryProps {
-  origin: string
-  destination: string
-  date: string
+  time: string
+  origin: Waypoint
+  destination: Waypoint
+}
+
+const truncate = (description: string | undefined) => {
+  if(description && description.length >= 6)
+    return description.slice(0, 6) + '...'
+  return description
 }
 
 export function QueryBlock({
+  time,
   origin,
   destination,
-  date
 }: QueryProps) {
   return (
     <View>
@@ -23,9 +30,9 @@ export function QueryBlock({
           marginTop: 20
         }}
       >
-        <Text style={{ fontSize: 22 }}>{origin}</Text>
+        <Text style={{ fontSize: 22 }}>{truncate(origin.description)}</Text>
         <Icon name="arrow-forward-outline" style={{ width: 42, height: 30 }} />
-        <Text style={{ fontSize: 22 }}>{destination}</Text>
+        <Text style={{ fontSize: 22 }}>{truncate(destination.description)}</Text>
       </View>
       <View
         style={{
@@ -36,7 +43,7 @@ export function QueryBlock({
           marginVertical: 5
         }}
       >
-        <Text>{date}</Text>
+        <Text>{time}</Text>
       </View>
     </View>
   )
