@@ -113,6 +113,21 @@ class RidesDAO:
             )
         )
 
+    async def put_num_seats_left_by_id(
+        self,
+        ride_id: uuid.UUID,
+        num_seats_left: int,
+        last_update_time: datetime.datetime,
+    ) -> None:
+        await self.session.execute(
+            update(RidesModel)
+            .where(RidesModel.id == ride_id)
+            .values(
+                num_seats_left=num_seats_left,
+                last_update_time=last_update_time,
+            )
+        )
+
     async def get_phase_position_by_id(
         self,
         ride_id: uuid.UUID,
