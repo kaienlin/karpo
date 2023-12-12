@@ -5,14 +5,35 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { Button, Icon, Input, Text, useTheme, type IconProps } from '@ui-kitten/components'
 
 import { InputCounter, InputTime as InputTimeModal } from '~/components/InputModals'
+import RouteMarker from '~/components/maps/RouteMarker'
 import { displayDatetime } from '~/utils/format'
 
 const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
+const CheckIcon = (props: IconProps) => <Icon {...props} name="checkmark" />
+const ArrowDownIcon = (props: IconProps) => <Icon {...props} name="arrow-ios-downward" />
+
+const inputButtonStyles = {
+  base: {
+    status: 'input',
+    appearance: 'filled',
+    accessoryRight: ArrowDownIcon
+  },
+  dirty: {
+    status: 'primary',
+    appearance: 'outline',
+    accessoryRight: CheckIcon
+  },
+  invalid: {
+    status: 'danger',
+    appearance: 'outline',
+    accessoryRight: ArrowDownIcon
+  }
+}
 
 const InputTime = ({ name, control }: { name: string; control: Control<any> }) => {
   const {
     field: { onChange, value },
-    fieldState: { invalid }
+    fieldState: { invalid, isDirty }
   } = useController({
     name,
     control,
@@ -28,15 +49,15 @@ const InputTime = ({ name, control }: { name: string; control: Control<any> }) =
         <Button
           onPress={onOpen}
           size="small"
-          appearance={value == null ? 'filled' : 'outline'}
-          status={invalid ? 'danger' : value == null ? 'input' : 'primary'}
           style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
           accessoryLeft={(props) => <Icon {...props} name="clock" />}
-          accessoryRight={(props) => (
-            <Icon {...props} name={value == null ? 'arrow-ios-downward' : 'checkmark'} />
-          )}
+          {...(isDirty
+            ? inputButtonStyles.dirty
+            : invalid
+              ? inputButtonStyles.invalid
+              : inputButtonStyles.base)}
         >
-          {value == null ? '立即出發' : `${displayDatetime(value)} 出發`}
+          {!isDirty ? '立即出發' : `${displayDatetime(value)} 出發`}
         </Button>
       )}
     />
@@ -46,7 +67,7 @@ const InputTime = ({ name, control }: { name: string; control: Control<any> }) =
 const InputSeats = ({ name, control }: { name: string; control: Control<any> }) => {
   const {
     field: { onChange, value },
-    fieldState: { invalid }
+    fieldState: { invalid, isDirty }
   } = useController({
     name,
     control,
@@ -62,13 +83,13 @@ const InputSeats = ({ name, control }: { name: string; control: Control<any> }) 
         <Button
           onPress={onOpen}
           size="small"
-          appearance={value === 0 ? 'filled' : 'outline'}
-          status={invalid ? 'danger' : value === 0 ? 'input' : 'primary'}
           style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
           accessoryLeft={(props) => <Icon {...props} name="person" />}
-          accessoryRight={(props) => (
-            <Icon {...props} name={value === 0 ? 'arrow-ios-downward' : 'checkmark'} />
-          )}
+          {...(isDirty
+            ? inputButtonStyles.dirty
+            : invalid
+              ? inputButtonStyles.invalid
+              : inputButtonStyles.base)}
         >
           {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
         </Button>
@@ -101,20 +122,7 @@ const InputWaypoints = ({
           />
         </View>
       ) : (
-        <View
-          style={{
-            width: 15,
-            height: 15,
-            backgroundColor: '#484848',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 2
-          }}
-        >
-          <Text category="label" style={{ fontSize: 10, color: 'white' }}>
-            {index}
-          </Text>
-        </View>
+        <RouteMarker.Box label={`${index}`} />
       )}
 
       <View style={{ flex: 1, paddingLeft: 10, paddingRight: 5 }}>
@@ -123,7 +131,7 @@ const InputWaypoints = ({
           placeholder={
             index === 0 ? '上車地點' : waypoints.length === 2 ? '下車地點' : '新增停靠點'
           }
-          value={item.description}
+          value={item?.description}
           onFocus={() => {
             onSelect(index)
           }}
