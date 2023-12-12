@@ -78,6 +78,7 @@ class Settings(BaseSettings):
             user=self.db_user,
             password=self.db_pass,
             path=f"/{self.db_base}",
+            query_string="/ca.crt" if self.environment == "prod" else "",
         )
 
     @property
