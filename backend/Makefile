@@ -24,7 +24,7 @@ format:
 .PHONY: build
 #build: @ build the image for production
 build:
-	docker build -f deploy/Dockerfile --target prod -t karpo_backend:$(KARPO_BACKEND_VERSION) .
+	docker build -f deploy/Dockerfile --platform linux/amd64 --target prod -t karpo_backend:$(KARPO_BACKEND_VERSION) .
 
 .PHONY: build-dev
 #build-dev: @ build the image for developing
