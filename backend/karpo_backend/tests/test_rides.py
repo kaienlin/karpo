@@ -84,7 +84,12 @@ async def test_creation(
     return resp_db_obj.user_id
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    "limit",
+    [1, 2, 5],
+)
 async def test_get_saved_rides_by_user_id(
+    limit: int, 
     ride_datas: List[Dict],
     fastapi_app: FastAPI,
     client_test: AsyncClient,
@@ -95,9 +100,9 @@ async def test_get_saved_rides_by_user_id(
     for ride_data in ride_datas:
         user_id = await test_creation(ride_data, fastapi_app, client_test, dbsession)
     
-    url = f"/api/rides/saved_rides/{user_id}"
-
-    limit = 10
+    url = fastapi_app.url_path_for(
+        "get_saved_rides", user_id=user_id
+    )
     resp = await client_test.get(
         url=url,
         params={

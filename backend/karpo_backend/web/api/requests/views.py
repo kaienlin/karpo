@@ -19,6 +19,7 @@ from karpo_backend.db.models.users import (  # type: ignore
 from karpo_backend.web.api.requests.schema import (
     GetRequestIdMatchesResponse,
     GetRequestIdResponse,
+    GetSavedRequestsResponse,
     MatchDTO,
     PostRequestsRequest,
     PostRequestsResponse,
@@ -334,3 +335,51 @@ async def get_request_id_matches(  # noqa: WPS210
     resp.matches.extend(unasked_matches)
 
     return resp
+
+
+@router.get(
+    "/saved_requests/{user_id}", response_model=GetSavedRequestsResponse, tags=["passenger"]
+)
+async def get_saved_requests(
+    user_id: uuid.UUID,
+    limit: int = 10,
+    requests_dao: RequestsDAO = Depends(),
+    user: User = Depends(current_active_user),
+) -> GetSavedRequestsResponse:
+    """
+    Get past request records
+
+    #### Query parameters:
+    + **limit**: control how many latest requests in the response.
+    + **user_id**: user who want to query past requests.
+
+    """
+    requests = await requests_dao.get_saved_request_by_user_id(
+        user_id=user_id,
+        limit=limit,
+    )
+    if requests is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    if user_id != user.id:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    saved_request_item_list = []
+    for request in requests:
+        saved_request_item = PostRequestsRequest(
+            time=request.start_time,
+            origin=LocationWithDescDTO.from_wkb(
+                request.origin,
+                request.origin_description,
+            ),
+            destination=LocationWithDescDTO.from_wkb(
+                request.destination,
+                request.destination_description,
+            ),
+            num_passengers=request.num_passengers,
+        )
+        saved_request_item_list.append(saved_request_item)
+
+    return GetSavedRequestsResponse(
+        saved_requests=saved_request_item_list,
+    )

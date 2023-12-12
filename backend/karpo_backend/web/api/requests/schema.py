@@ -49,3 +49,7 @@ class GetRequestIdResponse(PostRequestsRequest):
 
 class GetRequestIdMatchesResponse(BaseModel):
     matches: List[MatchDTO]
+
+
+class GetSavedRequestsResponse(BaseModel):
+    saved_requests: List[PostRequestsRequest]

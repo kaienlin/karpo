@@ -69,6 +69,20 @@ class RequestsDAO:
 
         return result.one_or_none()
 
+    async def get_saved_request_by_user_id(
+        self,
+        user_id: uuid.UUID,
+        limit: int,
+    ) -> List[RequestsModel]:
+        result = await self.session.scalars(
+            select(RequestsModel)
+            .where(RequestsModel.user_id == user_id)
+            .order_by(RequestsModel.created_at.desc())
+            .limit(limit=limit),
+        )
+
+        return result.all()
+
     async def get_request_matches(  # noqa: WPS210
         self,
         requests_model: RequestsModel,

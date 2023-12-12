@@ -575,4 +575,10 @@ async def put_ride_id_joins_join_id_status(
         )
 
     await joins_dao.put_joins_model_by_id(join_id, req.action)
+    if req.action == "accept":
+        await rides_dao.put_num_seats_left_by_id(
+            ride_id=ride_id,
+            num_seats_left=(ride.num_seats_left - join.num_passengers),
+            last_update_time=datetime.datetime.now(),
+        )
     await rides_dao.update_schedule_by_ride_id(ride_id)
