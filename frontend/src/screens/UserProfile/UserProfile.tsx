@@ -9,6 +9,8 @@ import {
   TopNavigationAction,
   type IconProps
 } from '@ui-kitten/components'
+import { MotiView } from 'moti'
+import { Skeleton } from 'moti/skeleton'
 
 import { useGetUserProfileQuery } from '~/redux/users'
 import type { User } from '~/types/data'
@@ -41,20 +43,8 @@ function UserProfileCard({ user }: { user: User }) {
       <View style={styles.profilePhotoContainer}>
         <Avatar source={{ uri: avatar }} style={{ height: 80, width: 80 }} size="giant" />
       </View>
-      <View
-        style={{
-          marginHorizontal: 30,
-          marginTop: 15
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 38,
-            fontWeight: 'bold'
-          }}
-        >
-          {name}
-        </Text>
+      <View style={{ marginHorizontal: 30, marginTop: 15 }}>
+        <Text style={{ fontSize: 38, fontWeight: 'bold' }}>{name}</Text>
       </View>
       {/* basic info */}
       <View
@@ -117,11 +107,41 @@ function UserProfileCard({ user }: { user: User }) {
   )
 }
 
+const UserProfileSkeleton = () => {
+  const colorMode = 'light'
+
+  return (
+    <MotiView>
+      <View style={styles.profilePhotoContainer}>
+        <Skeleton colorMode={colorMode} height={82} width={82} radius="round" />
+      </View>
+      <View style={{ marginHorizontal: 30, marginTop: 15 }}>
+        <Skeleton colorMode={colorMode} height={50} width={130} />
+      </View>
+      <View style={{ marginHorizontal: 30, justifyContent: 'center', marginTop: 20, gap: 10 }}>
+        {[0, 1, 2, 3].map((_, index) => (
+          <View key={index} style={styles.iconTextContainer}>
+            <Skeleton colorMode={colorMode} height={25} width={200} />
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.carpoolInfoContainer}>
+        {[0, 1, 2].map((_, index) => (
+          <View key={index} style={styles.carpoolInfo}>
+            <Skeleton colorMode={colorMode} height={100} width={100} />
+          </View>
+        ))}
+      </View>
+    </MotiView>
+  )
+}
+
 export default function DriverInfo({ navigation, route }: UserProfileScreenProps) {
   const { role, userId } = route?.params
 
   const screenTitle = role === 'driver' ? '駕駛資訊' : '乘客資訊'
-  const { data: user, isSuccess } = useGetUserProfileQuery(userId)
+  const { data: user, isLoading } = useGetUserProfileQuery(userId)
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -130,7 +150,8 @@ export default function DriverInfo({ navigation, route }: UserProfileScreenProps
         title={screenTitle}
         accessoryLeft={() => <TopNavigationAction icon={BackIcon} onPress={navigation?.goBack} />}
       />
-      {isSuccess && <UserProfileCard user={user} />}
+
+      {isLoading ? <UserProfileSkeleton /> : <UserProfileCard user={user} />}
     </SafeAreaView>
   )
 }
