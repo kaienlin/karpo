@@ -39,13 +39,13 @@ class JoinsDAO:
             request_user_id=request_user_id,
             ride_user_id=ride_user_id,
             num_passengers=num_passengers,
-            fare=0,                          # TBA
+            fare=0,  # TBA
             status="pending",  # status -> driver_response?
             pick_up_location=f"POINT({pick_up_location.longitude} {pick_up_location.latitude})",
-            pick_up_location_description="string",      # TBA
+            pick_up_location_description="string",  # TBA
             # pick_up_location_description=pick_up_location.description,
             drop_off_location=f"POINT({drop_off_location.longitude} {drop_off_location.latitude})",
-            drop_off_location_description="string",     # TBA
+            drop_off_location_description="string",  # TBA
             # drop_off_location_description=drop_off_location.description,
             pick_up_time=pick_up_time,
             drop_off_time=drop_off_time,
@@ -68,20 +68,12 @@ class JoinsDAO:
         return result.one_or_none()
 
     async def put_joins_model_by_id(
-        self, join_id: uuid.UUID, action: Literal["accpet", "reject"]
-    ):
-        if action == "accept":
-            await self.session.execute(
-                update(JoinsModel)
-                .where(JoinsModel.id == join_id)
-                .values(status="accepted")
-            )
-        else:
-            await self.session.execute(
-                update(JoinsModel)
-                .where(JoinsModel.id == join_id)
-                .values(status="rejected")
-            )
+        self, join_id: uuid.UUID, action: Literal["accept", "reject", "cancel"]
+    ) -> None:
+        status = f"{action}ed"
+        await self.session.execute(
+            update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
+        )
         await self.session.flush()
 
     async def get_accepted_joins_model_by_ride_id(
@@ -99,7 +91,7 @@ class JoinsDAO:
     async def get_joins_model_by_ride_id_and_status(
         self,
         ride_id: uuid.UUID,
-        status: Literal["pending", "accepted", "rejected", "all"],
+        status: Literal["pending", "accepted", "rejected", "canceled", "all"],
     ) -> List[JoinsModel]:
         if status == "all":
             result = await self.session.scalars(

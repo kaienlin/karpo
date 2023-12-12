@@ -9,9 +9,9 @@ from fastapi_users.db import SQLAlchemyUserDatabase
 from shapely import LineString, Point, wkb, wkt
 
 from karpo_backend.db.dao.joins_dao import JoinsDAO
+from karpo_backend.db.dao.messages_dao import MessagesDAO
 from karpo_backend.db.dao.requests_dao import RequestsDAO
 from karpo_backend.db.dao.rides_dao import RidesDAO
-from karpo_backend.db.dao.messages_dao import MessagesDAO
 from karpo_backend.db.models.users import (  # type: ignore
     User,
     current_active_user,
@@ -19,6 +19,7 @@ from karpo_backend.db.models.users import (  # type: ignore
 )
 from karpo_backend.matching import evaluate_match
 from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
+    ChatRecordDTO,
     GetRideIdJoinIdStatusResponse,
     GetRideIdResponse,
     GetRideIdScheduleResponse,
@@ -38,9 +39,11 @@ from karpo_backend.web.api.rides.schema import (  # noqa: WPS235
     RideDTO,
     SavedRideItemDTO,
     StopoverDTO,
-    ChatRecordDTO,
 )
-from karpo_backend.web.api.users.utils import get_user_info_for_others, update_user_rating_by_id
+from karpo_backend.web.api.users.utils import (
+    get_user_info_for_others,
+    update_user_rating_by_id,
+)
 from karpo_backend.web.api.utils import LocationDTO, LocationWithDescDTO, RouteDTO
 
 router = APIRouter()
@@ -151,7 +154,9 @@ async def get_ride_id(
     route: LineString = wkb.loads(bytes(ride.route.data))
 
     intermediateDTO_list = []
-    for intermediate, intermediate_description in zip(ride.intermediates, ride.intermediate_descriptions):
+    for intermediate, intermediate_description in zip(
+        ride.intermediates, ride.intermediate_descriptions
+    ):
         intermediateDTO_list.append(
             LocationWithDescDTO(
                 longitude=wkt.loads(intermediate).x,
@@ -218,7 +223,9 @@ async def get_saved_rides(
         driver_position: Point = wkb.loads(bytes(ride.driver_position.data))
 
         intermediateDTO_list = []
-        for intermediate, intermediate_description in zip(ride.intermediates, ride.intermediate_descriptions):
+        for intermediate, intermediate_description in zip(
+            ride.intermediates, ride.intermediate_descriptions
+        ):
             intermediateDTO_list.append(
                 LocationWithDescDTO(
                     longitude=wkt.loads(intermediate).x,
@@ -399,7 +406,7 @@ async def get_ride_id_join_id_status(
     joins_dao: JoinsDAO = Depends(),
     user: User = Depends(current_active_user),
 ) -> GetRideIdJoinIdStatusResponse:
-    """Get the status of a join request (`accepted`, `rejected` or `pending`)"""
+    """Get the status of a join request (`accepted`, `rejected`, `pending` or `canceled`)"""
     join = await joins_dao.get_joins_model_by_id(join_id)
     if join is None:
         raise HTTPException(status_code=404, detail="Join not found")
@@ -426,7 +433,9 @@ async def get_chatroom_messages(
     :param from_time: time when the messages need to return from.
     """
 
-    messages = await messages_dao.get_message_model_by_ride_id(ride_id=ride_id, from_time=from_time)
+    messages = await messages_dao.get_message_model_by_ride_id(
+        ride_id=ride_id, from_time=from_time
+    )
     messages_list = []
     for message in messages:
         messages_list.append(
@@ -457,13 +466,12 @@ async def post_chatroom_messages(
         content=req.chat_record.content,
         created_at=req.chat_record.time,
     )
-    
 
 
 @router.get("/{ride_id}/joins", response_model=GetRideJoinsResponse, tags=["driver"])
 async def get_ride_id_joins(
     ride_id: uuid.UUID,
-    status: Literal["pending", "accepted", "rejected", "all"],
+    status: Literal["pending", "accepted", "rejected", "canceled", "all"],
     rides_dao: RidesDAO = Depends(),
     joins_dao: JoinsDAO = Depends(),
     user: User = Depends(current_active_user),
@@ -505,11 +513,12 @@ async def get_ride_id_joins(
                 passenger_pick_up_distance=join_model.pick_up_distance,
                 passenger_drop_off_distance=join_model.drop_off_distance,
                 num_passengers=join_model.num_passengers,
-                fare=0,     # TBA
+                fare=0,  # TBA
             )
         )
 
     return GetRideJoinsResponse(num_available_seat=ride.num_seats_left, joins=joins)
+
 
 @router.post("/{ride_id}/comments", tags=["driver", "passenger"])
 async def post_comments(
@@ -520,12 +529,14 @@ async def post_comments(
     user: User = Depends(current_active_user),
 ) -> None:
     """對參與該行程的用戶添加評分"""
-    
-    accepted_joins_in_ride = await joins_dao.get_accepted_joins_model_by_ride_id(ride_id=ride_id)
+
+    accepted_joins_in_ride = await joins_dao.get_accepted_joins_model_by_ride_id(
+        ride_id=ride_id
+    )
     if len(accepted_joins_in_ride) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    users: List[uuid.UUID] = [ j.request_user_id for j in accepted_joins_in_ride ]
+    users: List[uuid.UUID] = [j.request_user_id for j in accepted_joins_in_ride]
     users.append(accepted_joins_in_ride[0].ride_user_id)
 
     if user.id not in users:
@@ -540,7 +551,7 @@ async def post_comments(
     )
 
 
-@router.put("/{ride_id}/joins/{join_id}/status", tags=["driver"])
+@router.put("/{ride_id}/joins/{join_id}/status", tags=["driver, passenger"])
 async def put_ride_id_joins_join_id_status(
     ride_id: uuid.UUID,
     join_id: uuid.UUID,
@@ -550,35 +561,46 @@ async def put_ride_id_joins_join_id_status(
     user: User = Depends(current_active_user),
 ) -> None:
     """
-    Accept or reject a join request specified by `join_id` and `ride_id`.
+    For a driver to accept or reject a join request.
+    For a passenger to cancel a join request.
 
     #### Request Body:
-    + **action**: `"reject"` or `"accept"`.
+    + **action**: `"reject"`, `"accept"`, or `"cancel"`.
     """
-
-    ride = await rides_dao.get_ride_model_by_id(ride_id)
-    if ride is None:
-        raise HTTPException(status_code=404, detail="Ride not found")
-    if ride.user_id != user.id:
-        raise HTTPException(status_code=403, detail="Permission denied")
 
     join = await joins_dao.get_joins_model_by_id(join_id)
     if join is None:
         raise HTTPException(status_code=404, detail="Join not found")
     if join.ride_id != ride_id:
-        raise HTTPException(status_code=403, detail="Permission denied")
-
-    if req.action == "accept" and ride.num_seats_left < join.num_passengers:
         raise HTTPException(
-            status_code=403,
-            detail="Number of passengers > number of available seats",
+            status_code=403, detail="Ride id doesn't match the ride id in join"
         )
 
-    await joins_dao.put_joins_model_by_id(join_id, req.action)
-    if req.action == "accept":
-        await rides_dao.put_num_seats_left_by_id(
-            ride_id=ride_id,
-            num_seats_left=(ride.num_seats_left - join.num_passengers),
-            last_update_time=datetime.datetime.now(),
-        )
+    if req.action in ["accept", "reject"]:
+        if join.ride_user_id != user.id:
+            raise HTTPException(status_code=403, detail="Permission denied")
+
+        ride = await rides_dao.get_ride_model_by_id(ride_id)
+        if ride is None:
+            raise HTTPException(status_code=404, detail="Ride not found")
+        if req.action == "accept" and ride.num_seats_left < join.num_passengers:
+            raise HTTPException(
+                status_code=403,
+                detail="Number of passengers > number of available seats",
+            )
+
+        await joins_dao.put_joins_model_by_id(join_id, req.action)
+        if req.action == "accept":
+            await rides_dao.put_num_seats_left_by_id(
+                ride_id=ride_id,
+                num_seats_left=(ride.num_seats_left - join.num_passengers),
+                last_update_time=datetime.datetime.now(),
+            )
+
+    if req.action in ["cancel"]:
+        if join.request_user_id != user.id:
+            raise HTTPException(status_code=403, detail="Permission denied")
+
+        await joins_dao.put_joins_model_by_id(join_id, req.action)
+
     await rides_dao.update_schedule_by_ride_id(ride_id)

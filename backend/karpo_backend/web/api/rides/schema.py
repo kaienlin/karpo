@@ -17,7 +17,7 @@ class PostRideIdJoinsResponse(BaseModel):
 
 
 class GetRideIdJoinIdStatusResponse(BaseModel):
-    driver_response: Literal["accepted", "rejected", "pending"]
+    driver_response: Literal["accepted", "rejected", "pending", "canceled"]
 
 
 class GetRideIdStatusResponse(BaseModel):
@@ -121,7 +121,7 @@ class StopoverDTO(BaseModel):
 
 
 class PutRideIdJoinsJoinIdStatusRequest(BaseModel):
-    action: Literal["reject", "accept"]
+    action: Literal["reject", "accept", "cancel"]
 
 
 class GetRideIdScheduleResponse(BaseModel):

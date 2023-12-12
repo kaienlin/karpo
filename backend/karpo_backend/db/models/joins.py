@@ -23,7 +23,7 @@ class JoinsModel(Base):
     ride_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     num_passengers: Mapped[int]
     fare: Mapped[int]
-    status: Mapped[Literal["pending", "rejected", "accepted"]]
+    status: Mapped[Literal["pending", "rejected", "accepted", "canceled"]]
     pick_up_location: Mapped[WKBElement] = mapped_column(
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
@@ -36,7 +36,7 @@ class JoinsModel(Base):
     drop_off_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     pick_up_distance: Mapped[float]
     drop_off_distance: Mapped[float]
-    progress: Mapped[Literal["waiting", "onboard", "fulfilled"]]
+    progress: Mapped[Literal["waiting", "onboard", "fulfilled", "canceled"]]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
