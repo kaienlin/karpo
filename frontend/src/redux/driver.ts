@@ -7,15 +7,20 @@ interface GetJoinsResponse<T extends Join> {
   joins: T[]
 }
 
+interface RespondJoinRequest {
+  rideId: string
+  joinId: string
+  action: 'accept' | 'reject'
+}
+
+interface UpdateDriverStatusRequest {
+  rideId: string
+  position: LatLng
+  phase: number
+}
+
 export const driverSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    createRide: builder.mutation<{ rideId: string }, { ride: Ride }>({
-      query: (ride) => ({
-        url: `/rides`,
-        method: 'POST',
-        body: ride
-      })
-    }),
     getRide: builder.query<{ ride: Ride }, string>({
       query: (rideId) => ({
         url: `/rides/${rideId}`,
@@ -48,10 +53,14 @@ export const driverSlice = apiSlice.injectEndpoints({
         method: 'GET'
       })
     }),
-    respondJoin: builder.mutation<
-      string,
-      { rideId: string; joinId: string; action: 'accept' | 'reject' }
-    >({
+    createRide: builder.mutation<{ rideId: string }, Ride>({
+      query: (ride) => ({
+        url: `/rides`,
+        method: 'POST',
+        body: ride
+      })
+    }),
+    respondJoin: builder.mutation<string, RespondJoinRequest>({
       query: ({ rideId, joinId, action }) => ({
         url: `/rides/${rideId}/joins/${joinId}/status`,
         method: 'PUT',
@@ -69,7 +78,7 @@ export const driverSlice = apiSlice.injectEndpoints({
         queryFulfilled.catch(patchResult.undo)
       }
     }),
-    updateStatus: builder.mutation<string, { rideId: string; position: LatLng; phase: number }>({
+    updateStatus: builder.mutation<string, UpdateDriverStatusRequest>({
       query: ({ rideId, position, phase }) => ({
         url: `/rides/${rideId}/status`,
         method: 'PATCH',

@@ -34,14 +34,14 @@ export interface PassengerActivity extends Required<Pick<ActivityItems, 'passeng
 
 // Drivers
 export interface Ride {
-  time: Date
+  departureTime: Date
   origin: Waypoint
   destination: Waypoint
   intermediates?: Waypoint[]
   numSeats: number
   route: {
-    route: LatLng[]
-    timestamps: Date[]
+    steps: Array<Array<[number, number]>>
+    durations: number[]
   }
 }
 
