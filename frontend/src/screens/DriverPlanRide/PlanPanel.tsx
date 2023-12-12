@@ -1,14 +1,15 @@
-import { useCallback, useEffect } from 'react'
-import { FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
-import { useController, useFieldArray, type Control } from 'react-hook-form'
-import { useNavigation, useRoute } from '@react-navigation/native'
-import { Button, Icon, Input, Text, useTheme, type IconProps } from '@ui-kitten/components'
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { useController, type Control } from 'react-hook-form'
+import { useNavigation } from '@react-navigation/native'
+import { Button, Icon, Text, type IconProps } from '@ui-kitten/components'
 
 import { InputCounter, InputTime as InputTimeModal } from '~/components/InputModals'
-import RouteMarker from '~/components/maps/RouteMarker'
+import { WaypointList } from '~/components/rideplan/Waypoints'
+import { useWaypoints } from '~/hooks/useWaypoints'
 import { displayDatetime } from '~/utils/format'
 
-const CloseIcon = (props: IconProps) => <Icon {...props} name="close" />
+export const emptyWaypoint = { description: '', latitude: null, longitude: null }
+
 const CheckIcon = (props: IconProps) => <Icon {...props} name="checkmark" />
 const ArrowDownIcon = (props: IconProps) => <Icon {...props} name="arrow-ios-downward" />
 
@@ -18,7 +19,7 @@ const inputButtonStyles = {
     appearance: 'filled',
     accessoryRight: ArrowDownIcon
   },
-  dirty: {
+  valid: {
     status: 'primary',
     appearance: 'outline',
     accessoryRight: CheckIcon
@@ -33,7 +34,7 @@ const inputButtonStyles = {
 const InputTime = ({ name, control }: { name: string; control: Control<any> }) => {
   const {
     field: { onChange, value },
-    fieldState: { invalid, isDirty }
+    fieldState: { invalid }
   } = useController({
     name,
     control,
@@ -51,13 +52,13 @@ const InputTime = ({ name, control }: { name: string; control: Control<any> }) =
           size="small"
           style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
           accessoryLeft={(props) => <Icon {...props} name="clock" />}
-          {...(isDirty
-            ? inputButtonStyles.dirty
+          {...(!value
+            ? inputButtonStyles.base
             : invalid
               ? inputButtonStyles.invalid
-              : inputButtonStyles.base)}
+              : inputButtonStyles.valid)}
         >
-          {!isDirty ? '立即出發' : `${displayDatetime(value)} 出發`}
+          {!value ? '立即出發' : `${displayDatetime(value)} 出發`}
         </Button>
       )}
     />
@@ -67,7 +68,7 @@ const InputTime = ({ name, control }: { name: string; control: Control<any> }) =
 const InputSeats = ({ name, control }: { name: string; control: Control<any> }) => {
   const {
     field: { onChange, value },
-    fieldState: { invalid, isDirty }
+    fieldState: { invalid }
   } = useController({
     name,
     control,
@@ -85,82 +86,15 @@ const InputSeats = ({ name, control }: { name: string; control: Control<any> }) 
           size="small"
           style={{ borderRadius: 8, gap: -10, paddingHorizontal: 0 }}
           accessoryLeft={(props) => <Icon {...props} name="person" />}
-          {...(isDirty
-            ? inputButtonStyles.dirty
+          {...(value <= 0
+            ? inputButtonStyles.base
             : invalid
               ? inputButtonStyles.invalid
-              : inputButtonStyles.base)}
+              : inputButtonStyles.valid)}
         >
           {value === 0 ? '可搭載人數' : `可搭載 ${value} 人`}
         </Button>
       )}
-    />
-  )
-}
-
-const InputWaypoints = ({
-  waypoints,
-  onSelect,
-  onRemove
-}: {
-  waypoints: Array<Waypoint & { id: string }>
-  onSelect: (index: number) => void
-  onRemove: (index: number) => void
-}) => {
-  const theme = useTheme()
-
-  const renderSeparator = useCallback(() => <View style={styles.waypointInputSeparator} />, [])
-
-  const renderItem = ({ item, index }: { item: Waypoint; index: number }) => (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      {index === 0 ? (
-        <View style={{ width: 15, height: 15, justifyContent: 'center', alignItems: 'center' }}>
-          <Icon
-            style={{ width: 18, height: 18 }}
-            name="radio-button-on"
-            fill={theme['color-primary-default']}
-          />
-        </View>
-      ) : (
-        <RouteMarker.Box label={`${index}`} />
-      )}
-
-      <View style={{ flex: 1, paddingLeft: 10, paddingRight: 5 }}>
-        <Input
-          size="small"
-          placeholder={
-            index === 0 ? '上車地點' : waypoints.length === 2 ? '下車地點' : '新增停靠點'
-          }
-          value={item?.description}
-          onFocus={() => {
-            onSelect(index)
-          }}
-        />
-      </View>
-      <View style={{ width: 35 }}>
-        {index > 0 && waypoints.length > 2 && (
-          <Button
-            size="small"
-            appearance="ghost"
-            status="basic"
-            style={{ width: 10 }}
-            accessoryLeft={CloseIcon}
-            onPress={() => {
-              onRemove(index)
-            }}
-          />
-        )}
-      </View>
-    </View>
-  )
-
-  return (
-    <FlatList
-      data={waypoints}
-      scrollEnabled={false}
-      renderItem={renderItem}
-      keyExtractor={(item, index) => item.id}
-      ItemSeparatorComponent={renderSeparator}
     />
   )
 }
@@ -183,44 +117,34 @@ const AddWaypointButton = ({ onPress }: { onPress: () => void }) => (
   </View>
 )
 
-export const emptyWaypoint = { description: '', latitude: null, longitude: null }
-
-export default function PlanPanel({ control }: { control: Control<any> }) {
+const InputWaypoints = ({ name, control }: { name: string; control: Control<any> }) => {
   const navigation = useNavigation()
-  const route = useRoute()
+  const { fields: waypoints, append, remove } = useWaypoints(control)
 
-  const { updatedWaypoint } = route?.params ?? {}
-
-  const {
-    fields: waypoints,
-    append,
-    update,
-    remove
-  } = useFieldArray({
-    control,
-    name: 'waypoints'
-  })
-
-  useEffect(() => {
-    const { index, payload } = updatedWaypoint ?? {}
-    update(index, payload)
-  }, [updatedWaypoint])
-
-  const handleSelectWaypoint = (index: number) => {
+  const onSelect = (index: number) => () => {
     navigation.navigate('SelectWaypointScreen', {
       waypointIndex: index,
       waypoint: waypoints[index]
     })
   }
 
-  const handleRemoveWaypoint = (index: number) => {
+  const onRemove = (index: number) => () => {
     remove(index)
   }
 
-  const handleAddWaypoint = () => {
+  const onAppend = () => {
     append(emptyWaypoint)
   }
 
+  return (
+    <>
+      <WaypointList waypoints={waypoints} onSelect={onSelect} onRemove={onRemove} />
+      {waypoints.length < 5 && <AddWaypointButton onPress={onAppend} />}
+    </>
+  )
+}
+
+export default function PlanPanel({ control }: { control: Control<any> }) {
   return (
     <View style={styles.panelContainer}>
       <ScrollView
@@ -232,12 +156,7 @@ export default function PlanPanel({ control }: { control: Control<any> }) {
         <InputTime name="time" control={control} />
         <InputSeats name="numSeats" control={control} />
       </ScrollView>
-      <InputWaypoints
-        waypoints={waypoints}
-        onSelect={handleSelectWaypoint}
-        onRemove={handleRemoveWaypoint}
-      />
-      {waypoints.length < 5 && <AddWaypointButton onPress={handleAddWaypoint} />}
+      <InputWaypoints name="waypoints" control={control} />
     </View>
   )
 }

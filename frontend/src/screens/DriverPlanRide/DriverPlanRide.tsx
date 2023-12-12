@@ -19,7 +19,7 @@ import { isValidWaypoint, isValidWaypoints } from '~/utils/maps'
 import PlanPanel, { emptyWaypoint } from './PlanPanel'
 
 interface RidePlan {
-  time: Date | null
+  time: Date
   numSeats: number
   waypoints: Waypoint[]
 }
@@ -32,6 +32,7 @@ const defaultValues: RidePlan = {
 
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
   const { savedRideIndex } = route?.params
+  const { location: currentLocation } = useCurrentLocation()
   const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
     selectFromResult: ({ data, ...rest }) => {
       const ride = data?.savedRides[savedRideIndex]
@@ -53,8 +54,6 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   })
 
   const waypoints = watch('waypoints')
-
-  const { location: currentLocation } = useCurrentLocation()
   const [createRide] = useCreateRideMutation()
   const { rideRoute, steps, durations } = useGetRouteQuery(
     isValidWaypoints(waypoints) ? waypoints : skipToken,
