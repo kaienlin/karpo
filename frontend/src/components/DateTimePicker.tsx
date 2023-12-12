@@ -22,6 +22,9 @@ const AndroidDateTimePicker = ({
   const [time, setTime] = useState(value ?? new Date())
   const [mode, setMode] = useState<AndroidNativeProps['mode']>('date')
 
+  const dateStr = isToday(date) ? '今天' : format(date, 'LLLdo EE', { locale: zhTW })
+  const timeStr = format(time, 'p', { locale: zhTW })
+
   useEffect(() => {
     const dateTime = new Date(`${date.toDateString()} ${time.toTimeString()}`)
     onChange(undefined, dateTime)
@@ -29,25 +32,22 @@ const AndroidDateTimePicker = ({
 
   const handleChange = (event: RNDateTimePickerEvent, date?: Date) => {
     if (mode === 'date') {
-      setDate(date ?? new Date())
+      setDate(date)
     } else {
-      setTime(date ?? new Date())
+      setTime(date)
     }
   }
 
-  const showMode = (mode: 'date' | 'time') => () => {
+  const showMode = (mode: AndroidNativeProps['mode']) => () => {
     setMode(mode)
     DateTimePickerAndroid.open({
-      value: date,
       mode,
-      onChange: handleChange,
       display: 'default',
+      value: mode === 'date' ? date : time,
+      onChange: handleChange,
       ...props
     })
   }
-
-  const dateStr = isToday(date) ? '今天' : format(date, 'LLLdo EE', { locale: zhTW })
-  const timeStr = format(time, 'p', { locale: zhTW })
 
   return (
     <View style={{ flex: 1 }}>
@@ -63,6 +63,11 @@ const AndroidDateTimePicker = ({
   )
 }
 
+const round2interval = (date: Date, minutes: number = 5) => {
+  const ms = 1000 * 60 * minutes
+  return new Date(Math.ceil(date.getTime() / ms) * ms)
+}
+
 export default function DateTimePicker({
   date,
   setDate
@@ -70,10 +75,12 @@ export default function DateTimePicker({
   date: Date
   setDate: (date: Date) => void
 }) {
-  const roundedDate = new Date(Math.ceil(date.getTime() / 300000) * 300000) // 300000 ms = 1000 * 60 * 5 minutes
-  useEffect(() => {
-    setDate(roundedDate)
-  }, [])
+  const roundedDate = round2interval(date, 5)
+  const minimumDate = round2interval(new Date(), 5)
+
+  // useEffect(() => {
+  //   setDate(roundedDate)
+  // }, [])
 
   const onChange = (event: RNDateTimePickerEvent, selectedDate: Date | undefined) => {
     if (selectedDate) {
@@ -87,7 +94,7 @@ export default function DateTimePicker({
         <RNDateTimePicker
           value={roundedDate}
           onChange={onChange}
-          minimumDate={roundedDate}
+          minimumDate={minimumDate}
           minuteInterval={5}
           mode={'datetime'}
           display="spinner"
@@ -97,7 +104,7 @@ export default function DateTimePicker({
         <AndroidDateTimePicker
           value={roundedDate}
           onChange={onChange}
-          minimumDate={roundedDate}
+          minimumDate={minimumDate}
           minuteInterval={5}
         />
       )}
