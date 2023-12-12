@@ -10,24 +10,15 @@ import BottomSheet, {
   BottomSheetView
 } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import {
-  Button,
-  Icon,
-  Text,
-  TopNavigation,
-  TopNavigationAction,
-  type IconProps
-} from '@ui-kitten/components'
+import { Button, Icon, Text } from '@ui-kitten/components'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
+import TopNavBar from '~/components/nav/TopNavBar'
 import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/driver'
 import { useGetCurrentActivityQuery } from '~/redux/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
-
-const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
-const MoreIcon = (props: IconProps) => <Icon {...props} name="more-horizontal-outline" />
 
 export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinScreenProps) {
   const bottomSheetRef = useRef<BottomSheet>(null)
@@ -108,7 +99,15 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-        {/* <BottomSheetModal
+        <Shadow
+          stretch={true}
+          startColor="#00000010"
+          sides={{ start: false, end: false, top: false, bottom: true }}
+        >
+          <TopNavBar title={screenTitle} onGoBack={modalRef.current?.present} />
+        </Shadow>
+
+        <BottomSheetModal
           ref={modalRef}
           snapPoints={['50%', '50%']}
           backdropComponent={(props) => <BottomSheetBackdrop {...props} />}
@@ -148,28 +147,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
               </Button>
             </View>
           </BottomSheetView>
-        </BottomSheetModal> */}
-        <Shadow
-          stretch={true}
-          startColor="#00000010"
-          sides={{ start: false, end: false, top: false, bottom: true }}
-        >
-          <TopNavigation
-            alignment="center"
-            title={screenTitle}
-            accessoryLeft={() => (
-              <TopNavigationAction
-                icon={BackIcon}
-                onPress={() => {
-                  // TODO: confirm cancel ride
-                  // modalRef.current?.present()
-                  navigation.goBack()
-                }}
-              />
-            )}
-            accessoryRight={() => <TopNavigationAction icon={MoreIcon} />}
-          />
-        </Shadow>
+        </BottomSheetModal>
 
         <MapViewWithRoute route={rideRoute} edgePadding={{ bottom: 170 }}>
           {/* {pendingJoins?.map(({ passengerInfo, ...join }) => (

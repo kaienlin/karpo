@@ -4,17 +4,10 @@ import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import {
-  Button,
-  Icon,
-  Text,
-  TopNavigation,
-  TopNavigationAction,
-  useTheme,
-  type IconProps
-} from '@ui-kitten/components'
+import { Button, Text, useTheme } from '@ui-kitten/components'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
+import TopNavBar from '~/components/nav/TopNavBar'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
 import { useCreateRideMutation } from '~/redux/driver'
 import { useGetRouteQuery } from '~/redux/maps'
@@ -23,8 +16,6 @@ import { type DriverPlanRideScreenProps } from '~/types/screens'
 import { isValidWaypoint, isValidWaypoints } from '~/utils/maps'
 
 import PlanPanel, { emptyWaypoint } from './PlanPanel'
-
-const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 
 interface RidePlan {
   time: Date | null
@@ -95,18 +86,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   return (
     <SafeAreaView edges={['top', 'right', 'left']} style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-        <TopNavigation
-          alignment="center"
-          title="規劃您的行程"
-          accessoryLeft={() => (
-            <TopNavigationAction
-              icon={BackIcon}
-              onPress={() => {
-                navigation.goBack()
-              }}
-            />
-          )}
-        />
+        <TopNavBar title="規劃您的行程" onGoBack={navigation?.goBack} />
         <PlanPanel control={control} />
         {currentLocation && (
           <MapViewWithRoute
