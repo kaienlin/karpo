@@ -4,8 +4,9 @@ import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import { Button, Text, useTheme } from '@ui-kitten/components'
+import { Button } from '@ui-kitten/components'
 
+import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import TopNavBar from '~/components/nav/TopNavBar'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
@@ -30,8 +31,6 @@ const defaultValues: RidePlan = {
 }
 
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
-  const theme = useTheme()
-
   const { savedRideIndex } = route?.params
   const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
     selectFromResult: ({ data, ...rest }) => {
@@ -98,44 +97,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
               (waypoint, index) =>
                 isValidWaypoint(waypoint) && (
                   <Marker key={index} coordinate={waypoint}>
-                    {index === 0 ? (
-                      <>
-                        <View
-                          style={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: 9,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            backgroundColor: theme['color-primary-default']
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: 7,
-                              height: 7,
-                              borderRadius: 3.5,
-                              backgroundColor: 'white'
-                            }}
-                          />
-                        </View>
-                      </>
-                    ) : (
-                      <View
-                        style={{
-                          width: 15,
-                          height: 15,
-                          backgroundColor: '#484848',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRadius: 2
-                        }}
-                      >
-                        <Text category="label" style={{ fontSize: 10, color: 'white' }}>
-                          {index}
-                        </Text>
-                      </View>
-                    )}
+                    {index === 0 ? <RouteMarker.Radio /> : <RouteMarker.Box label={`${index}`} />}
                   </Marker>
                 )
             )}
