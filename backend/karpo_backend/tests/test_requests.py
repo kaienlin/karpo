@@ -158,16 +158,8 @@ async def test_get_matches(
             ],
         },
         "intermediates": [
-            {
-                "latitude": 0,
-                "longitude": 0.001,
-                "description": "intermediate 1"
-            },
-            {
-                "latitude": -0.004,
-                "longitude": 0.001,
-                "description": "intermediate 2"
-            },
+            {"latitude": 0, "longitude": 0.001, "description": "intermediate 1"},
+            {"latitude": -0.004, "longitude": 0.001, "description": "intermediate 2"},
         ],
         "departure_time": "2023-12-08T02:56:00.000Z",
         "num_seats": 1,

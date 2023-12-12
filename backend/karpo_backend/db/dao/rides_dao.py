@@ -45,9 +45,10 @@ class RidesDAO:
         intermediate_list = []
         intermediate_description_list = []
         for intermediate in intermediates:
-            intermediate_list.append(f"POINT({intermediate.longitude} {intermediate.latitude})")
+            intermediate_list.append(
+                f"POINT({intermediate.longitude} {intermediate.latitude})"
+            )
             intermediate_description_list.append(intermediate.description)
-        
 
         ride = RidesModel(
             user_id=user_id,

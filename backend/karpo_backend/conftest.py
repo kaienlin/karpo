@@ -17,10 +17,18 @@ from karpo_backend.db.dependencies import get_db_session
 from karpo_backend.db.utils import create_database, drop_database
 from karpo_backend.services.redis.dependency import get_redis_pool
 from karpo_backend.settings import settings
+from karpo_backend.tests.data_fixtures.request_data_fixtures import (
+    request_data_1,
+    request_data_2,
+    request_datas,
+)
+from karpo_backend.tests.data_fixtures.ride_data_fixtures import (
+    ride_data_1,
+    ride_data_2,
+    ride_datas,
+)
 from karpo_backend.web.application import get_app
 from karpo_backend.web.lifetime import _setup_db, setup_test_users
-from karpo_backend.tests.data_fixtures.ride_data_fixtures import ride_datas, ride_data_1, ride_data_2
-from karpo_backend.tests.data_fixtures.request_data_fixtures import request_datas, request_data_1, request_data_2
 
 
 @pytest.fixture(scope="session")

@@ -1,23 +1,25 @@
+import datetime
 from typing import Any, Dict, List
 
 import httpx
 import pytest
-import datetime
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 from httpx import AsyncClient, Cookies
 from pydantic import ValidationError
+from shapely import LineString, Point, wkb, wkt
 from sqlalchemy.ext.asyncio import AsyncSession
-from shapely import Point, LineString, wkb, wkt
-
 
 from karpo_backend.db.dao.rides_dao import RidesDAO
-from karpo_backend.web.api.rides.schema import PostRidesResponse, GetRideSavedRidesResponse
+from karpo_backend.web.api.rides.schema import (
+    GetRideSavedRidesResponse,
+    PostRidesResponse,
+)
 
 
 @pytest.mark.anyio
 async def test_creation(
-    ride_data_1 : Dict,
+    ride_data_1: Dict,
     fastapi_app: FastAPI,
     client_test: AsyncClient,
     dbsession: AsyncSession,
@@ -57,31 +59,40 @@ async def test_creation(
     db_route = list(db_route.coords)
     db_route_timestamps = resp_db_obj.route_timestamps
     assert len(db_route) == len(resp_db_obj.route_timestamps)
-    for step, duration in zip(req_body["route"]["steps"], req_body["route"]["durations"]):
-        if point_idx == 0: ## check origin
+    for step, duration in zip(
+        req_body["route"]["steps"], req_body["route"]["durations"]
+    ):
+        if point_idx == 0:  ## check origin
             assert db_route[point_idx] == step[0]
             point_idx += 1
-        
-        db_start_time_in_step = db_route_timestamps[point_idx-1]
-        for req_point in step[1:]: ## check other points
+
+        db_start_time_in_step = db_route_timestamps[point_idx - 1]
+        for req_point in step[1:]:  ## check other points
             assert db_route[point_idx] == req_point
             point_idx += 1
-        db_end_time_in_step = db_route_timestamps[point_idx-1]
-        
-        db_duration_in_step = (db_end_time_in_step - db_start_time_in_step).total_seconds()
-        assert abs(db_duration_in_step - duration) <= 0.00001 ## error of a duration
+        db_end_time_in_step = db_route_timestamps[point_idx - 1]
 
+        db_duration_in_step = (
+            db_end_time_in_step - db_start_time_in_step
+        ).total_seconds()
+        assert abs(db_duration_in_step - duration) <= 0.00001  ## error of a duration
 
-    for intermediate, db_intermediate, db_intermediate_description in zip(req_body["intermediates"], resp_db_obj.intermediates, resp_db_obj.intermediate_descriptions):
+    for intermediate, db_intermediate, db_intermediate_description in zip(
+        req_body["intermediates"],
+        resp_db_obj.intermediates,
+        resp_db_obj.intermediate_descriptions,
+    ):
         db_intermediate_point: Point = wkt.loads(db_intermediate)
-        assert db_intermediate_point.x == intermediate["longitude"] 
-        assert db_intermediate_point.y == intermediate["latitude"] 
-        assert db_intermediate_description == intermediate["description"] 
+        assert db_intermediate_point.x == intermediate["longitude"]
+        assert db_intermediate_point.y == intermediate["latitude"]
+        assert db_intermediate_description == intermediate["description"]
 
-    assert resp_db_obj.departure_time == datetime.datetime.fromisoformat(req_body["departure_time"].replace("Z", "+00:00"))
-
+    assert resp_db_obj.departure_time == datetime.datetime.fromisoformat(
+        req_body["departure_time"].replace("Z", "+00:00")
+    )
 
     return resp_db_obj.user_id
+
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
@@ -89,7 +100,7 @@ async def test_creation(
     [1, 2, 5],
 )
 async def test_get_saved_rides_by_user_id(
-    limit: int, 
+    limit: int,
     ride_datas: List[Dict],
     fastapi_app: FastAPI,
     client_test: AsyncClient,
@@ -99,14 +110,12 @@ async def test_get_saved_rides_by_user_id(
 
     for ride_data in ride_datas:
         user_id = await test_creation(ride_data, fastapi_app, client_test, dbsession)
-    
-    url = fastapi_app.url_path_for(
-        "get_saved_rides", user_id=user_id
-    )
+
+    url = fastapi_app.url_path_for("get_saved_rides", user_id=user_id)
     resp = await client_test.get(
         url=url,
         params={
-            "user_id" : user_id,
+            "user_id": user_id,
             "limit": limit,
         },
     )
@@ -116,10 +125,15 @@ async def test_get_saved_rides_by_user_id(
         resp_obj = GetRideSavedRidesResponse.model_validate(resp.json())
     except ValidationError:
         pytest.fail("invalid response")
-    
+
     assert resp_obj is not None
     resp_saved_rides = resp_obj.saved_rides
-    assert len(resp_saved_rides) == min(len(ride_datas), limit), "The length of the response is wrong"
-    
+    assert len(resp_saved_rides) == min(
+        len(ride_datas), limit
+    ), "The length of the response is wrong"
+
     for i in range(len(resp_saved_rides) - 1):
-        assert resp_saved_rides[i].last_update_time >= resp_saved_rides[i+1].last_update_time, f"The results must be sorted from newest to oldest based on the last update time"
+        assert (
+            resp_saved_rides[i].last_update_time
+            >= resp_saved_rides[i + 1].last_update_time
+        ), f"The results must be sorted from newest to oldest based on the last update time"

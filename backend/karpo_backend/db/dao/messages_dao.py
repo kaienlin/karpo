@@ -35,14 +35,14 @@ class MessagesDAO:
         return message
 
     async def get_message_model_by_ride_id(
-        self,
-        ride_id: uuid.UUID,
-        from_time : datetime.datetime
+        self, ride_id: uuid.UUID, from_time: datetime.datetime
     ) -> Optional[MessagesModel]:
         result = await self.session.scalars(
-            select(MessagesModel).where(
+            select(MessagesModel)
+            .where(
                 MessagesModel.ride_id == ride_id, MessagesModel.created_at >= from_time
-            ).order_by(MessagesModel.created_at),
+            )
+            .order_by(MessagesModel.created_at),
         )
 
         return result.all()

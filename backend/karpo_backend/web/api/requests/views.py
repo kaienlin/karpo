@@ -338,7 +338,9 @@ async def get_request_id_matches(  # noqa: WPS210
 
 
 @router.get(
-    "/saved_requests/{user_id}", response_model=GetSavedRequestsResponse, tags=["passenger"]
+    "/saved_requests/{user_id}",
+    response_model=GetSavedRequestsResponse,
+    tags=["passenger"],
 )
 async def get_saved_requests(
     user_id: uuid.UUID,

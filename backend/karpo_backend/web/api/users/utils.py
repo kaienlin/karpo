@@ -18,6 +18,7 @@ async def get_user_info_for_others(
         avatar=b64encode(user.avatar) if user.avatar else None,
     )
 
+
 async def update_user_rating_by_id(
     user_id: uuid.UUID,
     rating: int,
@@ -26,7 +27,7 @@ async def update_user_rating_by_id(
     user: User = await user_db.get(user_id)
     old_rating_count = user.rating_count
     old_rating = user.rating
-    if user.rating_count==0:
+    if user.rating_count == 0:
         new_rating_count = 1
         new_rating = rating
     else:
@@ -36,7 +37,7 @@ async def update_user_rating_by_id(
     await user_db.update(
         user=user,
         update_dict={
-            "rating" : new_rating,
-            "rating_count" : new_rating_count,
-        }    
+            "rating": new_rating,
+            "rating_count": new_rating_count,
+        },
     )

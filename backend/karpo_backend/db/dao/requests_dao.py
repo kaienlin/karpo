@@ -2,10 +2,10 @@ import datetime
 import uuid
 from typing import List, Optional, Tuple
 
-from shapely import Point
 from fastapi import Depends
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
+from shapely import Point
 from sqlalchemy import func, select, type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import true

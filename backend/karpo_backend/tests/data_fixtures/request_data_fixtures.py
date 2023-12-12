@@ -34,9 +34,11 @@ test_request_2 = {
 def request_datas():
     return [test_request_1, test_request_2]
 
+
 @pytest.fixture
 def request_data_1():
     return test_request_1
+
 
 @pytest.fixture
 def request_data_2():
