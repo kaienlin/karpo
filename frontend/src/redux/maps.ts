@@ -19,8 +19,18 @@ const mapsSlice = apiSlice.injectEndpoints({
 
         return { data: null }
       }
+    }),
+    getWalkingRoute: builder.query<{ route: LatLng[]; durations: string[] }, Waypoint[]>({
+      async queryFn(arg) {
+        const waypoints = arg
+        const { legs, duration, distanceMeters } = await MapsAPI.getRoute(waypoints, 'WALK')
+        const result = { route: flattenLegs(legs).route, duration, distanceMeters }
+        console.log(result)
+
+        return { data: result }
+      }
     })
   })
 })
 
-export const { useGetRouteQuery } = mapsSlice
+export const { useGetRouteQuery, useGetWalkingRouteQuery } = mapsSlice

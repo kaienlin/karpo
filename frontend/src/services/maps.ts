@@ -95,8 +95,9 @@ const initMapsAPI = (apiKey: string) => ({
     }
   },
   getRoute: async (
-    coordinates: Waypoint[]
-  ): Promise<Partial<{ polyline: string; legs: RouteLeg[] }>> => {
+    coordinates: Waypoint[],
+    travelMode: 'DRIVE' | 'WALK' = 'DRIVE'
+  ): Promise<Partial<{ polyline: string; legs: any[] }>> => {
     const [origin, ...intermediates] = coordinates
     const destination = intermediates.pop()
 
@@ -113,8 +114,8 @@ const initMapsAPI = (apiKey: string) => ({
             'routes.duration,routes.distanceMeters,routes.legs,routes.polyline,routes.viewport'
         },
         body: JSON.stringify({
-          travelMode: 'DRIVE',
-          routingPreference: 'TRAFFIC_AWARE',
+          travelMode,
+          routingPreference: travelMode === 'DRIVE' ? 'TRAFFIC_AWARE' : null,
           computeAlternativeRoutes: false,
           languageCode: 'zh-TW',
           origin: {
@@ -150,12 +151,14 @@ const initMapsAPI = (apiKey: string) => ({
         routes: [
           {
             legs,
+            duration,
+            distanceMeters,
             polyline: { encodedPolyline }
           }
         ]
       } = await response.json()
 
-      return { polyline: encodedPolyline, legs }
+      return { polyline: encodedPolyline, legs, duration, distanceMeters }
     } catch (error) {
       console.error(error)
       return null
