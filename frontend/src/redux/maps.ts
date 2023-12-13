@@ -24,10 +24,12 @@ const mapsSlice = apiSlice.injectEndpoints({
       async queryFn(arg) {
         const waypoints = arg
         const { legs, duration, distanceMeters } = await MapsAPI.getRoute(waypoints, 'WALK')
-        const result = { route: flattenLegs(legs).route, duration, distanceMeters }
-        console.log(result)
+        if (legs) {
+          const result = { route: decodeRoute(legs).route, duration, distanceMeters }
+          return { data: result }
+        }
 
-        return { data: result }
+        return { data: null }
       }
     })
   })
