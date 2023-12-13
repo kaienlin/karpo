@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from typing import Tuple
 
 import pytest
@@ -15,7 +16,10 @@ from karpo_backend.web.api.requests.schema import (
     PostRequestsRequest,
     PostRequestsResponse,
 )
-from karpo_backend.web.api.rides.schema import PostRidesResponse
+from karpo_backend.web.api.rides.schema import (
+    PostRideIdJoinsResponse,
+    PostRidesResponse,
+)
 
 
 @pytest.mark.anyio
@@ -113,6 +117,52 @@ async def test_creation_conflict(
         json=req_body,
     )
     assert resp2.status_code == status.HTTP_409_CONFLICT
+
+
+async def test_get_request_not_found(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+) -> None:
+    get_match_url = fastapi_app.url_path_for(
+        "get_request_id",
+        request_id=uuid.uuid4(),
+    )
+    resp = await client_test.get(get_match_url)
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_get_request_forbidden(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+    client_test0: AsyncClient,
+) -> None:
+    post_requests_url = fastapi_app.url_path_for("post_requests")
+    post_requests_req_body = {
+        "time": "2023-12-08T02:00:00.000Z",
+        "origin": {
+            "latitude": 0,
+            "longitude": 0,
+            "description": "C",
+        },
+        "destination": {
+            "latitude": -0.006,
+            "longitude": 0.004,
+            "description": "D",
+        },
+        "num_passengers": 100,
+    }
+    resp = await client_test.post(
+        post_requests_url,
+        json=post_requests_req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    get_match_url = fastapi_app.url_path_for(
+        "get_request_id",
+        request_id=resp.json()["request_id"],
+    )
+    resp = await client_test0.get(get_match_url)
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.anyio
@@ -217,9 +267,105 @@ async def test_get_matches(
         pytest.fail("invalid response")
 
     assert len(get_match_resp_obj.matches) == (1 if matched else 0)
-    if matched:
-        assert get_match_resp_obj.matches[0].ride_id == post_rides_resp_obj.ride_id
-        assert get_match_resp_obj.matches[0].status == "unasked"
-        assert get_match_resp_obj.matches[0].join_id is None
-        print(get_match_resp_obj.matches[0])
+    if not matched:
+        return
 
+    assert get_match_resp_obj.matches[0].ride_id == post_rides_resp_obj.ride_id
+    assert get_match_resp_obj.matches[0].status == "unasked"
+    assert get_match_resp_obj.matches[0].join_id is None
+
+    post_joins_url = fastapi_app.url_path_for(
+        "post_ride_id_joins",
+        ride_id=post_rides_resp_obj.ride_id,
+    )
+    post_joins_req_body = {"request_id": str(post_requests_resp_obj.request_id)}
+    resp = await client_test.post(url=post_joins_url, json=post_joins_req_body)
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        post_joins_resp_obj = PostRideIdJoinsResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+
+    resp = await client_test.get(get_match_url)
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        get_match_resp_obj = GetRequestIdMatchesResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+
+    assert len(get_match_resp_obj.matches) == 1
+    assert get_match_resp_obj.matches[0].status == "pending"
+    assert get_match_resp_obj.matches[0].join_id == post_joins_resp_obj.join_id
+
+    # driver put join status
+    put_join_status_url = fastapi_app.url_path_for(
+        "put_ride_id_joins_join_id_status",
+        ride_id=post_rides_resp_obj.ride_id,
+        join_id=post_joins_resp_obj.join_id,
+    )
+    put_join_status_req_body = {"action": "accept"}
+    resp = await client_test0.put(
+        url=put_join_status_url,
+        json=put_join_status_req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    resp = await client_test.get(get_match_url)
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        get_match_resp_obj = GetRequestIdMatchesResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+
+    assert len(get_match_resp_obj.matches) == 1
+    assert get_match_resp_obj.matches[0].status == "accepted"
+    assert get_match_resp_obj.matches[0].join_id == post_joins_resp_obj.join_id
+
+
+async def test_get_matches_not_found(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+) -> None:
+    get_match_url = fastapi_app.url_path_for(
+        "get_request_id_matches",
+        request_id=uuid.uuid4(),
+    )
+    resp = await client_test.get(get_match_url)
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_get_matches_forbidden(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+    client_test0: AsyncClient,
+) -> None:
+    post_requests_url = fastapi_app.url_path_for("post_requests")
+    post_requests_req_body = {
+        "time": "2023-12-08T02:00:00.000Z",
+        "origin": {
+            "latitude": 0,
+            "longitude": 0,
+            "description": "C",
+        },
+        "destination": {
+            "latitude": -0.006,
+            "longitude": 0.004,
+            "description": "D",
+        },
+        "num_passengers": 100,
+    }
+    resp = await client_test.post(
+        post_requests_url,
+        json=post_requests_req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    get_match_url = fastapi_app.url_path_for(
+        "get_request_id_matches",
+        request_id=resp.json()["request_id"],
+    )
+    resp = await client_test0.get(get_match_url)
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
