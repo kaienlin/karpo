@@ -20,7 +20,7 @@ class MatchDTO(BaseModel):
     drop_off_distance: NonNegativeFloat
     driver_origin: LocationWithDescDTO
     driver_destination: LocationWithDescDTO
-    num_available_seat: PositiveInt
+    num_available_seat: NonNegativeInt
     other_passengers: List[uuid.UUID]
     driver_info: UserInfoForOthersDTO
     fare: NonNegativeInt
