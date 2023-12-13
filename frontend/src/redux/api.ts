@@ -3,10 +3,16 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { camelizeKeys, decamelizeKeys } from 'humps'
 
+import { type RootState } from './store'
+
 const baseQuery = fetchBaseQuery({
   baseUrl: `${BACKEND_API_URL}/api`,
-  // TODO:
   prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as RootState).auth.accessToken
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`)
+    }
+
     return headers
   }
 })

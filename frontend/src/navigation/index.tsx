@@ -21,10 +21,14 @@ export default function AppNavigator() {
   const dispatch = useDispatch()
 
   useEffect(() => {
+    if (state.accessToken) {
+      return
+    }
+
     void (async () => {
       try {
-        const userToken = await SecureStore.getItemAsync('userToken')
-        dispatch(restoreToken({ token: userToken }))
+        const accessToken = await SecureStore.getItemAsync('accessToken')
+        dispatch(restoreToken({ accessToken }))
       } catch (error) {
         console.error(error)
       }
@@ -33,7 +37,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer theme={CustomTheme}>
-      {state.userToken === null ? <AuthStack /> : <MainStack />}
+      {!state.accessToken ? <AuthStack /> : <MainStack />}
     </NavigationContainer>
   )
 }
