@@ -2,14 +2,13 @@ import { FlatList, View } from 'react-native'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 
 import { QueryBlock } from '~/components/QueryBlock'
-import { InfoCard, CardProps } from '~/components/InfoCard'
+import { InfoCard } from '~/components/InfoCard'
 import { PassengerStackParamList } from '~/types/navigation'
-import { useSelector } from 'react-redux'
-import { Spinner, Text } from '@ui-kitten/components'
-import { useMemo } from 'react'
+import { Spinner, Text, Button, Card, Modal } from '@ui-kitten/components'
 import { Match } from '~/types/data'
-import { createSelector } from '@reduxjs/toolkit'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/passenger'
+import { useState } from 'react'
+import { set } from 'react-hook-form'
 
 type WaitingListScreenProps = NativeStackScreenProps<PassengerStackParamList, 'WaitingListScreen'>
 const emptyArray: Array<Match> = []
@@ -19,15 +18,26 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
   const { data: request, isLoading } = useGetRequestQuery(requestId)
   
   // https://redux-toolkit.js.org/rtk-query/usage/queries#selecting-data-from-a-query-result
-  const { pendingMatches } = useGetMatchesQuery(requestId, {
+  const { pendingMatches, acceptedMatches } = useGetMatchesQuery(requestId, {
     selectFromResult: ({data}) => ({
       pendingMatches: data?.matches?.filter(
         (match: Match) => match.status === 'pending'
+      ) ?? emptyArray,
+      acceptedMatches: data?.matches?.filter(
+        (match: Match) => match.status === 'pending' // should be accepted here
       ) ?? emptyArray
     })
   })
 
-  let content
+  const [visible, setVisible] = useState(acceptedMatches.length !== 0)
+  const handleConfirm = () => {
+    setVisible(false)
+    navigation.navigate(
+      "ArrivingScreen",
+      { ride: acceptedMatches[0] }
+    )
+  }
+
   if (isLoading)
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -37,6 +47,20 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
 
   return (
     <>
+      <Modal
+        visible={visible}
+        backdropStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      >
+        <Card disabled={true}>
+          <View style={{ padding: 15 }}>
+            <Text style={{ fontSize: 18 }}>
+              有司機接受了您的邀請！
+            </Text>
+          </View>
+          
+          <Button onPress={handleConfirm}>確認</Button>
+        </Card>
+      </Modal>
       <QueryBlock 
         time={new Date(request.time).toDateString()}
         origin={request.origin}

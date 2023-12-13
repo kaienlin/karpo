@@ -12,7 +12,7 @@ import { useCreateJoinRequestMutation, useGetRequestQuery } from '~/redux/passen
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useGetWalkingRouteQuery } from '~/redux/maps'
 
-const LocationIcon = () => {
+export const LocationIcon = () => {
   const theme = useTheme()
   return (
     <View
@@ -59,12 +59,6 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
     navigation.push('WaitingListScreen', { requestId: route.params.requestId})
   }
 
-  // TODO: use real location from ride endpoint
-  const origin = { latitude: 25.017089003707316, longitude: 121.54544438688791 }
-  const destination = { latitude: 25.02692426177873, longitude: 121.55453461187718 }
-  const pickUpLocation = { latitude: 25.02792426177873, longitude: 121.54453461187718 }
-  const dropOffLocation = { latitude: 25.02792426177873, longitude: 121.55453461187718 }
-
   const { data: walkingRoute } = useGetWalkingRouteQuery(
     !request || !match
       ? skipToken
@@ -73,14 +67,6 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
         : [match.dropOffLocation, request.destination]
   )
 
-  // const { data: walkingRoute } = useGetWalkingRouteQuery(
-  //   !origin || !destination || !pickUpLocation || !dropOffLocation
-  //     ? skipToken
-  //     : toggleNote === '上車'
-  //       ? [origin, pickUpLocation]
-  //       : [dropOffLocation, destination]
-  // )
-
   return (
     <>
       <View style={{ padding: 10 }}>
@@ -88,8 +74,8 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
           rating={match.driverInfo.rating}
           numAvailableSeat={match.numAvailableSeat}
           proximity={match.proximity}
-          pickUpTime={new Date(match.pickUpTime)}
-          dropOffTime={new Date(match.dropOffTime)}
+          pickUpTime={match.pickUpTime}
+          dropOffTime={match.dropOffTime}
           fare={match.fare}
         />
       </View>
@@ -114,12 +100,12 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
         edgePadding={{ top: 80, right: 80, left: 80, bottom: 80 }}
         fitToRouteButtonPosition={{ left: '86%', bottom: '40%' }}
       >
-        <Marker coordinate={toggleNote === '上車' ? pickUpLocation : dropOffLocation}>
+        <Marker coordinate={toggleNote === '上車' ? match.pickUpLocation : match.dropOffLocation}>
           <LocationIcon />
         </Marker>
         <Marker
           anchor={{ x: 0.5, y: 2 }}
-          coordinate={toggleNote === '上車' ? pickUpLocation : dropOffLocation}
+          coordinate={toggleNote === '上車' ? match.pickUpLocation : match.dropOffLocation}
         >
           <Shadow>
             <View

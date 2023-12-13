@@ -1,6 +1,6 @@
-export const displayTime = (dateString: string) => {
+export const displayTime = (dateString: string, hour12: boolean = true) => {
   const date = new Date(dateString)
-  return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: hour12 })
 }
 
 export const displayDatetime = (date: Date | string, is24Hour: boolean = false) => {

@@ -62,7 +62,9 @@ type PassengerStackParamList = {
   WaitingListScreen: {
     requestId: string
   }
-  UserProfileScreen: undefined
+  ArrivingScreen: {
+    ride: Match
+  }
 }
 
 type HistoryStackParamList = {

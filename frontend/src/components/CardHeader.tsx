@@ -5,6 +5,7 @@ import {
   Icon, 
   IconProps 
 } from '@ui-kitten/components'
+import { displayTime } from '~/utils/format'
 
 interface RideStatusProps {
   rating: number | undefined
@@ -13,8 +14,8 @@ interface RideStatusProps {
 }
 
 interface RideTimeProps {
-  pickUpTime: Date
-  dropOffTime: Date
+  pickUpTime: string
+  dropOffTime: string
 }
 
 export interface HeaderProps extends RideStatusProps, RideTimeProps {
@@ -26,10 +27,6 @@ const styles = StyleSheet.create({
     color: '#5A5A5A'
   },
 });
-
-function date2hhmm (time: Date) {
-  return time.toTimeString().split(' ')[0].slice(0, -3)
-}
 
 function RideStatus ({ 
   rating, 
@@ -69,12 +66,12 @@ function RideTime ({
 }: RideTimeProps) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Text style={{ fontSize: 24 }}>{ date2hhmm(pickUpTime) }</Text>
+      <Text style={{ fontSize: 24 }}>{ displayTime(pickUpTime, false) }</Text>
       <Icon 
         name='arrow-forward-outline' 
         style={{ width: 42, height: 30 }}
       />
-      <Text style={{ fontSize: 24 }}>{ date2hhmm(dropOffTime) }</Text>
+      <Text style={{ fontSize: 24 }}>{ displayTime(dropOffTime, false) }</Text>
     </View>
   )
 }

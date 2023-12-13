@@ -35,7 +35,6 @@ const passengerSlice = apiSlice.injectEndpoints({
         const patchResult = dispatch(
           passengerSlice.util.updateQueryData('getMatches', requestId, matches => {
             // The `draft` is Immer-wrapped and can be "mutated" like in createSlice
-            // console.log('matches:', matches)
             const match = matches.matches.find((match: Match) => match.rideId === rideId)
             if (match) {
               match.status = 'pending'

@@ -8,6 +8,7 @@ import WaitingList from '~/screens/PassengerWaitingList'
 import { Match } from '~/types/data'
 import { PassengerStackParamList } from '~/types/navigation'
 import SelectWaypoint from '~/screens/SelectWaypoint'
+import Arriving from '~/screens/PassengerArriving'
 
 const Stack = createNativeStackNavigator<PassengerStackParamList>()
 
@@ -43,6 +44,11 @@ export default function PassengerStack() {
             </View>
           )
         })}
+      />
+      <Stack.Screen 
+        name="ArrivingScreen"
+        component={Arriving}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   )

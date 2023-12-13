@@ -45,8 +45,8 @@ export function InfoCard(cardProps: CardProps) {
           rating={cardProps.driverInfo.rating}
           numAvailableSeat={cardProps.numAvailableSeat}
           proximity={cardProps.proximity}
-          pickUpTime={cardProps.pickUpTime}
-          dropOffTime={cardProps.dropOffTime}
+          pickUpTime={cardProps.pickUpTime.toString()}
+          dropOffTime={cardProps.dropOffTime.toString()}
           fare={cardProps.fare}
         />
       )}
