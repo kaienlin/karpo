@@ -7,7 +7,12 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "build-all": "eas build --platform all --profile preview",
+    "build-ios": "export $(xargs < .env) && eas build -p ios --profile preview --local",
+    "build-android": "export $(xargs < .env) && eas build -p android --profile preview --local",
+    "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
+    "e2e:run": "detox test -c ios.sim",
     "eas-build-pre-install": "bash ./eas-hooks/eas-build-pre-install.sh",
     "eas-build-on-success": "bash ./eas-hooks/eas-build-on-success.sh"
   },
