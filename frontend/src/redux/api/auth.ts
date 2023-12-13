@@ -1,4 +1,4 @@
-import { apiSlice } from '../api'
+import { apiSlice } from './index'
 
 interface AccessToken {
   accessToken: string

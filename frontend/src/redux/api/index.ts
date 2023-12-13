@@ -3,7 +3,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { camelizeKeys, decamelizeKeys } from 'humps'
 
-import { type RootState } from './store'
+import { type RootState } from '~/redux/store'
 
 const baseQuery = fetchBaseQuery({
   baseUrl: `${BACKEND_API_URL}/api`,

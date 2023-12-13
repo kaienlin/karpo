@@ -12,7 +12,7 @@ import {
 import { MotiView } from 'moti'
 import { Skeleton } from 'moti/skeleton'
 
-import { useGetUserProfileQuery } from '~/redux/users'
+import { useGetUserProfileQuery } from '~/redux/api/users'
 import type { User } from '~/types/data'
 import type { UserProfileScreenProps } from '~/types/screens'
 

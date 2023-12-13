@@ -10,8 +10,8 @@ import { Avatar, Button, Text, Toggle, useTheme } from '@ui-kitten/components'
 import { Header } from '~/components/CardHeader'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { type PassengerStackParamList } from '~/navigation/PassengerStack'
+import { useGetWalkingRouteQuery } from '~/redux/api/maps'
 import { useAppSelector } from '~/redux/hooks'
-import { useGetWalkingRouteQuery } from '~/redux/maps'
 import { changeStatus } from '~/redux/ride'
 
 const LocationIcon = () => {

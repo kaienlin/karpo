@@ -2,7 +2,7 @@
 
 import type { DriverActivity, SavedRide, User } from '~/types/data'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
 
 const usersSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

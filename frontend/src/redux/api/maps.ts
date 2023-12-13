@@ -3,7 +3,7 @@
 import { MapsAPI } from '~/services/maps'
 import { decodeRoute, type RouteDecoded } from '~/utils/maps'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
 
 const mapsSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

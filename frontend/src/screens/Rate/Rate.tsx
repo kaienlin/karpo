@@ -5,7 +5,7 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
 import RateCard from '~/components/RateCard'
-import { useGetUserProfileBatchQuery } from '~/redux/users'
+import { useGetUserProfileBatchQuery } from '~/redux/api/users'
 
 // interface RateScreenProps {
 //   navigation: any; // 根據實際情況更改類型

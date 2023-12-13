@@ -11,8 +11,8 @@ import {
   useGetRideQuery,
   useGetScheduleQuery,
   useUpdateStatusMutation
-} from '~/redux/driver'
-import { useGetCurrentActivityQuery } from '~/redux/users'
+} from '~/redux/api/driver'
+import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverDepartScreenProps } from '~/types/screens'
 import { makePhoneCall } from '~/utils/device'
 

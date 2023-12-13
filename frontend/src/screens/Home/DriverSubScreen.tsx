@@ -2,7 +2,7 @@ import { TouchableOpacity, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Icon, Text, useTheme } from '@ui-kitten/components'
 
-import { useGetSavedRidesQuery } from '~/redux/users'
+import { useGetSavedRidesQuery } from '~/redux/api/users'
 
 import { SavedRideCard } from './components/SavedRideCard'
 

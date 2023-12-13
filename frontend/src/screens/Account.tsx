@@ -10,8 +10,8 @@ import { Skeleton } from 'moti/skeleton'
 
 import { ConfirmModal } from '~/components/modals/Confirm'
 import { useSignOutMutation } from '~/redux/api/auth'
+import { useGetMyProfileQuery } from '~/redux/api/users'
 import { signOut } from '~/redux/auth'
-import { useGetMyProfileQuery } from '~/redux/users'
 import { type AccountScreenProps } from '~/types/screens'
 
 const items = [

@@ -1,6 +1,6 @@
 import type { Join, JoinDetailed, Ride, Schedule } from '~/types/data'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
 
 interface GetJoinsResponse<T extends Join> {
   numAvailableSeat: number
