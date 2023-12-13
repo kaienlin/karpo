@@ -4,7 +4,7 @@ import uuid
 from typing import List, Optional, Tuple
 
 from fastapi import Depends
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
@@ -146,6 +146,18 @@ class RidesDAO:
     ) -> Optional[RidesModel]:
         result = await self.session.scalars(
             select(RidesModel.schedule).where(RidesModel.id == ride_id),
+        )
+        return result.one_or_none()
+
+    async def get_active_ride_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> Optional[RidesModel]:
+        result = await self.session.scalars(
+            select(RidesModel).where(
+                (RidesModel.user_id == user_id)
+                & (RidesModel.phase < func.cardinality(RidesModel.schedule))
+            )
         )
         return result.one_or_none()
 
