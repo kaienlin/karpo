@@ -5,12 +5,12 @@ from typing import List, Optional, Tuple
 from fastapi import Depends
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
-from shapely import Point
 from sqlalchemy import func, select, type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import true
 
 from karpo_backend.db.dependencies import get_db_session
+from karpo_backend.db.models.joins import JoinsModel
 from karpo_backend.db.models.requests import RequestsModel
 from karpo_backend.db.models.rides import RidesModel
 from karpo_backend.matching import Match, evaluate_match
@@ -96,6 +96,7 @@ class RequestsDAO:
 
         query = (
             select(RidesModel)
+            .join(JoinsModel, isouter=True)
             .where(
                 (RidesModel.phase < 0)
                 & (RidesModel.num_seats >= requests_model.num_passengers)
@@ -104,7 +105,11 @@ class RequestsDAO:
                         func.array_length(RidesModel.route_timestamps, 1)
                     ]
                     > requests_model.start_time
-                ),
+                )
+                & (
+                    (JoinsModel.id == None)
+                    | (JoinsModel.request_id != requests_model.id)
+                )
             )
             .order_by(
                 func.ST_Distance(type_coerce(origin, Geography), RidesModel.route)
