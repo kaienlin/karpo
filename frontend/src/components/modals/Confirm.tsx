@@ -5,10 +5,11 @@ import { Button, Text } from '@ui-kitten/components'
 
 interface ConfirmModalProps {
   title: string
-  message: string
+  message?: string
   onPressConfirm: () => void
   onPressCancel?: () => void
   confirmBtnText: string
+  confirmBtnStyle?: string
   cancelBtnText: string
   snapPoints: string[]
 }
@@ -21,6 +22,7 @@ export const ConfirmModal = forwardRef<BottomSheetModal, ConfirmModalProps>(
       onPressConfirm,
       onPressCancel,
       confirmBtnText,
+      confirmBtnStyle,
       cancelBtnText,
       snapPoints
     } = props
@@ -39,7 +41,7 @@ export const ConfirmModal = forwardRef<BottomSheetModal, ConfirmModalProps>(
         >
           <View style={{ alignItems: 'center', gap: 5 }}>
             <Text category="h5">{title}</Text>
-            <Text category="p1">{message}</Text>
+            {message && <Text category="p1">{message}</Text>}
           </View>
           <View
             style={{
@@ -51,7 +53,7 @@ export const ConfirmModal = forwardRef<BottomSheetModal, ConfirmModalProps>(
           >
             <Button
               size="large"
-              status="danger"
+              status={confirmBtnStyle ?? 'danger'}
               style={{ borderRadius: 12 }}
               onPress={onPressConfirm}
             >
