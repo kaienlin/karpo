@@ -108,7 +108,8 @@ def evaluate_match(  # noqa: WPS210
     pick_up_time_lb = sub_ts[find_point_idx_on_linestring(pick_up_loc, sub_route)]
     if pick_up_time_lb < req.start_time + estimate_walking_time(dist_origin):
         logger.debug(
-            f"rejecting the match between request {req.id} and ride {ride.id} because the passenger cannot arrive on time"
+            f"rejecting the match between request {req.id} "
+            f"and ride {ride.id} because the passenger cannot arrive on time"
         )
         return None
 

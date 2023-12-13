@@ -107,7 +107,7 @@ class RequestsDAO:
                     > requests_model.start_time
                 )
                 & (
-                    (JoinsModel.id == None)
+                    (JoinsModel.id == None)  # noqa: E711
                     | (JoinsModel.request_id != requests_model.id)
                 )
             )

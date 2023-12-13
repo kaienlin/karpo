@@ -23,17 +23,12 @@ from prometheus_fastapi_instrumentator.instrumentation import (
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from karpo_backend.db.models.users import (
-    UserCreate,
-    get_redis_strategy,
-    get_user_db,
-    get_user_manager,
-)
+from karpo_backend.db.models.users import UserCreate, get_user_db, get_user_manager
 from karpo_backend.services.redis.lifetime import init_redis, shutdown_redis
 from karpo_backend.settings import settings
 
 
-def _setup_db(app: FastAPI) -> None:  # pragma: no cover
+def setup_db(app: FastAPI) -> None:  # pragma: no cover
     """
     Creates connection to the database.
 
@@ -140,12 +135,12 @@ async def create_and_login_test_user(
 ) -> None:
     get_user_db_context = contextlib.asynccontextmanager(get_user_db)
     get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
-    try:
-        session: AsyncSession = app.state.db_session_factory()
-        async with get_user_db_context(session) as user_db:
-            async with get_user_manager_context(user_db) as user_manager:
+    session: AsyncSession = app.state.db_session_factory()
+    async with get_user_db_context(session) as user_db:
+        async with get_user_manager_context(user_db) as user_manager:
+            try:
                 user = await user_manager.create(
-                    UserCreate(
+                    UserCreate(  # noqa: S106
                         email=email,
                         password="test",
                         name=name,
@@ -154,13 +149,13 @@ async def create_and_login_test_user(
                     )
                 )
                 logger.info(f"User created {user.email}")
-    except UserAlreadyExists:
-        logger.info(f"User {email} already exists")
+            except UserAlreadyExists:
+                logger.info(f"User {email} already exists")
 
-    user = await user_manager.get_by_email(email)
-    async with Redis(connection_pool=app.state.redis_pool) as redis:
-        await redis.set(f"fastapi_users_token:{token}", str(user.id))
-        logger.info(f"User {user.email} logged in")
+            user = await user_manager.get_by_email(email)
+            async with Redis(connection_pool=app.state.redis_pool) as redis:
+                await redis.set(f"fastapi_users_token:{token}", str(user.id))
+                logger.info(f"User {user.email} logged in")
 
     await session.commit()
     await session.close()
@@ -170,7 +165,7 @@ async def setup_test_users(app: FastAPI):
     if settings.environment not in ("dev", "pytest"):
         return
 
-    await create_and_login_test_user(
+    await create_and_login_test_user(  # noqa: S106
         app,
         email="test@karpo.com",
         name="TestUser",
@@ -178,7 +173,7 @@ async def setup_test_users(app: FastAPI):
         phone_number="+886000000000",
     )
 
-    await create_and_login_test_user(
+    await create_and_login_test_user(  # noqa: S106
         app,
         email="test0@karpo.com",
         name="TestUser0",
@@ -203,7 +198,7 @@ def register_startup_event(
     @app.on_event("startup")
     async def _startup() -> None:  # noqa: WPS430
         app.middleware_stack = None
-        _setup_db(app)
+        setup_db(app)
         setup_opentelemetry(app)
         init_redis(app)
         setup_prometheus(app)

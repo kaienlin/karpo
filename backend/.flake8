@@ -1,11 +1,31 @@
 [flake8]
 max-complexity = 6
 inline-quotes = double
-max-line-length = 88
+max-line-length = 120
 extend-ignore = E203
 docstring_style=sphinx
 
 ignore =
+  ; missing trailing comma
+  C812
+  ; Found underscored number name pattern
+  WPS114,
+  ; Found explicit string concatenation
+  WPS336,
+  ; Found implicit `enumerate()` call
+  WPS518,
+  ; Found useless `len()` compare
+  WPS507,
+  ; function is too complex
+  C901,
+  ; Found too many await expressions
+  WPS217,
+  ; Found too many `assert` statements
+  WPS218,
+  ; Found incorrectly nested ternary
+  WPS509,
+  ; Found `in` used with a non-set container
+  WPS510,
   ; Found `f` string
   WPS305,
   ; docstring

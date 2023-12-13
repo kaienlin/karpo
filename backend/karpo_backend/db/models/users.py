@@ -39,8 +39,8 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     name: str
     phone_number: Optional[str] = None
     rating: Optional[
-        Annotated[float, Field(strict=True, ge=0, le=5.0)]  # noqa: WPS432
-    ] = None
+        Annotated[float, Field(strict=True, ge=0, le=5.0)]
+    ] = None  # noqa: WPS432
     avatar: Optional[Base64Bytes] = None
 
 
