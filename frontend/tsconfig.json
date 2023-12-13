@@ -2,7 +2,7 @@
   "extends": "@tsconfig/react-native/tsconfig.json",
   "compilerOptions": {
     "moduleResolution": "node",
-    "types": ["google.maps"],
+    "types": ["google.maps", "jest"],
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {

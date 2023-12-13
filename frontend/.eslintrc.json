@@ -31,7 +31,12 @@
     ],
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
-      { "allowString": true, "allowNullableString": true, "allowNullableObject": true }
+      {
+        "allowString": true,
+        "allowNullableString": true,
+        "allowNullableObject": true,
+        "allowNullableNumber": true
+      }
     ]
   }
 }
