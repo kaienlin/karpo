@@ -14,8 +14,7 @@ interface UserRegisterFrom {
   email: string
   password: string
   name: string
-  phoneNumber: string
-  avatar: string
+  avatar?: string
 }
 
 export const authSlice = apiSlice.injectEndpoints({
