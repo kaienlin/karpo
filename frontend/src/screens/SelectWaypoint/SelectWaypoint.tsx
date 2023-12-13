@@ -53,7 +53,6 @@ function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
 export default function SelectWaypoint({ navigation, route }: SelectWaypointScreenProps) {
   const { waypointIndex, waypoint: defaultCenter } = route.params
   const routes = useNavigationState((state) => state.routes)
-  const prevScreen = routes[routes.length - 2].name
 
   const inputRef = useRef<Input>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
@@ -100,16 +99,32 @@ export default function SelectWaypoint({ navigation, route }: SelectWaypointScre
   }
 
   const confirmWaypoint = (waypoint: Waypoint) => {
-    navigation.navigate({
-      name: prevScreen,
-      params: {
-        updatedWaypoint: {
-          index: waypointIndex,
-          payload: waypoint
-        }
-      },
-      merge: true
-    })
+    const prevScreen = routes[routes.length - 2].name
+    
+    // TODO: this is just workaround
+    if (prevScreen === 'BottomTab') {
+      navigation.navigate('BottomTab', {
+        screen: 'HomeScreen',
+        params: {
+          updatedWaypoint: {
+            index: waypointIndex,
+            payload: waypoint
+          }
+        },
+        merge: true
+      })
+    } else {
+      navigation.navigate({
+        name: prevScreen,
+        params: {
+          updatedWaypoint: {
+            index: waypointIndex,
+            payload: waypoint
+          }
+        },
+        merge: true
+      })
+    }
   }
 
   const handlePressLocationItem = (item: AutocompleteItem) => {

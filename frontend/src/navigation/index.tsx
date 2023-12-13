@@ -33,7 +33,8 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer theme={CustomTheme}>
-      {state.userToken === null ? <AuthStack /> : <MainStack />}
+      {/* {state.userToken === null ? <AuthStack /> : <MainStack />} */}
+      <MainStack />
     </NavigationContainer>
   )
 }

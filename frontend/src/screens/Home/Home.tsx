@@ -27,20 +27,6 @@ const request = {
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  const [ createRequest ] = useCreateRequestMutation()
-
-  const handleCreateRequest = async () => {
-    try {
-      const response = await createRequest(request).unwrap()
-      navigation.navigate('PassengerStack', {
-        screen: 'SelectRideScreen',
-        params: { requestId: response.requestId }
-      })
-    } catch (err) {
-      console.error('Failed to create request: ', err)
-    }
-  }
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ paddingVertical: 10, paddingHorizontal: 40 }}>
@@ -78,13 +64,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       <ScrollView style={{ marginTop: 15, paddingHorizontal: 20 }}>
         {selectedIndex === 0 ? <DriverSubScreen /> : <PassengerSubScreen />}
       </ScrollView>
-      {selectedIndex === 1 && (
-        <View style={{ padding: 20 }}>
-          <Button size="large" style={{ borderRadius: 12 }} onPress={handleCreateRequest}>
-            搜尋
-          </Button>
-        </View>
-      )}
     </SafeAreaView>
   )
 }

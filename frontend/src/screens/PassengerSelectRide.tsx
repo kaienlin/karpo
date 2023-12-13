@@ -8,7 +8,6 @@ import { HeaderProps } from '~/components/CardHeader'
 import { shallowEqual, useSelector } from 'react-redux'
 import { Button, Spinner, Text } from '@ui-kitten/components'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/passenger'
-import { createSelector } from '@reduxjs/toolkit'
 import { Match } from '~/types/data'
 import { PassengerStackParamList } from '~/types/navigation'
 

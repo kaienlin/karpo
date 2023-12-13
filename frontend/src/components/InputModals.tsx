@@ -1,10 +1,10 @@
-import { forwardRef, useState, type ReactNode } from 'react'
+import { forwardRef, useRef, useState, type ReactNode } from 'react'
 import { View } from 'react-native'
 import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Button, Text } from '@ui-kitten/components'
 
-import Counter from '../components/Counter'
-import DateTimePicker from '../components/DateTimePicker'
+import Counter from '~/components/Counter'
+import DateTimePicker from '~/components/DateTimePicker'
 
 export const InputModal = forwardRef<BottomSheetModal, { height: string; children?: ReactNode }>(
   function InputModal(props, ref) {
@@ -31,54 +31,98 @@ export const InputModal = forwardRef<BottomSheetModal, { height: string; childre
   }
 )
 
-export const InputDateTimeModal = forwardRef<
-  BottomSheetModal,
-  { title: string; onConfirm: (value: Date) => void }
->(function InputDateTimeModal({ title, onConfirm }, ref) {
-  const [value, setValue] = useState<Date>(new Date())
+interface ControlledInput<Data> {
+  value: Data | null
+  onChange: (value: Data) => void
+}
+
+interface InputModalInstanceProps<Data> extends ControlledInput<Data> {
+  title: string
+  renderTriggerComponent: ({
+    onOpen,
+    value
+  }: {
+    onOpen: () => void
+    value: Data | null
+  }) => React.ReactNode
+}
+
+export const InputTime = ({
+  title,
+  renderTriggerComponent,
+  value,
+  onChange
+}: InputModalInstanceProps<Date>) => {
+  const modalRef = useRef<BottomSheetModal>(null)
+  const [tempValue, setTempValue] = useState<Date>(value ?? new Date())
+
+  const onOpen = () => {
+    modalRef.current?.present()
+  }
+  const onClose = () => {
+    modalRef.current?.dismiss()
+  }
 
   return (
-    <InputModal ref={ref} height="55%">
-      <Text category="h5">{title}</Text>
-      <DateTimePicker date={value} setDate={setValue} />
-      <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-        <Button
-          size="giant"
-          style={{ borderRadius: 100 }}
-          onPress={() => {
-            onConfirm(value)
-            ref.current?.dismiss()
-          }}
-        >
-          確定
-        </Button>
-      </View>
-    </InputModal>
-  )
-})
+    <>
+      {renderTriggerComponent({ onOpen, value })}
 
-export const InputCounterModal = forwardRef<
-  BottomSheetModal,
-  { title: string; onConfirm: (value: Date) => void }
->(function InputCounterModal({ title, onConfirm }, ref) {
-  const [value, setValue] = useState<number>(0)
+      <InputModal ref={modalRef} height="55%">
+        <Text category="h5">{title}</Text>
+        <DateTimePicker date={tempValue} setDate={setTempValue} />
+        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+          <Button
+            size="giant"
+            style={{ borderRadius: 100 }}
+            onPress={() => {
+              onClose()
+              onChange(tempValue)
+            }}
+          >
+            確定
+          </Button>
+        </View>
+      </InputModal>
+    </>
+  )
+}
+
+export const InputCounter = ({
+  title,
+  renderTriggerComponent,
+  value,
+  onChange
+}: InputModalInstanceProps<number>) => {
+  const modalRef = useRef<BottomSheetModal>(null)
+  const [tempValue, setTempValue] = useState<number>(value ?? 0)
+
+  const onOpen = () => {
+    modalRef.current?.present()
+  }
+  const onClose = () => {
+    modalRef.current?.dismiss()
+  }
 
   return (
-    <InputModal ref={ref} height="40%">
-      <Text category="h5">{title}</Text>
-      <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
-        <Counter value={value} onValueChange={setValue} />
-        <Button
-          size="giant"
-          style={{ borderRadius: 100 }}
-          onPress={() => {
-            onConfirm(value)
-            ref.current?.dismiss()
-          }}
-        >
-          確定
-        </Button>
-      </View>
-    </InputModal>
+    <>
+      {renderTriggerComponent({ onOpen, value })}
+
+      <InputModal ref={modalRef} height="55%">
+        <Text category="h5">{title}</Text>
+        <Counter value={tempValue} onValueChange={setTempValue} />
+        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+          <Button
+            size="giant"
+            style={{ borderRadius: 100 }}
+            onPress={() => {
+              onClose()
+              onChange(tempValue)
+            }}
+          >
+            確定
+          </Button>
+        </View>
+      </InputModal>
+    </>
   )
-})
+}

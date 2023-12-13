@@ -209,7 +209,7 @@ const AddWaypointButton = ({ onPress }: { onPress: () => void }) => (
   </View>
 )
 
-export const emptyWaypoint = { title: '', latitude: null, longitude: null }
+export const emptyWaypoint = { description: '', latitude: null, longitude: null }
 
 export default function PlanPanel({ control }: { control: Control<any> }) {
   const navigation = useNavigation()
