@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Shadow } from 'react-native-shadow-2'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
 
@@ -93,13 +92,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-        <Shadow
-          stretch={true}
-          startColor="#00000010"
-          sides={{ start: false, end: false, top: false, bottom: true }}
-        >
-          <TopNavBar title={screenTitle} onGoBack={modalRef.current?.present} />
-        </Shadow>
+        <TopNavBar title={screenTitle} onGoBack={modalRef.current?.present} />
 
         <ConfirmModal
           ref={modalRef}
@@ -152,7 +145,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           index={1}
           snapPoints={['18%', '45%', '75%']}
         >
-          {(acceptedJoins?.length > 0 || selectedJoins?.length > 0) && (
+          {(acceptedJoins?.length ?? selectedJoins?.length) && (
             <Animated.View entering={FadeIn.delay(100)}>
               <PassengerAvatarList
                 title="已選擇的乘客"
