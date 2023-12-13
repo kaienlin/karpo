@@ -94,6 +94,7 @@ async def get_match_dto_from_request_and_join(
     join: JoinsModel,
     rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
+    user_db: SQLAlchemyUserDatabase,
 ) -> MatchDTO:
     pick_up_location = LocationWithDescDTO.from_wkb(
         join.pick_up_location,
@@ -123,7 +124,7 @@ async def get_match_dto_from_request_and_join(
     if join.status == "accepted":
         num_avaiable_seat -= 1
 
-    driver_user_info = await get_user_info_for_others(ride.user_id)
+    driver_user_info = await get_user_info_for_others(ride.user_id, user_db)
 
     return MatchDTO(
         ride_id=join.ride_id,
@@ -159,6 +160,7 @@ async def get_accepted_match_dto(
     request: RequestsModel,
     rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
+    user_db: SQLAlchemyUserDatabase,
 ) -> Optional[MatchDTO]:
     join = await joins_dao.get_accepted_joins_by_request_id(request.id)
     if join is None:
@@ -169,6 +171,7 @@ async def get_accepted_match_dto(
         join,
         rides_dao,
         joins_dao,
+        user_db,
     )
 
 
@@ -176,6 +179,7 @@ async def get_pending_match_dtos(
     request: RequestsModel,
     rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
+    user_db: SQLAlchemyUserDatabase,
 ) -> List[MatchDTO]:
     joins = await joins_dao.get_pending_joins_by_request_id(request.id)
     match_dtos: List[MatchDTO] = []
@@ -186,6 +190,7 @@ async def get_pending_match_dtos(
             join,
             rides_dao,
             joins_dao,
+            user_db,
         )
         match_dtos.append(match_dto)
 
@@ -317,12 +322,16 @@ async def get_request_id_matches(  # noqa: WPS210
         raise HTTPException(status_code=403, detail="Permission denied")
 
     resp = GetRequestIdMatchesResponse(matches=[])
-    accepted_match = await get_accepted_match_dto(request, rides_dao, joins_dao)
+    accepted_match = await get_accepted_match_dto(
+        request, rides_dao, joins_dao, user_db
+    )
     if accepted_match is not None:
         resp.matches.append(accepted_match)
         return resp
 
-    pending_matches = await get_pending_match_dtos(request, rides_dao, joins_dao)
+    pending_matches = await get_pending_match_dtos(
+        request, rides_dao, joins_dao, user_db
+    )
     resp.matches.extend(pending_matches)
 
     unasked_matches = await get_unasked_match_dtos(
