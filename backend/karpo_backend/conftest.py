@@ -152,29 +152,33 @@ async def client(
 
 @pytest.fixture
 async def client_test(
-    client: AsyncClient,
+    fastapi_app: FastAPI,
+    anyio_backend: Any,
 ) -> AsyncGenerator[AsyncClient, None]:
     """
     Fixture that creates client with the credential of test user (TestUser)
     """
-    client.headers.update(
-        {
-            "Authorization": "Bearer test",
-        },
-    )
-    yield client
+    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+        ac.headers.update(
+            {
+                "Authorization": "Bearer test",
+            },
+        )
+        yield ac
 
 
 @pytest.fixture
 async def client_test0(
-    client: AsyncClient,
+    fastapi_app: FastAPI,
+    anyio_backend: Any,
 ) -> AsyncGenerator[AsyncClient, None]:
     """
     Fixture that creates client with the credential of test user (TestUser)
     """
-    client.headers.update(
-        {
-            "Authorization": "Bearer test0",
-        },
-    )
-    yield client
+    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+        ac.headers.update(
+            {
+                "Authorization": "Bearer test0",
+            },
+        )
+        yield ac
