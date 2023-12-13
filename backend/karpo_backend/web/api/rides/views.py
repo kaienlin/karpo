@@ -59,10 +59,9 @@ async def get_ride_id_status(
     rides_dao: RidesDAO = Depends(),
 ) -> GetRideIdStatusResponse:
     """Get the dynamic status (location, phase) of a ride."""
-    ride_status = await rides_dao.get_ride_model_by_id(ride_id)
+    ride_status = await rides_dao.get_phase_position_by_id(ride_id)
     if ride_status is None:
         raise HTTPException(status_code=404, detail="Item not found")
-
     driver_position: Point = wkb.loads(bytes(ride_status.driver_position.data))
 
     return GetRideIdStatusResponse(

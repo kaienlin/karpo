@@ -18,6 +18,8 @@ from karpo_backend.web.api.rides.schema import (
     GetRideSavedRidesResponse,
     GetRideIdStatusResponse,
     GetRideIdScheduleResponse,
+    GetRideIdResponse,
+    GetRideMessagesResponse,
     PostRidesResponse,
     PostRideIdJoinsResponse,
 )
@@ -31,6 +33,7 @@ async def test_creation(
     dbsession: AsyncSession,
 ) -> None:
     """Tests rides instance creation."""
+    # post a ride
     req_body = ride_data_1
     url = fastapi_app.url_path_for("post_rides")
     resp = await client_test.post(
@@ -46,6 +49,7 @@ async def test_creation(
     dao = RidesDAO(dbsession)
     resp_db_obj = await dao.get_ride_model_by_id(resp_obj.ride_id)
 
+    # check ride in db is correct
     assert resp_db_obj is not None
     assert req_body.get("label", None) == None or resp_db_obj.label == req_body["label"]
     assert resp_db_obj.num_seats == req_body["num_seats"]
@@ -94,6 +98,22 @@ async def test_creation(
         assert db_intermediate_description == intermediate["description"]
 
     assert resp_db_obj.departure_time == datetime.datetime.fromisoformat(
+        req_body["departure_time"].replace("Z", "+00:00")
+    )
+
+    # check get ride
+    get_ride_url = fastapi_app.url_path_for("get_ride_id", ride_id=resp_obj.ride_id)
+    resp = await client_test.get(
+        url=get_ride_url,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    try:
+        resp_obj = GetRideIdResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+    assert req_body.get("label", None) == None or resp_db_obj.label == req_body["label"]
+    assert resp_obj.ride.num_seats == req_body["num_seats"]
+    assert resp_obj.ride.departure_time == datetime.datetime.fromisoformat(
         req_body["departure_time"].replace("Z", "+00:00")
     )
 
@@ -337,3 +357,79 @@ async def test_get_schedule(
         except ValidationError:
             pytest.fail("invalid response")
         assert len(get_schedule_resp_obj.schedule) == 0
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ["user1_contents", "user1_send_times", "user2_contents", "user2_send_times", "from_time"],
+    [
+        (["1", "3"], ["2023-12-08T02:56:00.000Z", "2023-12-08T02:59:00.000Z"], ["2"], ["2023-12-08T02:58:00.000Z"], "2023-12-08T02:57:00.000Z"),
+        (["1", "3"], ["2023-12-08T02:56:00.000Z", "2023-12-08T02:59:00.000Z"], ["2"], ["2023-12-08T02:58:00.000Z"], "2023-12-08T02:54:00.000Z"),
+    ],
+)
+async def test_post_and_get_chatroom_messages(
+    user1_contents: List[str],
+    user1_send_times: List[datetime.datetime],
+    user2_contents: List[str],
+    user2_send_times: List[datetime.datetime],
+    from_time: datetime.datetime,
+    ride_data_1: Dict,
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+    client_test0: AsyncClient,
+) -> None:
+    """Tests rides instance creation."""
+    # post a ride
+    req_body = ride_data_1
+    url = fastapi_app.url_path_for("post_rides")
+    resp = await client_test.post(
+        url,
+        json=req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        resp_obj = PostRidesResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+    post_ride_id = resp_obj.ride_id
+
+    # post chatroom_messages 
+    for client_user, contents, send_times in zip([client_test0, client_test], [user1_contents, user2_contents], [user1_send_times, user2_send_times]):
+        resp = await client_user.get(url="/api/users/me")
+        assert resp.status_code == status.HTTP_200_OK
+        user_id = resp.json()["id"]
+
+        for content, send_time in zip(contents, send_times):
+            post_message_url = fastapi_app.url_path_for("post_chatroom_messages", ride_id=post_ride_id)
+            post_rides_req_body = {
+                "chat_record": {
+                    "user_id": user_id,
+                    "content": content,
+                    "time": send_time,
+                }
+            }
+            resp = await client_user.post(
+                url=post_message_url,
+                json=post_rides_req_body,
+            )
+            assert resp.status_code == status.HTTP_200_OK
+            
+    # get chatroom messages
+    get_messages_url = fastapi_app.url_path_for(
+        "get_chatroom_messages",
+        ride_id=post_ride_id,
+    )
+    resp = await client_test.get(
+        url=get_messages_url,
+        params={"from_time": from_time},
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    try:
+        get_messages_resp_obj = GetRideMessagesResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+    assert get_messages_resp_obj.chat_records == sorted(get_messages_resp_obj.chat_records, key=lambda record: record.time), "messages should in order."
+    assert get_messages_resp_obj.chat_records[0].time >= datetime.datetime.fromisoformat(
+        from_time.replace("Z", "+00:00")
+    )

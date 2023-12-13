@@ -133,7 +133,7 @@ class RidesDAO:
         self,
         ride_id: uuid.UUID,
     ) -> Optional[RidesModel]:
-        result = await self.session.scalars(
+        result = await self.session.execute(
             select(RidesModel.phase, RidesModel.driver_position).where(
                 RidesModel.id == ride_id
             ),

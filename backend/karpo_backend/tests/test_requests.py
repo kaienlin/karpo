@@ -120,6 +120,7 @@ async def test_creation_conflict(
     ["req_start_time", "req_origin", "matched"],
     [
         ("2023-12-08T02:56:46.252Z", (0.0015, -0.0025), True),
+        ("2023-12-08T02:56:46.252Z", (0.001675, -0.00265), True),
         ("2023-12-08T02:57:46.252Z", (0.0015, -0.0025), False),
         ("2023-12-08T02:00:00.000Z", (0.0015, 0.03), False),
     ],
@@ -220,3 +221,5 @@ async def test_get_matches(
         assert get_match_resp_obj.matches[0].ride_id == post_rides_resp_obj.ride_id
         assert get_match_resp_obj.matches[0].status == "unasked"
         assert get_match_resp_obj.matches[0].join_id is None
+        print(get_match_resp_obj.matches[0])
+
