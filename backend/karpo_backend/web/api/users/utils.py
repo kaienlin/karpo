@@ -15,7 +15,7 @@ async def get_user_info_for_others(
     return UserInfoForOthersDTO(
         name=user.name,
         rating=user.rating if user.rating else None,
-        avatar=b64encode(user.avatar) if user.avatar else None,
+        avatar=b64encode(user.avatar).decode() if user.avatar else None,
     )
 
 
