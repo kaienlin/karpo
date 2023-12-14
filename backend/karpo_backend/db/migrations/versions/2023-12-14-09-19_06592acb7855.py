@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: e8dd9377246c
+Revision ID: 06592acb7855
 Revises: 2b7380507a71
-Create Date: 2023-12-14 15:26:27.523362
+Create Date: 2023-12-14 09:19:11.083206
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "e8dd9377246c"
+revision = "06592acb7855"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -27,6 +27,12 @@ def upgrade() -> None:
         sa.Column("rating", sa.Float(), nullable=True),
         sa.Column("rating_count", sa.Integer(), nullable=False),
         sa.Column("avatar", sa.LargeBinary(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False),
         sa.Column("email", sa.String(length=320), nullable=False),
         sa.Column("hashed_password", sa.String(length=1024), nullable=False),
