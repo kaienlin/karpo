@@ -42,10 +42,10 @@ class JoinsDAO:
             fare=0,  # TBA
             status="pending",  # status -> driver_response?
             pick_up_location=f"POINT({pick_up_location.longitude} {pick_up_location.latitude})",
-            pick_up_location_description="string",  # TBA
+            pick_up_location_description="",  # TBA
             # pick_up_location_description=pick_up_location.description,
             drop_off_location=f"POINT({drop_off_location.longitude} {drop_off_location.latitude})",
-            drop_off_location_description="string",  # TBA
+            drop_off_location_description="",  # TBA
             # drop_off_location_description=drop_off_location.description,
             pick_up_time=pick_up_time,
             drop_off_time=drop_off_time,
