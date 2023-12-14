@@ -5,19 +5,48 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 
 import RateCard from '~/components/RateCard'
-import { useGetUserProfileBatchQuery } from '~/redux/users'
 
-// interface RateScreenProps {
-//   navigation: any; // 根據實際情況更改類型
-// }
+import { useGetUserProfileBatchQuery, useGetCurrentActivityQuery } from '~/redux/users'
+import { useCreateCommentMutation } from '~/redux/comment'
+import { useGetJoinsQuery } from '~/redux/driver'
 
-type RateScreenProps = NativeStackScreenProps<HomeStackParamList, 'RateScreen'>
+import type {  MainStackParamList } from '~/types/navigation'
 
-export default function RateScreen({ navigation, route }: RateScreenProps) {
-  const { userIds } = route.params
+
+type RateScreenProps = NativeStackScreenProps<MainStackParamList, 'RateScreen'>
+
+export default function RateScreen({ navigation }: RateScreenProps) {
+
+  const { rideId } = useGetCurrentActivityQuery(undefined, {
+    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+  })
+  const {
+    acceptedJoins,
+    numAvailableSeat,
+    isSuccess: isAcceptedJoinsSuccess
+  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+    selectFromResult: ({ data, ...rest }) => ({
+      acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
+      numAvailableSeat: data?.numAvailableSeat,
+      ...rest
+    })
+  })
+
+  // const { userIds } = route.params
+  const userIds  = acceptedJoins?.map(join => join.passengerId) || [];
   const { data: users, isSuccess } = useGetUserProfileBatchQuery(userIds ?? skipToken)
 
+
   // TODO: onSubmit send to backend
+  const [createComment] = useCreateCommentMutation()
+  const onSubmit = async (id:string, rating:number, comment:string) => {
+    await createComment({
+      rideId: rideId ?? "",
+      userId: id,
+      rate: rating,
+      comment: comment,
+    })
+  }
 
   return (
     <SafeAreaView style={styles.root}>
@@ -28,14 +57,19 @@ export default function RateScreen({ navigation, route }: RateScreenProps) {
           <TopNavigationAction
             icon={(props: IconProps) => <Icon {...props} name="arrow-back" />}
             onPress={() => {
-              navigation.navigate('HomeScreen')
+              navigation.navigate('BottomTab', { screen: 'HomeScreen' })
             }}
           />
         )}
       />
 
       {isSuccess && (
-        <FlatList data={users} renderItem={({ item }) => <RateCard userInfo={item} />} />
+        <FlatList 
+          data={users} 
+          renderItem={({ item }) => 
+          <RateCard 
+          userInfo={ item }
+          onSubmit={onSubmit} />} />
       )}
     </SafeAreaView>
   )
@@ -44,8 +78,6 @@ export default function RateScreen({ navigation, route }: RateScreenProps) {
 const styles = StyleSheet.create({
   root: {
     flex: 1
-    //   alignItems: 'center',
-    //   justifyContent: 'flex-start',
   },
   headerContainer: {
     paddingHorizontal: 20, // 調整 padding

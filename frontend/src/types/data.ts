@@ -120,3 +120,10 @@ export interface Join {
 export interface JoinDetailed extends Join {
   passengerInfo: User
 }
+
+// Comments
+export interface Comments {
+  userId: string,
+  rate: number,
+  comment: string
+}
