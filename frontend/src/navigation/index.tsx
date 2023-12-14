@@ -37,8 +37,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer theme={CustomTheme}>
-      {/* {!state.accessToken ? <AuthStack /> : <MainStack />} */}
-      <MainStack />
+      {!state.accessToken ? <AuthStack /> : <MainStack />}
     </NavigationContainer>
   )
 }
