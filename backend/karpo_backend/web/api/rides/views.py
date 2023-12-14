@@ -394,6 +394,11 @@ async def post_ride_id_joins(
         raise HTTPException(status_code=403, detail="No seats left")
 
     match = evaluate_match(ride=ride, req=request)
+    if match is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="infeasible match"
+        )
+
     join_id = await joins_dao.create_joins_model(
         request_id=req.request_id,
         ride_id=ride_id,
