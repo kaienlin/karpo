@@ -37,7 +37,7 @@ export const driverSlice = apiSlice.injectEndpoints({
         const { numAvailableSeat, joins } = joinsResult.data as GetJoinsResponse<Join>
         const result = await Promise.all(
           joins.map(async (join) => {
-            const { data: passengerInfo } = await baseQuery(`users/${join.passengerId}`)
+            const { data: passengerInfo } = await baseQuery(`users/${join.passengerId}/profile`)
             return {
               ...join,
               passengerInfo

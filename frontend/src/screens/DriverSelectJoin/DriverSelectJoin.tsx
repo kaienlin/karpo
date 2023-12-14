@@ -3,6 +3,7 @@ import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
+import reactotron from 'reactotron-react-native'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
@@ -21,21 +22,31 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data }) => ({ rideRoute: data?.ride?.route_with_time?.route })
+    selectFromResult: ({ data }) => {
+      // note: backend uses [longitude, latitude]
+      const route = data?.ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
+        latitude,
+        longitude
+      }))
+
+      return { rideRoute: route }
+    }
   })
-  const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+  const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
     pollingInterval: 3000,
     selectFromResult: ({ data }) => ({
-      pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
+      // pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
+      pendingJoins: data?.joins
     })
   })
   const {
     acceptedJoins,
     numAvailableSeat,
     isSuccess: isAcceptedJoinsSuccess
-  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'accepted' }, {
     selectFromResult: ({ data, ...rest }) => ({
-      acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
+      // acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
+      acceptedJoins: data?.joins,
       numAvailableSeat: data?.numAvailableSeat,
       ...rest
     })
@@ -146,7 +157,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           index={1}
           snapPoints={['18%', '45%', '75%']}
         >
-          {(acceptedJoins?.length > 0 ?? selectedJoins?.length > 0) && (
+          {(acceptedJoins?.length > 0 || selectedJoins?.length > 0) && (
             <Animated.View entering={FadeIn.delay(100)}>
               <PassengerAvatarList
                 title="已選擇的乘客"

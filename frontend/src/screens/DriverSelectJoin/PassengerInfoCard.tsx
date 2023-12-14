@@ -86,7 +86,7 @@ function PassengerInfoCardHeader({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <Icon name="star" style={{ width: 16, height: 16 }} fill={'#F0C414'} />
-              <Text style={styles.lightText}>{rating.toFixed(1)}</Text>
+              <Text style={styles.lightText}>{rating ? rating.toFixed(1) : 'N/A'}</Text>
             </View>
             <Text style={styles.lightText}>|</Text>
             <Text style={styles.lightText}>{numPassengers} 人</Text>
