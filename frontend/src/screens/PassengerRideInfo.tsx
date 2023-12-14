@@ -4,13 +4,18 @@ import { Marker } from 'react-native-maps'
 import { Shadow } from 'react-native-shadow-2'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import { skipToken } from '@reduxjs/toolkit/query'
-import { Avatar, Button, Text, Toggle, useTheme } from '@ui-kitten/components'
+import { Avatar, Button, Spinner, Text, Toggle, useTheme } from '@ui-kitten/components'
 
 import { Header } from '~/components/CardHeader'
 import { PassengerStackParamList } from '~/types/navigation'
 import { useCreateJoinRequestMutation, useGetRequestQuery } from '~/redux/passenger'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useGetWalkingRouteQuery } from '~/redux/maps'
+import { useGetUserProfileQuery } from '~/redux/users'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { Image } from 'expo-image'
+import { useNavigation } from '@react-navigation/native'
+import { Match } from '~/types/data'
 
 export const LocationIcon = () => {
   const theme = useTheme()
@@ -39,6 +44,71 @@ export const LocationIcon = () => {
 
 type RideInfoScreenProps = NativeStackScreenProps<PassengerStackParamList, 'RideInfoScreen'>
 
+function PassengerItem({ userId } : { userId: string }) {
+  const { data: user } = useGetUserProfileQuery(userId)
+  const navigation = useNavigation()
+
+  console.log('user:', user)
+  const handleViewProfile = () => {
+    navigation.navigate(
+      'UserProfileScreen', 
+      { role: 'driver', 'userId': userId }
+    )
+  }
+
+  if (user) 
+    return (
+      <View style={{ alignItems: 'center' }}>
+        <TouchableOpacity onPress={handleViewProfile}>
+          <View
+            onStartShouldSetResponder={(event) => true}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+            }} 
+            style={{ padding: 10 }}
+          >
+            <Image 
+              source={{ uri: user.avatar }} 
+              style={{ width: 56, height: 56, borderRadius: 28 }} 
+            />
+          </View>  
+        </TouchableOpacity> 
+        <Text>{user.name}</Text>
+      </View>
+    )
+
+  return (
+    <View style={{
+      width: 56,
+      height: 56, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      padding: 10 
+    }}>
+      <Spinner />
+    </View>
+  )
+}
+
+function OtherPassegners({ match } : { match: Match }) {
+  console.log('other passenger:', match.otherPassengers)
+
+  return (
+    <View style={{ 
+      alignItems: 'center', 
+      flexDirection: 'row',
+      paddingVertical: 10,
+    }}>
+      {match.otherPassengers.map(passenger => 
+        <PassengerItem 
+          userId={passenger}
+          key={passenger}
+        />
+      )}
+    </View>
+  )
+}
+
 export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
   const [checked, setChecked] = useState(false)
   const [toggleNote, setToggleNote] = useState('上車')
@@ -56,7 +126,7 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
       rideId: match.rideId,
       requestId: requestId
     }).unwrap()
-    navigation.push('WaitingListScreen', { requestId: route.params.requestId})
+    navigation.push('WaitingListScreen', { requestId: route.params.requestId })
   }
 
   const { data: walkingRoute } = useGetWalkingRouteQuery(
@@ -77,6 +147,8 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
           pickUpTime={match.pickUpTime}
           dropOffTime={match.dropOffTime}
           fare={match.fare}
+          userId={match.driverInfo.id}
+          avatar={match.driverInfo.avatar}
         />
       </View>
 
@@ -131,16 +203,7 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
 
       <View style={{ padding: 20 }}>
         <Text style={{ fontSize: 18 }}>其他乘客</Text>
-        <View style={{ flexDirection: 'row', paddingVertical: 10 }}>
-          <View style={{ padding: 10, alignItems: 'center', gap: 5 }}>
-            <Avatar source={require('../../assets/yia.jpg')} size="giant" />
-            <Text>yia</Text>
-          </View>
-          <View style={{ padding: 10, alignItems: 'center', gap: 5 }}>
-            <Avatar source={require('../../assets/poprice.jpg')} size="giant" />
-            <Text>米香</Text>
-          </View>
-        </View>
+        <OtherPassegners match={match} />
       </View>
       <View style={{ paddingVertical: 10 }}>
         <View style={{ padding: 20 }}>

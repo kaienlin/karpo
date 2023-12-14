@@ -87,11 +87,7 @@ export interface Match {
   numAvailableSeat: number
   otherPassengers: string[]
   
-  driverInfo: {
-    name: string
-    rating: number
-    avatar: string
-  }
+  driverInfo: User
   fare: number
   driverRoute: {
     route: LatLng[]

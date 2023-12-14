@@ -109,8 +109,48 @@ export const InputCounter = ({
 
       <InputModal ref={modalRef} height="55%">
         <Text category="h5">{title}</Text>
-        <Counter value={tempValue} onValueChange={setTempValue} />
         <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+          <Counter value={tempValue} onValueChange={setTempValue} />
+          <Button
+            size="giant"
+            style={{ borderRadius: 100 }}
+            onPress={() => {
+              onClose()
+              onChange(tempValue)
+            }}
+          >
+            確定
+          </Button>
+        </View>
+      </InputModal>
+    </>
+  )
+}
+
+export const PassengerInputCounter = ({
+  title,
+  renderTriggerComponent,
+  value,
+  onChange
+}: InputModalInstanceProps<number>) => {
+  const modalRef = useRef<BottomSheetModal>(null)
+  const [tempValue, setTempValue] = useState<number>(value ?? 0)
+
+  const onOpen = () => {
+    modalRef.current?.present()
+  }
+  const onClose = () => {
+    modalRef.current?.dismiss()
+  }
+
+  return (
+    <>
+      {renderTriggerComponent({ onOpen, value })}
+
+      <InputModal ref={modalRef} height="35%">
+        <Text category="h5">{title}</Text>
+        <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+          <Counter value={tempValue} onValueChange={setTempValue} />
           <Button
             size="giant"
             style={{ borderRadius: 100 }}

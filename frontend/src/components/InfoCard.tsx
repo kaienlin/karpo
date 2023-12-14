@@ -48,6 +48,8 @@ export function InfoCard(cardProps: CardProps) {
           pickUpTime={cardProps.pickUpTime.toString()}
           dropOffTime={cardProps.dropOffTime.toString()}
           fare={cardProps.fare}
+          userId={cardProps.driverInfo.id}
+          avatar={cardProps.driverInfo.avatar}
         />
       )}
       footer={(props) => (

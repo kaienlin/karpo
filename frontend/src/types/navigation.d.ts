@@ -30,6 +30,7 @@ type MainStackParamList = {
   AccountStack: NavigatorScreenParams<AccountStackParamList>
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
   ChatScreen: { rideId: string }
+  SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
 }
 
 type BottomTabParamList = {
@@ -40,7 +41,6 @@ type BottomTabParamList = {
 
 type DriverStackParamList = {
   DriverPlanRideScreen?: { savedRideIndex: number }
-  SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
   ChatScreen: { rideId: string }
@@ -48,10 +48,6 @@ type DriverStackParamList = {
 }
 
 type PassengerStackParamList = {
-  SelectWaypointScreen: { 
-    waypointIndex: number 
-    waypoint: Waypoint
-  }
   SelectRideScreen: {
     requestId: string
   }

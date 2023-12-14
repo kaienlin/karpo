@@ -4,7 +4,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Input, Text } from '@ui-kitten/components'
 
-import { InputCounter, InputTime } from '~/components/InputModals'
+import { InputCounter, InputTime, PassengerInputCounter } from '~/components/InputModals'
 import { useWaypoints } from '~/hooks/useWaypoints'
 import { useGetSavedRidesQuery } from '~/redux/users'
 import { displayDatetime } from '~/utils/format'
@@ -53,18 +53,15 @@ export function PassengerSubScreen() {
   }
 
   const handleSelectWaypoint = (index: number) => {
-    navigation.navigate('PassengerStack', {
-      screen: 'SelectWaypointScreen',
-      params: {
-        waypointIndex: index,
-        waypoint: waypoints[index]
-      } 
+    navigation.navigate('SelectWaypointScreen', {      
+      waypointIndex: index,
+      waypoint: waypoints[index] 
     })
   }
 
   return (
     <BottomSheetModalProvider>
-      <View style={{ gap: 10 }}>
+      <View style={{ flex: 1, gap: 10, padding: 15 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Icon name="radio-button-on" fill={'#F0C414'} style={{ width: 32, height: 32 }} />
           <Input
@@ -125,8 +122,8 @@ export function PassengerSubScreen() {
             name="numPassengers"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <InputCounter
-                title="選擇上車時間"
+              <PassengerInputCounter
+                title="選擇人數"
                 value={value}
                 onChange={onChange}
                 renderTriggerComponent={({ onOpen, value }) => (

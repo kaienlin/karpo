@@ -9,17 +9,13 @@ import { Match } from '~/types/data'
 import { PassengerStackParamList } from '~/types/navigation'
 import SelectWaypoint from '~/screens/SelectWaypoint'
 import Arriving from '~/screens/PassengerArriving'
+import UserProfile from '~/screens/UserProfile'
 
 const Stack = createNativeStackNavigator<PassengerStackParamList>()
 
 export default function PassengerStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name='SelectWaypointScreen'
-        component={SelectWaypoint}
-        options={{ headerShown: false }}
-      />
       <Stack.Screen
         name="SelectRideScreen"
         component={SelectRide}

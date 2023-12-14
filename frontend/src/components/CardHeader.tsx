@@ -1,11 +1,15 @@
 import { View, StyleSheet } from 'react-native'
+import { Image } from 'expo-image'
 import { 
   Text, 
   Avatar, 
   Icon, 
   IconProps 
 } from '@ui-kitten/components'
-import { displayTime } from '~/utils/format'
+import { displayProximity, displayTime } from '~/utils/format'
+import { useGetUserProfileQuery } from '~/redux/users'
+import { useNavigation } from '@react-navigation/native'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 interface RideStatusProps {
   rating: number | undefined
@@ -20,6 +24,8 @@ interface RideTimeProps {
 
 export interface HeaderProps extends RideStatusProps, RideTimeProps {
   fare: number
+  userId: string
+  avatar: string
 }
 
 const styles = StyleSheet.create({
@@ -55,7 +61,7 @@ function RideStatus ({
         <Text style={ styles.lightText }>|</Text>
       </View>
 
-      <Text style={{ color: '#F0C414' }}>{ proximity }% 順路</Text>
+      <Text style={{ color: '#F0C414' }}>{ displayProximity(proximity) }</Text>
     </View>
   )
 }
@@ -77,14 +83,30 @@ function RideTime ({
 }
 
 export function Header (props: HeaderProps) {
+  const navigation = useNavigation()  
+  const handleViewProfile = () => {
+    navigation.navigate(
+      'UserProfileScreen', 
+      { role: 'driver', 'userId': props.userId }
+    )
+  }
+
   return (
-    <View style={{ flexDirection: 'row' }}>      
-      <View style={{ padding: 10 }}>
-        <Avatar
-          source={require('../../assets/riceball.jpg')}
-          size='giant'
-        />
-      </View>
+    <View style={{ flexDirection: 'row' }}>
+      <TouchableOpacity onPress={handleViewProfile}>
+        <View
+          onStartShouldSetResponder={(event) => true}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+          }} 
+          style={{ padding: 10 }}
+        >
+          <Image 
+            source={{ uri: props.avatar }} 
+            style={{ width: 56, height: 56, borderRadius: 28 }} 
+          />
+        </View>  
+      </TouchableOpacity>      
 
       <View style={{ 
         flex: 1, 

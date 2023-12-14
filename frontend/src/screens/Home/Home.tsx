@@ -61,9 +61,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           />
         </TabBar>
       </View>
-      <ScrollView style={{ marginTop: 15, paddingHorizontal: 20 }}>
-        {selectedIndex === 0 ? <DriverSubScreen /> : <PassengerSubScreen />}
-      </ScrollView>
+      {selectedIndex === 0 ? (
+        <ScrollView style={{ marginTop: 15, paddingHorizontal: 20 }}>
+          <DriverSubScreen />
+        </ScrollView>
+      ) : <PassengerSubScreen />}
     </SafeAreaView>
   )
 }

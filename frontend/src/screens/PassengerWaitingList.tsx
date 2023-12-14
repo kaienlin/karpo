@@ -24,7 +24,7 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
         (match: Match) => match.status === 'pending'
       ) ?? emptyArray,
       acceptedMatches: data?.matches?.filter(
-        (match: Match) => match.status === 'pending' // should be accepted here
+        (match: Match) => match.status === 'accepted' // should be accepted here
       ) ?? emptyArray
     })
   })
