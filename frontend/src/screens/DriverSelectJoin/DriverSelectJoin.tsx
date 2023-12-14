@@ -24,6 +24,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     selectFromResult: ({ data }) => ({ rideRoute: data?.ride?.route_with_time?.route })
   })
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+    pollingInterval: 3000,
     selectFromResult: ({ data }) => ({
       pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
     })
@@ -145,7 +146,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           index={1}
           snapPoints={['18%', '45%', '75%']}
         >
-          {(acceptedJoins.length > 0 ?? selectedJoins.length > 0) && (
+          {(acceptedJoins?.length > 0 ?? selectedJoins?.length > 0) && (
             <Animated.View entering={FadeIn.delay(100)}>
               <PassengerAvatarList
                 title="已選擇的乘客"
