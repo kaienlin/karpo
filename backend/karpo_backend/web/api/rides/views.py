@@ -342,6 +342,7 @@ async def get_ride_id_schedule(
 
         stopover_list.append(
             StopoverDTO(
+                join_id=stopover_info["join_id"],
                 request_id=stopover_info["request_id"],
                 passenger_info=user_info,
                 time=stopover_info["time"],

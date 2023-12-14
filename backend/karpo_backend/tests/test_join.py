@@ -22,13 +22,16 @@ from karpo_backend.web.api.rides.schema import (
 )
 
 
-async def post_matched_ride_requsets_join_and_get_ride_id(
+async def post_matched_ride_requests_joins_and_get_ids(
     ride_data: Dict,
     request_datas: List[Dict],
     client_driver: AsyncClient,
     client_passengers: list[AsyncClient],
     fastapi_app: FastAPI,
-) -> uuid.UUID:
+) -> (uuid.UUID, List[uuid.UUID], List[uuid.UUID]):
+    """
+    return (ride id, request ids, join ids)
+    """
     # post a ride
     req_body = ride_data
     url = fastapi_app.url_path_for("post_rides")
@@ -43,6 +46,8 @@ async def post_matched_ride_requsets_join_and_get_ride_id(
     except ValidationError:
         pytest.fail("invalid response")
 
+    return_request_ids = []
+    return_join_ids = []
     for client_passenger, request_data in zip(client_passengers, request_datas):
         post_requests_url = fastapi_app.url_path_for("post_requests")
         post_requests_req_body = request_data
@@ -56,6 +61,7 @@ async def post_matched_ride_requsets_join_and_get_ride_id(
             post_requests_resp_obj = PostRequestsResponse.model_validate(resp.json())
         except ValidationError:
             pytest.fail("invalid response")
+        return_request_ids.append(post_requests_resp_obj.request_id)
 
         match_len = len(post_requests_resp_obj.matches)
         if match_len > 0:
@@ -81,6 +87,7 @@ async def post_matched_ride_requsets_join_and_get_ride_id(
                 )
             except ValidationError:
                 pytest.fail("invalid response")
+            return_join_ids.append(post_joins_resp_obj.join_id)
 
             # driver accept join
             put_join_status_url = fastapi_app.url_path_for(
@@ -95,7 +102,7 @@ async def post_matched_ride_requsets_join_and_get_ride_id(
             )
             assert resp.status_code == status.HTTP_200_OK
 
-        return post_rides_resp_obj.ride_id
+        return (post_rides_resp_obj.ride_id, return_request_ids, return_join_ids)
 
 
 @pytest.mark.anyio

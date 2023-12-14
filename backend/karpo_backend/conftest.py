@@ -18,6 +18,7 @@ from karpo_backend.db.utils import create_database, drop_database
 from karpo_backend.services.redis.dependency import get_redis_pool
 from karpo_backend.settings import settings
 from karpo_backend.tests.data_fixtures.request_data_fixtures import (  # noqa: F401
+    match_ride_data_1_request_datas,
     request_data_1,
     request_data_2,
     request_datas,
@@ -181,6 +182,23 @@ async def client_test0(
         ac.headers.update(
             {
                 "Authorization": "Bearer test0",
+            },
+        )
+        yield ac
+
+
+@pytest.fixture
+async def client_test2(
+    fastapi_app: FastAPI,
+    anyio_backend: Any,
+) -> AsyncGenerator[AsyncClient, None]:
+    """
+    Fixture that creates client with the credential of test user (TestUser)
+    """
+    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+        ac.headers.update(
+            {
+                "Authorization": "Bearer test2",
             },
         )
         yield ac

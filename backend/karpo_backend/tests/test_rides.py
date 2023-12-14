@@ -11,8 +11,12 @@ from pydantic import ValidationError
 from shapely import LineString, Point, wkb, wkt
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.rides_dao import RidesDAO
-from karpo_backend.tests.test_join import test_post_joins_and_do_action
+from karpo_backend.tests.test_join import (
+    post_matched_ride_requests_joins_and_get_ids,
+    test_post_joins_and_do_action,
+)
 from karpo_backend.web.api.requests.schema import PostRequestsResponse
 from karpo_backend.web.api.rides.schema import (
     GetRideIdResponse,
@@ -295,16 +299,15 @@ async def test_get_saved_rides_by_user_id(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ["driver_position", "driver_phase"],
+    "driver_position",
     [
-        ((0.0015, -0.0025), 0),
-        ((0.0015, -0.0025), 3),
-        ((0.0015, 0.03), 1),
+        ((0.0015, -0.0025)),
+        ((0.0015, -0.0025)),
+        ((0.0015, 0.03)),
     ],
 )
-async def test_get_and_update_ride_status(
+async def test_get_and_update_ride_status_without_phase_change(
     driver_position: Tuple[float, float],
-    driver_phase: int,
     ride_data_1: Dict,
     fastapi_app: FastAPI,
     client_test: AsyncClient,
@@ -356,6 +359,22 @@ async def test_get_and_update_ride_status(
     assert resp_obj.driver_position.latitude == req_body["origin"]["latitude"]
     assert resp_obj.driver_position.longitude == req_body["origin"]["longitude"]
 
+    # update wrong ride
+    patch_ride_id_status_url = fastapi_app.url_path_for(
+        "patch_ride_id_status", ride_id=wrong_ride_id
+    )
+    patch_ride_id_status_req_body = {
+        "driver_position": {
+            "latitude": driver_position[1],
+            "longitude": driver_position[0],
+        },
+    }
+    resp = await client_test.patch(
+        url=patch_ride_id_status_url,
+        json=patch_ride_id_status_req_body,
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
     # update ride status
     patch_ride_id_status_url = fastapi_app.url_path_for(
         "patch_ride_id_status", ride_id=post_ride_id
@@ -365,7 +384,6 @@ async def test_get_and_update_ride_status(
             "latitude": driver_position[1],
             "longitude": driver_position[0],
         },
-        "phase": driver_phase,
     }
     resp = await client_test.patch(
         url=patch_ride_id_status_url,
@@ -386,7 +404,7 @@ async def test_get_and_update_ride_status(
         resp_obj = GetRideIdStatusResponse.model_validate(resp.json())
     except ValidationError:
         pytest.fail("invalid response")
-    assert resp_obj.phase == driver_phase
+    assert resp_obj.phase == -2
     assert resp_obj.driver_position.latitude == driver_position[1]
     assert resp_obj.driver_position.longitude == driver_position[0]
 
@@ -498,6 +516,159 @@ async def test_get_schedule(
         except ValidationError:
             pytest.fail("invalid response")
         assert len(get_schedule_resp_obj.schedule) == 0
+
+    # test wrong id schedule
+    wrong_ride_id = (
+        str(matched_ride_id)[:-1] + "e"
+        if str(matched_ride_id)[-1] == "0"
+        else str(matched_ride_id)[:-1] + "0"
+    )
+    get_schedule_url = fastapi_app.url_path_for(
+        "get_ride_id_schedule",
+        ride_id=wrong_ride_id,
+    )
+    resp = await client_test.get(url=get_schedule_url)
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "driver_position",
+    [
+        ((0.0015, -0.0025)),
+        ((0.0015, -0.0025)),
+        ((0.0015, 0.03)),
+    ],
+)
+async def test_get_and_update_ride_status_with_phase_change(
+    driver_position: Tuple[float, float],
+    ride_data_1: Dict,
+    match_ride_data_1_request_datas: List[Dict],
+    fastapi_app: FastAPI,
+    dbsession: AsyncSession,
+    client_test0: AsyncClient,
+    client_test: AsyncClient,
+    client_test2: AsyncClient,
+) -> None:
+    """Tests rides instance creation."""
+
+    (
+        ride_id,
+        request_ids,
+        join_ids,
+    ) = await post_matched_ride_requests_joins_and_get_ids(
+        ride_data=ride_data_1,
+        request_datas=match_ride_data_1_request_datas,
+        client_driver=client_test0,
+        client_passengers=[client_test, client_test2],
+        fastapi_app=fastapi_app,
+    )
+    post_ride_id = ride_id
+
+    get_schedule_url = fastapi_app.url_path_for(
+        "get_ride_id_schedule",
+        ride_id=ride_id,
+    )
+    resp = await client_test.get(url=get_schedule_url)
+    assert resp.status_code == status.HTTP_200_OK
+    try:
+        get_schedule_resp_obj = GetRideIdScheduleResponse.model_validate(resp.json())
+        schedule = get_schedule_resp_obj.schedule
+    except ValidationError:
+        pytest.fail("invalid response")
+
+    # passenger patch ride id status(Permission denied!)
+    patch_ride_id_status_url = fastapi_app.url_path_for(
+        "patch_ride_id_status", ride_id=post_ride_id
+    )
+    patch_ride_id_status_req_body = {
+        "driver_position": {
+            "latitude": driver_position[1],
+            "longitude": driver_position[0],
+        },
+        "phase": -1,
+    }
+    resp = await client_test.patch(
+        url=patch_ride_id_status_url,
+        json=patch_ride_id_status_req_body,
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+    # update ride status to -1
+    patch_ride_id_status_url = fastapi_app.url_path_for(
+        "patch_ride_id_status", ride_id=post_ride_id
+    )
+    patch_ride_id_status_req_body = {
+        "driver_position": {
+            "latitude": driver_position[1],
+            "longitude": driver_position[0],
+        },
+        "phase": -1,
+    }
+    resp = await client_test0.patch(
+        url=patch_ride_id_status_url,
+        json=patch_ride_id_status_req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    # check new ride status -1
+    get_ride_id_status_url = fastapi_app.url_path_for(
+        "get_ride_id_status", ride_id=post_ride_id
+    )
+    resp = await client_test0.get(
+        url=get_ride_id_status_url,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        resp_obj = GetRideIdStatusResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+    assert resp_obj.phase == -1
+
+    # update ride status to 0 ~ 3
+    joins_dao = JoinsDAO(dbsession)
+    for patch_phase in range(2 * len(schedule)):
+        patch_ride_id_status_url = fastapi_app.url_path_for(
+            "patch_ride_id_status", ride_id=post_ride_id
+        )
+        patch_ride_id_status_req_body = {
+            "driver_position": {
+                "latitude": driver_position[1] + 0.01 * patch_phase,
+                "longitude": driver_position[0] + 0.01 * patch_phase,
+            },
+            "phase": patch_phase,
+        }
+        resp = await client_test0.patch(
+            url=patch_ride_id_status_url,
+            json=patch_ride_id_status_req_body,
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        # check new ride status
+        get_ride_id_status_url = fastapi_app.url_path_for(
+            "get_ride_id_status", ride_id=post_ride_id
+        )
+        resp = await client_test0.get(
+            url=get_ride_id_status_url,
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        try:
+            resp_obj = GetRideIdStatusResponse.model_validate(resp.json())
+        except ValidationError:
+            pytest.fail("invalid response")
+        assert resp_obj.phase == patch_phase
+
+        ## TODO: check the status of completed stopover after patch
+        # completed_status = schedule[patch_phase].status
+        # join_id = schedule[patch_phase].join_id
+        # join_model = await joins_dao.get_joins_model_by_id(join_id)
+        # print(schedule)
+        # if completed_status == "pick_up":
+        #     assert join_model.progress == "onboard"
+        # else:
+        #     assert join_model.progress == "fulfilled"
 
 
 @pytest.mark.anyio

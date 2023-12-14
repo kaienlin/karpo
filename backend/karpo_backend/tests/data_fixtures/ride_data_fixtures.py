@@ -28,7 +28,7 @@ test_ride_1 = {
         {"latitude": -0.004, "longitude": 0.001, "description": "intermediate 2"},
     ],
     "departure_time": "2023-12-08T02:56:00.000Z",
-    "num_seats": 1,
+    "num_seats": 3,
 }
 test_ride_2 = {
     "label": "new ride 1",

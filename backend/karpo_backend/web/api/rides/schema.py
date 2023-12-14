@@ -113,6 +113,7 @@ class GetRideJoinsResponse(BaseModel):
 
 
 class StopoverDTO(BaseModel):
+    join_id: uuid.UUID
     request_id: uuid.UUID
     passenger_info: UserInfoForOthersDTO
     time: datetime.datetime
