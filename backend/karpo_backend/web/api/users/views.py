@@ -94,3 +94,24 @@ async def get_user_me_active_items(
         )
 
     return resp
+
+
+@router.delete(
+    "/users/me/data",
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Missing token or inactive user.",
+        },
+    },
+    tags=["users"],
+)
+async def delete_user_me_data(
+    requests_dao: RequestsDAO = Depends(),
+    rides_dao: RidesDAO = Depends(),
+    joins_dao: JoinsDAO = Depends(),
+    user: User = Depends(current_active_user),
+) -> None:
+    """Burn everything related to a user except their profile."""
+    await joins_dao.delete_all_by_user_id(user.id)
+    await requests_dao.delete_all_by_user_id(user.id)
+    await rides_dao.delete_all_by_user_id(user.id)

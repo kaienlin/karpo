@@ -4,7 +4,7 @@ import uuid
 from typing import List, Optional, Tuple
 
 from fastapi import Depends
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
@@ -82,6 +82,14 @@ class RidesDAO:
         )
 
         return result.one_or_none()
+
+    async def delete_all_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> None:
+        await self.session.execute(
+            delete(RidesModel).where(RidesModel.user_id == user_id)
+        )
 
     async def get_saved_ride_model_by_user_id(
         self,

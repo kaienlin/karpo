@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from fastapi import Depends
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
-from sqlalchemy import func, select, type_coerce, update
+from sqlalchemy import delete, func, select, type_coerce, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import true
 
@@ -55,6 +55,14 @@ class RequestsDAO:
         )
 
         return result.one_or_none()
+
+    async def delete_all_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> None:
+        await self.session.execute(
+            delete(RequestsModel).where(RequestsModel.user_id == user_id),
+        )
 
     async def inactivate_request_by_id(
         self,

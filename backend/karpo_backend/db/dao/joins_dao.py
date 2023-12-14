@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from fastapi import Depends
 from shapely import LineString, Point, within, wkb
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dependencies import get_db_session
@@ -75,6 +75,17 @@ class JoinsDAO:
             update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
         )
         await self.session.flush()
+
+    async def delete_all_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> None:
+        await self.session.execute(
+            delete(JoinsModel).where(
+                (JoinsModel.request_user_id == user_id)
+                | (JoinsModel.ride_user_id == user_id)
+            )
+        )
 
     async def get_accepted_joins_model_by_ride_id(
         self,
