@@ -23,7 +23,7 @@ from karpo_backend.web.api.rides.schema import (
     PostRidesResponse,
     PostRideIdJoinsResponse,
 )
-
+from karpo_backend.tests.test_join import test_post_joins_and_do_action
 
 @pytest.mark.anyio
 async def test_creation(
@@ -374,25 +374,16 @@ async def test_post_and_get_chatroom_messages(
     user2_send_times: List[datetime.datetime],
     from_time: datetime.datetime,
     ride_data_1: Dict,
+    request_data_1: Dict,
     fastapi_app: FastAPI,
-    client_test: AsyncClient,
     client_test0: AsyncClient,
+    client_test: AsyncClient,
 ) -> None:
     """Tests rides instance creation."""
     # post a ride
-    req_body = ride_data_1
-    url = fastapi_app.url_path_for("post_rides")
-    resp = await client_test.post(
-        url,
-        json=req_body,
-    )
-    assert resp.status_code == status.HTTP_200_OK
-
-    try:
-        resp_obj = PostRidesResponse.model_validate(resp.json())
-    except ValidationError:
-        pytest.fail("invalid response")
-    post_ride_id = resp_obj.ride_id
+    join_id = await test_post_joins_and_do_action(ride_data_1, request_data_1, "accept", fastapi_app, client_test0, client_test)
+    if join_id is None:
+        pytest.fail("invalid test case, request_data_1 should match ride_data_1")
 
     # post chatroom_messages 
     for client_user, contents, send_times in zip([client_test0, client_test], [user1_contents, user2_contents], [user1_send_times, user2_send_times]):
@@ -401,7 +392,7 @@ async def test_post_and_get_chatroom_messages(
         user_id = resp.json()["id"]
 
         for content, send_time in zip(contents, send_times):
-            post_message_url = fastapi_app.url_path_for("post_chatroom_messages", ride_id=post_ride_id)
+            post_message_url = fastapi_app.url_path_for("post_chatroom_messages", join_id=join_id)
             post_rides_req_body = {
                 "chat_record": {
                     "user_id": user_id,
@@ -418,7 +409,7 @@ async def test_post_and_get_chatroom_messages(
     # get chatroom messages
     get_messages_url = fastapi_app.url_path_for(
         "get_chatroom_messages",
-        ride_id=post_ride_id,
+        join_id=join_id,
     )
     resp = await client_test.get(
         url=get_messages_url,

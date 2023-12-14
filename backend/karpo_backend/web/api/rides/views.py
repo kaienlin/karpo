@@ -427,7 +427,7 @@ async def get_ride_id_join_id_status(
 
 
 @router.get(
-    "/{ride_id}/messages",
+    "/{join_id}/messages",
     response_model=GetRideMessagesResponse,
     tags=["chat"],
 )

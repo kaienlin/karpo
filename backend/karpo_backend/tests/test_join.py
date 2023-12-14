@@ -31,8 +31,8 @@ async def test_post_joins_and_do_action(
     request_data_1: Dict,
     driver_action: str,
     fastapi_app: FastAPI,
-    client_test: AsyncClient,
     client_test0: AsyncClient,
+    client_test: AsyncClient,
 ) -> None:
     # create some rides
     post_rides_url = fastapi_app.url_path_for("post_rides")
@@ -139,8 +139,6 @@ async def test_post_joins_and_do_action(
         )
         assert resp.status_code == status.HTTP_200_OK
 
-        status_action_mapping = {"accept": "accepted", "reject": "rejected"}
-
         # pessenger check new join status
         get_join_status_url = fastapi_app.url_path_for(
             "get_ride_id_join_id_status",
@@ -200,3 +198,8 @@ async def test_post_joins_and_do_action(
                     assert len(get_ride_id_join_resp_obj.joins) == 1
                 else:
                     assert len(get_ride_id_join_resp_obj.joins) == 0
+
+        if driver_action == "accept":
+            return post_joins_resp_obj.join_id
+        
+    return None
