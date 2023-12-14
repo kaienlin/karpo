@@ -1,39 +1,28 @@
-import { FlatList, StyleSheet } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
+import { Text } from '@ui-kitten/components'
 
 import RateCard from '~/components/RateCard'
 
 import { useGetUserProfileBatchQuery, useGetCurrentActivityQuery } from '~/redux/users'
 import { useCreateCommentMutation } from '~/redux/comment'
-import { useGetJoinsQuery } from '~/redux/driver'
 
-import type {  MainStackParamList } from '~/types/navigation'
+import type { MainStackParamList } from '~/types/navigation'
 
 
 type RateScreenProps = NativeStackScreenProps<MainStackParamList, 'RateScreen'>
 
-export default function RateScreen({ navigation }: RateScreenProps) {
+export default function RateScreen({ navigation, route }: RateScreenProps) {
 
   const { rideId } = useGetCurrentActivityQuery(undefined, {
     selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
   })
-  const {
-    acceptedJoins,
-    numAvailableSeat,
-    isSuccess: isAcceptedJoinsSuccess
-  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
-    selectFromResult: ({ data, ...rest }) => ({
-      acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
-      numAvailableSeat: data?.numAvailableSeat,
-      ...rest
-    })
-  })
 
-  // const { userIds } = route.params
-  const userIds  = acceptedJoins?.map(join => join.passengerId) || [];
+  const { userIds } = route.params
+  // TODO: create mock data on mockoon
   const { data: users, isSuccess } = useGetUserProfileBatchQuery(userIds ?? skipToken)
 
 
@@ -58,7 +47,8 @@ export default function RateScreen({ navigation }: RateScreenProps) {
             icon={(props: IconProps) => <Icon {...props} name="arrow-back" />}
             onPress={() => {
               navigation.navigate('BottomTab', { screen: 'HomeScreen' })
-            }}
+            }
+          }
           />
         )}
       />
@@ -87,6 +77,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 25,
     fontWeight: 'bold',
-    marginTop: 20
+    marginTop: 80
+    
   }
 })

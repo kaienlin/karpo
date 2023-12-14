@@ -127,3 +127,14 @@ export interface Comments {
   rate: number,
   comment: string
 }
+
+// Messages
+export interface Message {
+  userId: string
+  content: string
+  time: Date
+}
+
+export interface Messages {
+  messages: Message[]
+}
