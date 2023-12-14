@@ -16,7 +16,7 @@ class MessagesModel(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
-    ride_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rides.id"))
+    join_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("joins.id"))
     content: Mapped[str]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: 09913d4a58a8
+Revision ID: e8dd9377246c
 Revises: 2b7380507a71
-Create Date: 2023-12-12 08:01:22.144479
+Create Date: 2023-12-14 15:26:27.523362
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "09913d4a58a8"
+revision = "e8dd9377246c"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -42,6 +42,7 @@ def upgrade() -> None:
         sa.Column(
             "user_id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False
         ),
+        sa.Column("label", sa.String(), nullable=True),
         sa.Column(
             "origin",
             Geography(
@@ -247,7 +248,7 @@ def upgrade() -> None:
         sa.Column(
             "user_id", fastapi_users_db_sqlalchemy.generics.GUID(), nullable=False
         ),
-        sa.Column("ride_id", sa.Uuid(), nullable=False),
+        sa.Column("join_id", sa.Uuid(), nullable=False),
         sa.Column("content", sa.String(), nullable=False),
         sa.Column(
             "created_at",
@@ -256,8 +257,8 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["ride_id"],
-            ["rides.id"],
+            ["join_id"],
+            ["joins.id"],
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
