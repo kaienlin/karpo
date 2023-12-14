@@ -288,25 +288,27 @@ async def patch_ride_id_status(
     if ride.user_id != user.id:
         raise HTTPException(status_code=403, detail="Permission denied")
 
+    put_phase = req.phase if req.phase is not None else ride.phase
     await rides_dao.put_phase_position_by_id(
         ride_id=ride_id,
         driver_position=req.driver_position,
-        phase=req.phase,
+        phase=put_phase,
         last_update_time=datetime.datetime.now(),
     )
 
-    schedule = await rides_dao.get_schedule_by_id(ride_id=ride_id)
-    if 0 <= req.phase < len(schedule):
-        stopover = json.loads(schedule[req.phase])
-        if stopover["status"] == "pick_up":
-            await joins_dao.put_joins_model_progress_by_id(
-                stopover["join_id"], "onboard"
-            )
-        elif stopover["status"] == "drop_off":
-            await joins_dao.put_joins_model_progress_by_id(
-                stopover["join_id"], "fulfilled"
-            )
-            await requests_dao.inactivate_request_by_id(stopover["request_id"])
+    if req.phase is not None:
+        schedule = await rides_dao.get_schedule_by_id(ride_id=ride_id)
+        if 0 <= req.phase < len(schedule):
+            stopover = json.loads(schedule[req.phase])
+            if stopover["status"] == "pick_up":
+                await joins_dao.put_joins_model_progress_by_id(
+                    stopover["join_id"], "onboard"
+                )
+            elif stopover["status"] == "drop_off":
+                await joins_dao.put_joins_model_progress_by_id(
+                    stopover["join_id"], "fulfilled"
+                )
+                await requests_dao.inactivate_request_by_id(stopover["request_id"])
 
 
 @router.get(
