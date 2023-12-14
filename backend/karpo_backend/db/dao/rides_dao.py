@@ -183,6 +183,7 @@ class RidesDAO:
         for accepted_request in accepted_requests:
             schedule_list.append(
                 {
+                    "join_id": str(accepted_request.id),
                     "request_id": str(accepted_request.request_id),
                     "passenger_id": str(accepted_request.request_user_id),
                     "location": str(accepted_request.pick_up_location),
@@ -193,6 +194,7 @@ class RidesDAO:
             )
             schedule_list.append(
                 {
+                    "join_id": str(accepted_request.id),
                     "request_id": str(accepted_request.request_id),
                     "passenger_id": str(accepted_request.request_user_id),
                     "location": str(accepted_request.drop_off_location),

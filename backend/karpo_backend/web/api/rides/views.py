@@ -262,6 +262,8 @@ async def patch_ride_id_status(
     ride_id: uuid.UUID,
     req: PatchRideIdStatusRequest,
     rides_dao: RidesDAO = Depends(),
+    joins_dao: JoinsDAO = Depends(),
+    requests_dao: RequestsDAO = Depends(),
     user: User = Depends(current_active_user),
 ) -> None:
     """
@@ -292,7 +294,15 @@ async def patch_ride_id_status(
         phase=req.phase,
         last_update_time=datetime.datetime.now(),
     )
-
+    
+    schedule = await rides_dao.get_schedule_by_id(ride_id=ride_id)
+    if 0 <= req.phase < len(schedule):
+        stopover = json.loads(schedule[req.phase])
+        if stopover["status"] == "pick_up": 
+            await joins_dao.put_joins_model_progress_by_id(stopover["join_id"], "onboard")
+        elif stopover["status"] == "drop_off":
+            await joins_dao.put_joins_model_progress_by_id(stopover["join_id"], "fulfilled")
+            await requests_dao.inactivate_request_by_id(stopover["request_id"])
 
 @router.get(
     "/{ride_id}/schedule",
@@ -588,7 +598,7 @@ async def put_ride_id_joins_join_id_status(
                 detail="Number of passengers > number of available seats",
             )
 
-        await joins_dao.put_joins_model_by_id(join_id, req.action)
+        await joins_dao.put_joins_model_status_by_id(join_id, req.action)
         if req.action == "accept":
             await rides_dao.put_num_seats_left_by_id(
                 ride_id=ride_id,
@@ -600,6 +610,7 @@ async def put_ride_id_joins_join_id_status(
         if join.request_user_id != user.id:
             raise HTTPException(status_code=403, detail="Permission denied")
 
-        await joins_dao.put_joins_model_by_id(join_id, req.action)
+        await joins_dao.put_joins_model_status_by_id(join_id, req.action)
+        await joins_dao.put_joins_model_progress_by_id(join_id, "canceled")
 
     await rides_dao.update_schedule_by_ride_id(ride_id)

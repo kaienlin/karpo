@@ -67,7 +67,7 @@ class JoinsDAO:
 
         return result.one_or_none()
 
-    async def put_joins_model_by_id(
+    async def put_joins_model_status_by_id(
         self, join_id: uuid.UUID, action: Literal["accept", "reject", "cancel"]
     ) -> None:
         status = f"{action}ed"
@@ -86,6 +86,13 @@ class JoinsDAO:
                 | (JoinsModel.ride_user_id == user_id)
             )
         )
+    async def put_joins_model_progress_by_id(
+       self, join_id: uuid.UUID, progress: Literal["onboard", "fulfilled", "canceled"]     
+    ) -> None:
+        await self.session.execute(
+            update(JoinsModel).where(JoinsModel.id == join_id).values(progress=progress)
+        )
+        await self.session.flush()
 
     async def get_accepted_joins_model_by_ride_id(
         self,
