@@ -422,18 +422,18 @@ async def get_ride_id_join_id_status(
     tags=["chat"],
 )
 async def get_chatroom_messages(
-    ride_id: uuid.UUID,
+    join_id: uuid.UUID,
     from_time: datetime.datetime,
     messages_dao: MessagesDAO = Depends(),
 ) -> GetRideMessagesResponse:
     """Get Chatroom messages
 
-    :param ride_id: id of ride, tpye is uuid.UUID.
+    :param join_id: id of ride, tpye is uuid.UUID.
     :param from_time: time when the messages need to return from.
     """
 
-    messages = await messages_dao.get_message_model_by_ride_id(
-        ride_id=ride_id, from_time=from_time
+    messages = await messages_dao.get_message_model_by_join_id(
+        join_id=join_id, from_time=from_time
     )
     messages_list = []
     for message in messages:
@@ -447,9 +447,9 @@ async def get_chatroom_messages(
     return GetRideMessagesResponse(chat_records=messages_list)
 
 
-@router.post("/{ride_id}/messages", tags=["chat"])
+@router.post("/{join_id}/messages", tags=["chat"])
 async def post_chatroom_messages(
-    ride_id: uuid.UUID,
+    join_id: uuid.UUID,
     req: PostRideMessagesRequest,
     messages_dao: MessagesDAO = Depends(),
     user: User = Depends(current_active_user),
@@ -461,7 +461,7 @@ async def post_chatroom_messages(
 
     message = await messages_dao.create_message_model(
         user_id=user.id,
-        ride_id=ride_id,
+        join_id=join_id,
         content=req.chat_record.content,
         created_at=req.chat_record.time,
     )

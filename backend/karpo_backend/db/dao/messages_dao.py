@@ -20,13 +20,13 @@ class MessagesDAO:
     async def create_message_model(
         self,
         user_id: uuid.UUID,
-        ride_id: uuid.UUID,
+        join_id: uuid.UUID,
         content: str,
         created_at: datetime.datetime,
     ) -> MessagesModel:
         message = MessagesModel(
             user_id=user_id,
-            ride_id=ride_id,
+            join_id=join_id,
             content=content,
             created_at=created_at,
         )
@@ -34,13 +34,15 @@ class MessagesDAO:
         await self.session.flush()
         return message
 
-    async def get_message_model_by_ride_id(
-        self, ride_id: uuid.UUID, from_time: datetime.datetime
+    async def get_message_model_by_join_id(
+        self, 
+        join_id: uuid.UUID, 
+        from_time: datetime.datetime,
     ) -> Optional[MessagesModel]:
         result = await self.session.scalars(
             select(MessagesModel)
             .where(
-                MessagesModel.ride_id == ride_id, MessagesModel.created_at >= from_time
+                MessagesModel.join_id == join_id, MessagesModel.created_at >= from_time
             )
             .order_by(MessagesModel.created_at),
         )
