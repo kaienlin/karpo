@@ -32,7 +32,7 @@ const defaultValues: RidePlan = {
 
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
   const { savedRideIndex } = route?.params
-  const { location: currentLocation } = useCurrentLocation()
+  const { location: currentLocation, isLoading: isCurrentLocationLoading } = useCurrentLocation()
   const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
     selectFromResult: ({ data, ...rest }) => {
       const ride = data?.savedRides[savedRideIndex]
@@ -76,7 +76,8 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
         destination: data.waypoints[data.waypoints.length - 1],
         intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
         route: {
-          steps,
+          // note: backend uses [longitude, latitude]
+          steps: steps.map((step) => step.map(([lat, lng]) => [lng, lat])),
           durations
         }
       })

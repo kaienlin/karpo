@@ -21,7 +21,15 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data }) => ({ rideRoute: data?.ride?.route_with_time?.route })
+    selectFromResult: ({ data }) => {
+      // note: backend uses [longitude, latitude]
+      const route = data?.ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
+        latitude,
+        longitude
+      }))
+
+      return { rideRoute: route }
+    }
   })
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
     pollingInterval: 3000,
