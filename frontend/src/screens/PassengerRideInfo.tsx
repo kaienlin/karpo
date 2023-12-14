@@ -10,8 +10,8 @@ import { Header } from '~/components/CardHeader'
 import { PassengerStackParamList } from '~/types/navigation'
 import { useCreateJoinRequestMutation, useGetRequestQuery } from '~/redux/passenger'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
-import { useGetWalkingRouteQuery } from '~/redux/maps'
-import { useGetUserProfileQuery } from '~/redux/users'
+import { useGetWalkingRouteQuery } from '~/redux/api/maps'
+import { useGetUserProfileQuery } from '~/redux/api/users'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { Image } from 'expo-image'
 import { useNavigation } from '@react-navigation/native'
@@ -48,7 +48,6 @@ function PassengerItem({ userId } : { userId: string }) {
   const { data: user } = useGetUserProfileQuery(userId)
   const navigation = useNavigation()
 
-  console.log('user:', user)
   const handleViewProfile = () => {
     navigation.navigate(
       'UserProfileScreen', 
@@ -91,8 +90,6 @@ function PassengerItem({ userId } : { userId: string }) {
 }
 
 function OtherPassegners({ match } : { match: Match }) {
-  console.log('other passenger:', match.otherPassengers)
-
   return (
     <View style={{ 
       alignItems: 'center', 

@@ -40,7 +40,8 @@ type BottomTabParamList = {
 }
 
 type DriverStackParamList = {
-  DriverPlanRideScreen?: { savedRideIndex: number }
+  DriverPlanRideScreen: { savedRideIndex: number }
+  SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
   ChatScreen: { rideId: string }

@@ -1,24 +1,18 @@
+import { format, isToday } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
+
 export const displayTime = (dateString: string, hour12: boolean = true) => {
   const date = new Date(dateString)
   return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: hour12 })
 }
 
 export const displayDatetime = (date: Date | string, is24Hour: boolean = false) => {
-  const today = new Date()
-
   if (typeof date === 'string') {
     date = new Date(date)
   }
 
-  const dateStr =
-    date.toLocaleDateString() === today.toLocaleDateString()
-      ? '今天'
-      : date.toLocaleDateString('zh-TW', { weekday: 'short', month: 'short', day: 'numeric' })
-  const timeStr = date.toLocaleTimeString('zh-TW', {
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: !is24Hour
-  })
+  const dateStr = isToday(date) ? '今天' : format(date, 'LLLdo EE', { locale: zhTW })
+  const timeStr = format(date, 'p', { locale: zhTW })
 
   return `${dateStr} ${timeStr}`
 }

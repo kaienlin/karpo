@@ -86,7 +86,7 @@ export const PassengerAvatarList = ({
           renderItem={renderItem}
         />
         <Button onPress={onConfirm} size="small" style={{ borderRadius: 100 }}>
-          確認同行
+          <Text>確認同行</Text>
         </Button>
       </View>
     </View>

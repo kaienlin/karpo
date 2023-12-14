@@ -1,21 +1,27 @@
 import type { Join, JoinDetailed, Ride, Schedule } from '~/types/data'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
+import { usersSlice } from './users'
 
 interface GetJoinsResponse<T extends Join> {
   numAvailableSeat: number
   joins: T[]
 }
 
+interface RespondJoinRequest {
+  rideId: string
+  joinId: string
+  action: 'accept' | 'reject'
+}
+
+interface UpdateDriverStatusRequest {
+  rideId: string
+  position: LatLng
+  phase: number
+}
+
 export const driverSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    createRide: builder.mutation<{ rideId: string }, { ride: Ride }>({
-      query: (ride) => ({
-        url: `/rides`,
-        method: 'POST',
-        body: ride
-      })
-    }),
     getRide: builder.query<{ ride: Ride }, string>({
       query: (rideId) => ({
         url: `/rides/${rideId}`,
@@ -48,10 +54,26 @@ export const driverSlice = apiSlice.injectEndpoints({
         method: 'GET'
       })
     }),
-    respondJoin: builder.mutation<
-      string,
-      { rideId: string; joinId: string; action: 'accept' | 'reject' }
-    >({
+    createRide: builder.mutation<{ rideId: string }, Ride>({
+      query: (ride) => ({
+        url: `/rides/`,
+        method: 'POST',
+        body: ride
+      }),
+      onQueryStarted: async (ride, { dispatch, queryFulfilled }) => {
+        try {
+          const {
+            data: { rideId }
+          } = await queryFulfilled
+          const patchResult = dispatch(
+            usersSlice.util.upsertQueryData('getCurrentActivity', undefined, {
+              driverState: { rideId }
+            })
+          )
+        } catch {}
+      }
+    }),
+    respondJoin: builder.mutation<string, RespondJoinRequest>({
       query: ({ rideId, joinId, action }) => ({
         url: `/rides/${rideId}/joins/${joinId}/status`,
         method: 'PUT',
@@ -69,12 +91,13 @@ export const driverSlice = apiSlice.injectEndpoints({
         queryFulfilled.catch(patchResult.undo)
       }
     }),
-    updatePosition: builder.mutation<string, { rideId: string; position: LatLng }>({
-      query: ({ rideId, position }) => ({
-        url: `/rides/${rideId}/position`,
-        method: 'PUT',
+    updateStatus: builder.mutation<string, UpdateDriverStatusRequest>({
+      query: ({ rideId, position, phase }) => ({
+        url: `/rides/${rideId}/status`,
+        method: 'PATCH',
         body: {
-          position
+          driverPosition: position,
+          phase
         }
       })
     })
@@ -86,5 +109,6 @@ export const {
   useGetRideQuery,
   useGetJoinsQuery,
   useGetScheduleQuery,
-  useRespondJoinMutation
+  useRespondJoinMutation,
+  useUpdateStatusMutation
 } = driverSlice

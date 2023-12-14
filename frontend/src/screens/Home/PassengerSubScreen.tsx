@@ -6,7 +6,7 @@ import { Button, Icon, Input, Text } from '@ui-kitten/components'
 
 import { InputCounter, InputTime, PassengerInputCounter } from '~/components/InputModals'
 import { useWaypoints } from '~/hooks/useWaypoints'
-import { useGetSavedRidesQuery } from '~/redux/users'
+import { useGetSavedRidesQuery } from '~/redux/api/users'
 import { displayDatetime } from '~/utils/format'
 
 import { emptyWaypoint } from '../DriverPlanRide/PlanPanel'

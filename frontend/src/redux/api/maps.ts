@@ -1,29 +1,35 @@
 /* eslint @typescript-eslint/no-invalid-void-type: 0 */
 
 import { MapsAPI } from '~/services/maps'
-import { flattenLegs } from '~/utils/maps'
+import { decodeRoute, type RouteDecoded } from '~/utils/maps'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
 
 const mapsSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getRoute: builder.query<{ route: LatLng[]; durations: string[] }, Waypoint[]>({
+    getRoute: builder.query<RouteDecoded, Waypoint[]>({
       async queryFn(arg) {
         const waypoints = arg
         const { legs } = await MapsAPI.getRoute(waypoints)
-        const result = flattenLegs(legs)
 
-        return { data: result }
+        if (legs) {
+          const result = decodeRoute(legs)
+          return { data: result }
+        }
+
+        return { data: null }
       }
     }),
     getWalkingRoute: builder.query<{ route: LatLng[]; durations: string[] }, Waypoint[]>({
       async queryFn(arg) {
         const waypoints = arg
         const { legs, duration, distanceMeters } = await MapsAPI.getRoute(waypoints, 'WALK')
-        const result = { route: flattenLegs(legs).route, duration, distanceMeters }
-        // console.log(result)
+        if (legs) {
+          const result = { route: decodeRoute(legs).route, duration, distanceMeters }
+          return { data: result }
+        }
 
-        return { data: result }
+        return { data: null }
       }
     })
   })

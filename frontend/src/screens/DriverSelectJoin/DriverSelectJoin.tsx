@@ -1,45 +1,30 @@
 import { useRef, useState } from 'react'
-import { View } from 'react-native'
 import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Shadow } from 'react-native-shadow-2'
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetModalProvider,
-  BottomSheetView
-} from '@gorhom/bottom-sheet'
+import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import {
-  Button,
-  Icon,
-  Text,
-  TopNavigation,
-  TopNavigationAction,
-  type IconProps
-} from '@ui-kitten/components'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
-import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/driver'
-import { useGetCurrentActivityQuery } from '~/redux/users'
+import { ConfirmModal } from '~/components/modals/Confirm'
+import TopNavBar from '~/components/nav/TopNavBar'
+import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/api/driver'
+import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
-
-const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
-const MoreIcon = (props: IconProps) => <Icon {...props} name="more-horizontal-outline" />
 
 export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinScreenProps) {
   const bottomSheetRef = useRef<BottomSheet>(null)
   const modalRef = useRef<BottomSheetModal>(null)
 
   const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+    selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data }) => ({ rideRoute: data?.ride.route.route })
+    selectFromResult: ({ data }) => ({ rideRoute: data?.ride?.route_with_time?.route })
   })
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+    pollingInterval: 3000,
     selectFromResult: ({ data }) => ({
       pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
     })
@@ -108,68 +93,17 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-        {/* <BottomSheetModal
+        <TopNavBar title={screenTitle} onGoBack={modalRef.current?.present} />
+
+        <ConfirmModal
           ref={modalRef}
-          snapPoints={['50%', '50%']}
-          backdropComponent={(props) => <BottomSheetBackdrop {...props} />}
-          enableContentPanningGesture={false}
-          enableHandlePanningGesture={false}
-          handleIndicatorStyle={{ display: 'none' }}
-          detached={true}
-          bottomInset={400}
-          style={{ alignItems: 'center', justifyContent: 'center', margin: 20, height: 180 }}
-        >
-          <BottomSheetView
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              height: 200,
-              justifyContent: 'center'
-            }}
-          >
-            <Text category="h5">是否要取消本次行程？</Text>
-            <View style={{ flexDirection: 'row', gap: 10, paddingVertical: 20 }}>
-              <Button
-                size="giant"
-                status="danger"
-                style={{ borderRadius: 12 }}
-                accessoryLeft={(props) => <Icon {...props} name="close-outline" />}
-                onPress={navigation.goBack}
-              >
-                取消行程
-              </Button>
-              <Button
-                size="giant"
-                status="basic"
-                style={{ borderRadius: 12 }}
-                onPress={modalRef.current?.close}
-              >
-                留在此頁
-              </Button>
-            </View>
-          </BottomSheetView>
-        </BottomSheetModal> */}
-        <Shadow
-          stretch={true}
-          startColor="#00000010"
-          sides={{ start: false, end: false, top: false, bottom: true }}
-        >
-          <TopNavigation
-            alignment="center"
-            title={screenTitle}
-            accessoryLeft={() => (
-              <TopNavigationAction
-                icon={BackIcon}
-                onPress={() => {
-                  // TODO: confirm cancel ride
-                  // modalRef.current?.present()
-                  navigation.goBack()
-                }}
-              />
-            )}
-            accessoryRight={() => <TopNavigationAction icon={MoreIcon} />}
-          />
-        </Shadow>
+          snapPoints={['33%', '33%']}
+          title="是否要取消本次行程？"
+          message="取消行程後，您的乘客們會馬上收到通知"
+          onPressConfirm={navigation.goBack}
+          confirmBtnText="取消行程"
+          cancelBtnText="留在此頁"
+        />
 
         <MapViewWithRoute route={rideRoute} edgePadding={{ bottom: 170 }}>
           {/* {pendingJoins?.map(({ passengerInfo, ...join }) => (
@@ -212,7 +146,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           index={1}
           snapPoints={['18%', '45%', '75%']}
         >
-          {(acceptedJoins?.length > 0 || selectedJoins?.length > 0) && (
+          {(acceptedJoins?.length > 0 ?? selectedJoins?.length > 0) && (
             <Animated.View entering={FadeIn.delay(100)}>
               <PassengerAvatarList
                 title="已選擇的乘客"

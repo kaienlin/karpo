@@ -1,5 +1,9 @@
-import { useState } from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import ViewShot from 'react-native-view-shot'
+import { useDispatch } from 'react-redux'
 import {
   Button,
   Icon,
@@ -10,26 +14,52 @@ import {
   type IconProps,
   type TextProps
 } from '@ui-kitten/components'
+import Avatar, { genConfig } from '@zamplyy/react-native-nice-avatar'
 import * as SecureStore from 'expo-secure-store'
-import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useDispatch } from 'react-redux'
 
-import { signIn } from '../redux/auth'
-import { AuthAPI, type UserCredentials } from '../services/auth'
-import { type SignUpScreenProps } from '../types/screens'
+import { useRegisterMutation, useSignInMutation } from '~/redux/api/auth'
+import { signIn } from '~/redux/auth'
+import { type UserCredentials } from '~/services/auth'
+import { type SignUpScreenProps } from '~/types/screens'
 
+const AvatarIcon = (props: IconProps) => <Icon {...props} name="person-outline" />
 const EmailIcon = (props: IconProps) => <Icon {...props} name="email-outline" />
 const LockIcon = (props: IconProps) => <Icon {...props} name="lock-outline" />
+const ArrowForwardIcon = (props: IconProps) => <Icon {...props} name="arrow-ios-forward-outline" />
 
 interface SignUpForm extends UserCredentials {
+  name: string
   passwordConfirm: string
+}
+
+const RandomAvatar = ({ onChange }: { onChange: (uri: string) => void }) => {
+  const ref = useRef<ViewShot>(null)
+  const [config, setConfig] = useState(genConfig())
+  const generate = () => {
+    setConfig(genConfig())
+    ref?.current.capture().then(onChange).catch(console.log)
+  }
+
+  useEffect(() => {
+    ref?.current.capture().then(onChange).catch(console.log)
+  }, [])
+
+  return (
+    <View style={{ alignItems: 'center', marginVertical: 30 }}>
+      <Pressable onPress={generate}>
+        <ViewShot ref={ref} options={{ result: 'base64' }}>
+          <Avatar size={100} {...config} />
+        </ViewShot>
+      </Pressable>
+    </View>
+  )
 }
 
 export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   const theme = useTheme()
   const dispatch = useDispatch()
 
+  const [avatar, setAvatar] = useState<string>()
   const {
     control,
     handleSubmit,
@@ -39,37 +69,41 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   } = useForm<SignUpForm>({
     mode: 'onChange',
     defaultValues: {
+      name: '',
       email: '',
       password: '',
       passwordConfirm: ''
     }
   })
 
-  const [isAuthFailed, setIsAuthFailed] = useState(false)
+  const [register, { isError }] = useRegisterMutation()
+  const [signInMutation] = useSignInMutation()
 
   const onSubmit: SubmitHandler<SignUpForm> = async (data) => {
+    const { name, email, password } = data
     try {
-      const user = await AuthAPI.signUp(data)
-      if (user === null || user?.token === undefined) {
-        setIsAuthFailed(true)
-      } else {
-        dispatch(signIn({ token: user.token }))
-        await SecureStore.setItemAsync('userToken', user.token)
-      }
+      await register({ name, email, password, avatar })
+      const response = await signInMutation({
+        username: data.email,
+        password: data.password
+      }).unwrap()
+      dispatch(signIn({ accessToken: response.accessToken }))
+      await SecureStore.setItemAsync('accessToken', response.accessToken)
     } catch (error) {
-      setIsAuthFailed(true)
-      console.error(error)
+      console.log(error)
     }
   }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: 45, marginVertical: 50 }}>
+      <View style={{ paddingHorizontal: 45, alignItems: 'center' }}>
         <Text category="h1">建立帳戶</Text>
       </View>
 
+      <RandomAvatar onChange={setAvatar} />
+
       <View style={{ paddingHorizontal: 40, gap: 30 }}>
-        {isAuthFailed && (
+        {isError && (
           <View
             style={{
               height: 55,
@@ -82,11 +116,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             }}
           >
             <Text style={{ color: theme['color-danger-900'] }}>註冊失敗，請稍後再試</Text>
-            <TouchableOpacity
-              onPress={() => {
-                setIsAuthFailed(false)
-              }}
-            >
+            <TouchableOpacity>
               <Icon
                 style={{ width: 20, height: 20 }}
                 name="close-circle-outline"
@@ -96,7 +126,42 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
           </View>
         )}
 
-        <View style={{ gap: 10 }}>
+        <ScrollView style={{ gap: 10 }}>
+          <Controller
+            name="name"
+            control={control}
+            rules={{
+              required: true
+            }}
+            render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
+              return (
+                <Input
+                  placeholder="姓名"
+                  ref={ref}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  onSubmitEditing={() => {
+                    setFocus('email')
+                  }}
+                  size="large"
+                  returnKeyType="next"
+                  status={invalid ? 'danger' : 'basic'}
+                  caption={(props: TextProps) =>
+                    invalid && (
+                      <View style={{ paddingLeft: 10, paddingTop: 3 }}>
+                        <Text {...props}>需輸入姓名</Text>
+                      </View>
+                    )
+                  }
+                  style={styles.input}
+                  inputMode="text"
+                  accessoryLeft={AvatarIcon}
+                  blurOnSubmit={false}
+                />
+              )
+            }}
+          />
           <Controller
             name="email"
             control={control}
@@ -204,13 +269,14 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
               />
             )}
           />
-        </View>
+        </ScrollView>
         <Button
           accessibilityLabel="註冊"
           onPress={handleSubmit(onSubmit)}
           size="large"
           disabled={isSubmitting}
           accessoryLeft={<>{isSubmitting && <Spinner status="basic" size="small" />}</>}
+          accessoryRight={ArrowForwardIcon}
           style={{ borderRadius: 12 }}
         >
           註冊

@@ -5,7 +5,7 @@ import { Shadow } from "react-native-shadow-2"
 import { Marker } from "react-native-maps"
 import { Header } from "~/components/CardHeader"
 import MapViewWithRoute from "~/components/MapViewWithRoute"
-import { useGetRouteQuery } from "~/redux/maps"
+import { useGetRouteQuery } from "~/redux/api/maps"
 import { PassengerStackParamList } from "~/types/navigation"
 import { displayTime } from "~/utils/format"
 import { LocationIcon } from "./PassengerRideInfo"
@@ -51,6 +51,8 @@ function ArrivalCard ({ride} : { ride: Match }) {
           pickUpTime={ride.pickUpTime.toString()}
           dropOffTime={ride.dropOffTime.toString()}
           fare={ride.fare}
+          userId={ride.driverInfo.id}
+          avatar={ride.driverInfo.avatar}
         />
         <View style={{ 
           flexDirection: 'row',

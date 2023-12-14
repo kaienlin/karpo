@@ -1,17 +1,21 @@
 import { decode } from '@mapbox/polyline'
 
-export const flattenLegs = (
-  legs: Leg[]
-): { route: LatLng[]; steps: number[][2]; durations: string[] } => {
-  const steps = legs.reduce((total, leg) => {
+export interface RouteDecoded {
+  route: LatLng[]
+  steps: Array<Array<[number, number]>>
+  durations: number[]
+}
+
+export const decodeRoute = (legs: RouteLeg[]): RouteDecoded => {
+  const steps = legs.reduce<Array<Array<[number, number]>>>((total, leg) => {
     return total.concat(leg.steps.map(({ polyline }) => decode(polyline.encodedPolyline)))
   }, [])
 
-  const route = steps.reduce((total, step) => {
+  const route = steps.reduce<LatLng[]>((total, step) => {
     return total.concat(step.map(([latitude, longitude]: number[]) => ({ latitude, longitude })))
   }, [])
 
-  const durations = legs.reduce((total, leg) => {
+  const durations = legs.reduce<number[]>((total, leg) => {
     return total.concat(leg.steps.map(({ staticDuration }) => parseInt(staticDuration)))
   }, [])
 

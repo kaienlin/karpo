@@ -4,44 +4,35 @@ import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import {
-  Button,
-  Icon,
-  Text,
-  TopNavigation,
-  TopNavigationAction,
-  useTheme,
-  type IconProps
-} from '@ui-kitten/components'
+import { Button, Text } from '@ui-kitten/components'
 
+import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
+import TopNavBar from '~/components/nav/TopNavBar'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
-import { useCreateRideMutation } from '~/redux/driver'
-import { useGetRouteQuery } from '~/redux/maps'
-import { useGetSavedRidesQuery } from '~/redux/users'
+import { useCreateRideMutation } from '~/redux/api/driver'
+import { useGetRouteQuery } from '~/redux/api/maps'
+import { useGetSavedRidesQuery } from '~/redux/api/users'
 import { type DriverPlanRideScreenProps } from '~/types/screens'
 import { isValidWaypoint, isValidWaypoints } from '~/utils/maps'
 
 import PlanPanel, { emptyWaypoint } from './PlanPanel'
 
-const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
-
 interface RidePlan {
-  time: Date | null
+  time: Date
   numSeats: number
   waypoints: Waypoint[]
 }
 
-const defaultValues = {
+const defaultValues: RidePlan = {
   time: null,
   numSeats: 0,
   waypoints: [emptyWaypoint, emptyWaypoint]
 }
 
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
-  const theme = useTheme()
-
-  const { savedRideIndex } = route?.params ?? undefined
+  const { savedRideIndex } = route?.params
+  const { location: currentLocation } = useCurrentLocation()
   const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
     selectFromResult: ({ data, ...rest }) => {
       const ride = data?.savedRides[savedRideIndex]
@@ -59,13 +50,11 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   })
 
   const { control, watch, handleSubmit } = useForm<RidePlan>({
-    defaultValues: savedRide ?? defaultValues
+    defaultValues: (savedRide as RidePlan) ?? defaultValues
   })
 
   const waypoints = watch('waypoints')
-
-  const { location: currentLocation } = useCurrentLocation()
-  const [createRide] = useCreateRideMutation()
+  const [createRide, { isLoading }] = useCreateRideMutation()
   const { rideRoute, steps, durations } = useGetRouteQuery(
     isValidWaypoints(waypoints) ? waypoints : skipToken,
     {
@@ -78,35 +67,29 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   )
 
   const onSubmit = async (data: RidePlan) => {
-    await createRide({
-      departureTime: data.time.toISOString(),
-      numSeats: data.numSeats,
-      origin: data.waypoints[0],
-      destination: data.waypoints[data.waypoints.length - 1],
-      intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
-      route: {
-        steps,
-        durations
-      }
-    })
-    navigation.navigate('DriverSelectJoinScreen')
+    try {
+      await createRide({
+        label: 'ride',
+        departureTime: data.time.toISOString(),
+        numSeats: data.numSeats,
+        origin: data.waypoints[0],
+        destination: data.waypoints[data.waypoints.length - 1],
+        intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
+        route: {
+          steps,
+          durations
+        }
+      })
+      navigation.navigate('DriverSelectJoinScreen')
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
     <SafeAreaView edges={['top', 'right', 'left']} style={{ flex: 1 }}>
       <BottomSheetModalProvider>
-        <TopNavigation
-          alignment="center"
-          title="規劃您的行程"
-          accessoryLeft={() => (
-            <TopNavigationAction
-              icon={BackIcon}
-              onPress={() => {
-                navigation.goBack()
-              }}
-            />
-          )}
-        />
+        <TopNavBar title="規劃您的行程" onGoBack={navigation?.goBack} />
         <PlanPanel control={control} />
         {currentLocation && (
           <MapViewWithRoute
@@ -118,52 +101,20 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
               (waypoint, index) =>
                 isValidWaypoint(waypoint) && (
                   <Marker key={index} coordinate={waypoint}>
-                    {index === 0 ? (
-                      <>
-                        <View
-                          style={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: 9,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            backgroundColor: theme['color-primary-default']
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: 7,
-                              height: 7,
-                              borderRadius: 3.5,
-                              backgroundColor: 'white'
-                            }}
-                          />
-                        </View>
-                      </>
-                    ) : (
-                      <View
-                        style={{
-                          width: 15,
-                          height: 15,
-                          backgroundColor: '#484848',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRadius: 2
-                        }}
-                      >
-                        <Text category="label" style={{ fontSize: 10, color: 'white' }}>
-                          {index}
-                        </Text>
-                      </View>
-                    )}
+                    {index === 0 ? <RouteMarker.Radio /> : <RouteMarker.Box label={`${index}`} />}
                   </Marker>
                 )
             )}
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
-            發布行程
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            size="large"
+            style={{ borderRadius: 12 }}
+            disabled={isLoading}
+          >
+            <Text>發布行程</Text>
           </Button>
         </View>
       </BottomSheetModalProvider>

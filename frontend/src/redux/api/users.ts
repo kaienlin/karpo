@@ -2,9 +2,9 @@
 
 import type { DriverActivity, SavedRide, User } from '~/types/data'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
 
-const usersSlice = apiSlice.injectEndpoints({
+export const usersSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getCurrentActivity: builder.query<DriverActivity, void>({
       query: () => `/users/me/active_items`
@@ -31,6 +31,13 @@ const usersSlice = apiSlice.injectEndpoints({
     }),
     getSavedRides: builder.query<{ savedRides: SavedRide[] }, void>({
       query: () => `/users/me/saved_rides`
+    }),
+    getUserProfileBatch: builder.query<User[], string[]>({
+      queryFn: async (arg, api, extraOptions, baseQuery) => {
+        const result = await Promise.all(arg.map((userId) => baseQuery(`/users/${userId}`)))
+        const data = result.map((res) => res.data)
+        return { data }
+      }
     })
   })
 })
@@ -41,5 +48,6 @@ export const {
   useGetUserProfileQuery,
   useUpdateMyProfileMutation,
   useUpdateUserProfileMutation,
-  useGetSavedRidesQuery
+  useGetSavedRidesQuery,
+  useGetUserProfileBatchQuery
 } = usersSlice
