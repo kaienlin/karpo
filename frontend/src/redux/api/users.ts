@@ -10,7 +10,7 @@ export const usersSlice = apiSlice.injectEndpoints({
       query: () => `/users/me/active_items`
     }),
     getUserProfile: builder.query<User, string>({
-      query: (userId) => `/users/${userId}`
+      query: (userId) => `/users/${userId}/profile`
     }),
     getMyProfile: builder.query<User, void>({
       query: () => `/users/me`
@@ -34,7 +34,7 @@ export const usersSlice = apiSlice.injectEndpoints({
     }),
     getUserProfileBatch: builder.query<User[], string[]>({
       queryFn: async (arg, api, extraOptions, baseQuery) => {
-        const result = await Promise.all(arg.map((userId) => baseQuery(`/users/${userId}`)))
+        const result = await Promise.all(arg.map((userId) => baseQuery(`/users/${userId}/profile`)))
         const data = result.map((res) => res.data)
         return { data }
       }

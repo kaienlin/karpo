@@ -36,16 +36,14 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const {
     data: { numAvailableSeat, passengers },
     isSuccess: isJoinsSuccess
-  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'accepted' }, {
     selectFromResult: ({ data, ...rest }) => ({
       data: {
         numAvailableSeat: data?.numAvailableSeat,
-        passengers: data?.joins
-          ?.filter(({ status }) => status === 'accepted')
-          .map((join) => ({
-            ...join.passengerInfo,
-            numPassengers: join.numPassengers
-          }))
+        passengers: data?.joins.map((join) => ({
+          ...join.passengerInfo,
+          numPassengers: join.numPassengers
+        }))
       },
       ...rest
     })
@@ -103,7 +101,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
           buttonOnPress={handleContinueAccept}
         />
         <ReadyCard
-          time={ride?.time}
+          time={ride?.departureTime}
           origin={ride?.origin.description}
           destination={ride?.destination.description}
           passengers={passengers}
