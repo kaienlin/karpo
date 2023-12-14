@@ -209,7 +209,7 @@ async def get_saved_rides(
     rides = await rides_dao.get_saved_ride_model_by_user_id(
         user_id=user_id, limit=limit
     )
-    if rides is None:
+    if len(rides) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
 
     if user_id != user.id:

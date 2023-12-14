@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_users.db import SQLAlchemyUserDatabase
 
 from karpo_backend.db.dao.joins_dao import JoinsDAO

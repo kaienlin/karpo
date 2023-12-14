@@ -1,5 +1,6 @@
 import datetime
-from typing import Dict, Tuple
+import uuid
+from typing import Dict, List, Tuple
 
 import pytest
 from fastapi import FastAPI, status
@@ -19,6 +20,82 @@ from karpo_backend.web.api.rides.schema import (
     PostRideIdJoinsResponse,
     PostRidesResponse,
 )
+
+
+async def post_matched_ride_requsets_join_and_get_ride_id(
+    ride_data: Dict,
+    request_datas: List[Dict],
+    client_driver: AsyncClient,
+    client_passengers: list[AsyncClient],
+    fastapi_app: FastAPI,
+) -> uuid.UUID:
+    # post a ride
+    req_body = ride_data
+    url = fastapi_app.url_path_for("post_rides")
+    resp = await client_driver.post(
+        url,
+        json=req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        post_rides_resp_obj = PostRidesResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+
+    for client_passenger, request_data in zip(client_passengers, request_datas):
+        post_requests_url = fastapi_app.url_path_for("post_requests")
+        post_requests_req_body = request_data
+        resp = await client_passenger.post(
+            post_requests_url,
+            json=post_requests_req_body,
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        try:
+            post_requests_resp_obj = PostRequestsResponse.model_validate(resp.json())
+        except ValidationError:
+            pytest.fail("invalid response")
+
+        match_len = len(post_requests_resp_obj.matches)
+        if match_len > 0:
+            assert (
+                post_requests_resp_obj.matches[0].ride_id == post_rides_resp_obj.ride_id
+            )
+            matched_ride_id = post_requests_resp_obj.matches[0].ride_id
+
+            # passenger post a join
+            post_joins_url = fastapi_app.url_path_for(
+                "post_ride_id_joins",
+                ride_id=matched_ride_id,
+            )
+            post_joins_req_body = {"request_id": str(post_requests_resp_obj.request_id)}
+            resp = await client_passenger.post(
+                url=post_joins_url, json=post_joins_req_body
+            )
+            assert resp.status_code == status.HTTP_200_OK
+
+            try:
+                post_joins_resp_obj = PostRideIdJoinsResponse.model_validate(
+                    resp.json()
+                )
+            except ValidationError:
+                pytest.fail("invalid response")
+
+            # driver accept join
+            put_join_status_url = fastapi_app.url_path_for(
+                "put_ride_id_joins_join_id_status",
+                ride_id=matched_ride_id,
+                join_id=post_joins_resp_obj.join_id,
+            )
+            put_join_status_req_body = {"action": "accept"}
+            resp = await client_driver.put(
+                url=put_join_status_url,
+                json=put_join_status_req_body,
+            )
+            assert resp.status_code == status.HTTP_200_OK
+
+        return post_rides_resp_obj.ride_id
 
 
 @pytest.mark.anyio
@@ -201,5 +278,5 @@ async def test_post_joins_and_do_action(
 
         if driver_action == "accept":
             return post_joins_resp_obj.join_id
-        
+
     return None

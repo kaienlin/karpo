@@ -88,7 +88,7 @@ class JoinsDAO:
         )
 
     async def put_joins_model_progress_by_id(
-       self, join_id: uuid.UUID, progress: Literal["onboard", "fulfilled", "canceled"]     
+        self, join_id: uuid.UUID, progress: Literal["onboard", "fulfilled", "canceled"]
     ) -> None:
         await self.session.execute(
             update(JoinsModel).where(JoinsModel.id == join_id).values(progress=progress)

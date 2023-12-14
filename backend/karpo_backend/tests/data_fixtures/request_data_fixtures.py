@@ -44,14 +44,15 @@ test_request_3 = {
 }
 
 
-
 @pytest.fixture
 def request_datas():
     return [test_request_1, test_request_2]
 
+
 @pytest.fixture
 def match_ride_data_1_request_datas():
     return [test_request_1, test_request_3]
+
 
 @pytest.fixture
 def request_data_1():

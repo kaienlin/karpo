@@ -35,8 +35,8 @@ class MessagesDAO:
         return message
 
     async def get_message_model_by_join_id(
-        self, 
-        join_id: uuid.UUID, 
+        self,
+        join_id: uuid.UUID,
         from_time: datetime.datetime,
     ) -> Optional[MessagesModel]:
         result = await self.session.scalars(

@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from typing import Any, Dict, List, Tuple
 
 import httpx
@@ -11,22 +12,98 @@ from shapely import LineString, Point, wkb, wkt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from karpo_backend.db.dao.rides_dao import RidesDAO
-from karpo_backend.web.api.requests.schema import (
-    PostRequestsResponse,
-)
-from karpo_backend.web.api.rides.schema import (
-    GetRideSavedRidesResponse,
-    GetRideIdStatusResponse,
-    GetRideIdScheduleResponse,
-    GetRideIdResponse,
-    GetRideMessagesResponse,
-    PostRidesResponse,
-    PostRideIdJoinsResponse,
-)
 from karpo_backend.tests.test_join import test_post_joins_and_do_action
+from karpo_backend.web.api.requests.schema import PostRequestsResponse
+from karpo_backend.web.api.rides.schema import (
+    GetRideIdResponse,
+    GetRideIdScheduleResponse,
+    GetRideIdStatusResponse,
+    GetRideMessagesResponse,
+    GetRideSavedRidesResponse,
+    PostRideIdJoinsResponse,
+    PostRidesResponse,
+)
+
+
+async def post_ride_and_get_ride_id(
+    ride_data_1: Dict,
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+) -> uuid.UUID:
+    # post a ride
+    req_body = ride_data_1
+    url = fastapi_app.url_path_for("post_rides")
+    resp = await client_test.post(
+        url,
+        json=req_body,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+
+    try:
+        resp_obj = PostRidesResponse.model_validate(resp.json())
+    except ValidationError:
+        pytest.fail("invalid response")
+
+    return resp_obj.ride_id
+
 
 @pytest.mark.anyio
-async def test_creation(
+async def test_post_ride_wrong_format(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+) -> None:
+    # post a ride
+    wrong_req_body = {
+        "origin": {
+            "latitude": 0.001,
+            "longitude": 0,
+            "description": "A",
+        },
+        "destination": {
+            "latitude": -0.005,
+            "longitude": 0.003,
+            "description": "B",
+        },
+        "route": {
+            "steps": [
+                [(0, 0.001), (0.001, 0)],
+                [(0.001, 0), (0.001, -0.002), (0.001, -0.004)],
+            ],
+            "durations": [
+                30,
+                180,
+                100,
+            ],
+        },
+        "intermediates": [
+            {"latitude": 0, "longitude": 0.001, "description": "intermediate 1"},
+            {"latitude": -0.004, "longitude": 0.001, "description": "intermediate 2"},
+        ],
+        "departure_time": "2023-12-08T02:56:00.000Z",
+        "num_seats": 1,
+    }
+    url = fastapi_app.url_path_for("post_rides")
+    resp = await client_test.post(
+        url,
+        json=wrong_req_body,
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.anyio
+async def test_get_ride_not_found(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+) -> None:
+    get_ride_url = fastapi_app.url_path_for("get_ride_id", ride_id=uuid.uuid4())
+    resp = await client_test.get(
+        url=get_ride_url,
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_post_ride_and_check_data(
     ride_data_1: Dict,
     fastapi_app: FastAPI,
     client_test: AsyncClient,
@@ -98,7 +175,7 @@ async def test_creation(
         assert db_intermediate_description == intermediate["description"]
 
     assert resp_db_obj.departure_time == datetime.datetime.fromisoformat(
-        req_body["departure_time"].replace("Z", "+00:00")
+        req_body["departure_time"]
     )
 
     # check get ride
@@ -114,10 +191,59 @@ async def test_creation(
     assert req_body.get("label", None) == None or resp_db_obj.label == req_body["label"]
     assert resp_obj.ride.num_seats == req_body["num_seats"]
     assert resp_obj.ride.departure_time == datetime.datetime.fromisoformat(
-        req_body["departure_time"].replace("Z", "+00:00")
+        req_body["departure_time"]
     )
 
-    return resp_db_obj.user_id
+
+@pytest.mark.anyio
+async def test_get_saved_rides_not_found(
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+) -> None:
+    resp = await client_test.get(url="/api/users/me")
+    assert resp.status_code == status.HTTP_200_OK
+    user_id = resp.json()["id"]
+    wrong_user_id = (
+        str(user_id)[:-1] + "0" if str(user_id)[-1] == "e" else str(user_id)[:-1] + "e"
+    )
+
+    url = fastapi_app.url_path_for("get_saved_rides", user_id=user_id)
+    resp = await client_test.get(
+        url=url,
+        params={
+            "user_id": wrong_user_id,
+            "limit": 10,
+        },
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_get_saved_rides_permission_denied(
+    ride_data_1: Dict,
+    fastapi_app: FastAPI,
+    client_test: AsyncClient,
+    client_test0: AsyncClient,
+) -> None:
+    resp = await client_test.get(url="/api/users/me")
+    assert resp.status_code == status.HTTP_200_OK
+    user_id = resp.json()["id"]
+
+    # client_test post a ride
+    await post_ride_and_get_ride_id(
+        ride_data_1=ride_data_1, fastapi_app=fastapi_app, client_test=client_test
+    )
+
+    # client_test0 get saved rides
+    url = fastapi_app.url_path_for("get_saved_rides", user_id=user_id)
+    resp = await client_test0.get(
+        url=url,
+        params={
+            "user_id": user_id,
+            "limit": 10,
+        },
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.anyio
@@ -130,13 +256,15 @@ async def test_get_saved_rides_by_user_id(
     ride_datas: List[Dict],
     fastapi_app: FastAPI,
     client_test: AsyncClient,
-    dbsession: AsyncSession,
 ) -> None:
     """Tests get saved rides by user id."""
 
     for ride_data in ride_datas:
-        user_id = await test_creation(ride_data, fastapi_app, client_test, dbsession)
+        await post_ride_and_get_ride_id(ride_data, fastapi_app, client_test)
 
+    resp = await client_test.get(url="/api/users/me")
+    assert resp.status_code == status.HTTP_200_OK
+    user_id = resp.json()["id"]
     url = fastapi_app.url_path_for("get_saved_rides", user_id=user_id)
     resp = await client_test.get(
         url=url,
@@ -169,7 +297,7 @@ async def test_get_saved_rides_by_user_id(
 @pytest.mark.parametrize(
     ["driver_position", "driver_phase"],
     [
-        ((0.0015, -0.0025), 2),
+        ((0.0015, -0.0025), 0),
         ((0.0015, -0.0025), 3),
         ((0.0015, 0.03), 1),
     ],
@@ -198,15 +326,23 @@ async def test_get_and_update_ride_status(
     post_ride_id = resp_obj.ride_id
 
     # check wrong ride status
-    wrong_ride_id = str(post_ride_id)[:-1] + "e" if str(post_ride_id)[-1] == "0" else str(post_ride_id)[:-1] + "0"
-    get_ride_id_status_url = fastapi_app.url_path_for("get_ride_id_status", ride_id=wrong_ride_id)
+    wrong_ride_id = (
+        str(post_ride_id)[:-1] + "e"
+        if str(post_ride_id)[-1] == "0"
+        else str(post_ride_id)[:-1] + "0"
+    )
+    get_ride_id_status_url = fastapi_app.url_path_for(
+        "get_ride_id_status", ride_id=wrong_ride_id
+    )
     resp = await client_test.get(
         url=get_ride_id_status_url,
     )
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
     # check origin ride status
-    get_ride_id_status_url = fastapi_app.url_path_for("get_ride_id_status", ride_id=post_ride_id)
+    get_ride_id_status_url = fastapi_app.url_path_for(
+        "get_ride_id_status", ride_id=post_ride_id
+    )
     resp = await client_test.get(
         url=get_ride_id_status_url,
     )
@@ -221,7 +357,9 @@ async def test_get_and_update_ride_status(
     assert resp_obj.driver_position.longitude == req_body["origin"]["longitude"]
 
     # update ride status
-    patch_ride_id_status_url = fastapi_app.url_path_for("patch_ride_id_status", ride_id=post_ride_id)
+    patch_ride_id_status_url = fastapi_app.url_path_for(
+        "patch_ride_id_status", ride_id=post_ride_id
+    )
     patch_ride_id_status_req_body = {
         "driver_position": {
             "latitude": driver_position[1],
@@ -235,9 +373,10 @@ async def test_get_and_update_ride_status(
     )
     assert resp.status_code == status.HTTP_200_OK
 
-
     # check new ride status
-    get_ride_id_status_url = fastapi_app.url_path_for("get_ride_id_status", ride_id=post_ride_id)
+    get_ride_id_status_url = fastapi_app.url_path_for(
+        "get_ride_id_status", ride_id=post_ride_id
+    )
     resp = await client_test.get(
         url=get_ride_id_status_url,
     )
@@ -250,7 +389,7 @@ async def test_get_and_update_ride_status(
     assert resp_obj.phase == driver_phase
     assert resp_obj.driver_position.latitude == driver_position[1]
     assert resp_obj.driver_position.longitude == driver_position[0]
-    
+
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
@@ -340,9 +479,11 @@ async def test_get_schedule(
                 pytest.fail("invalid response")
             assert len(get_schedule_resp_obj.schedule) == 2 * match_len
             for i in range(1, len(get_schedule_resp_obj.schedule)):
-                get_schedule_resp_obj.schedule[i-1].time <= get_schedule_resp_obj.schedule[i].time
+                get_schedule_resp_obj.schedule[
+                    i - 1
+                ].time <= get_schedule_resp_obj.schedule[i].time
 
-    # test no schedule 
+    # test no schedule
     if match_len == 0 or driver_action == "reject":
         get_schedule_url = fastapi_app.url_path_for(
             "get_ride_id_schedule",
@@ -361,10 +502,28 @@ async def test_get_schedule(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ["user1_contents", "user1_send_times", "user2_contents", "user2_send_times", "from_time"],
     [
-        (["1", "3"], ["2023-12-08T02:56:00.000Z", "2023-12-08T02:59:00.000Z"], ["2"], ["2023-12-08T02:58:00.000Z"], "2023-12-08T02:57:00.000Z"),
-        (["1", "3"], ["2023-12-08T02:56:00.000Z", "2023-12-08T02:59:00.000Z"], ["2"], ["2023-12-08T02:58:00.000Z"], "2023-12-08T02:54:00.000Z"),
+        "user1_contents",
+        "user1_send_times",
+        "user2_contents",
+        "user2_send_times",
+        "from_time",
+    ],
+    [
+        (
+            ["1", "3"],
+            ["2023-12-08T02:56:00.000Z", "2023-12-08T02:59:00.000Z"],
+            ["2"],
+            ["2023-12-08T02:58:00.000Z"],
+            "2023-12-08T02:57:00.000Z",
+        ),
+        (
+            ["1", "3"],
+            ["2023-12-08T02:56:00.000Z", "2023-12-08T02:59:00.000Z"],
+            ["2"],
+            ["2023-12-08T02:58:00.000Z"],
+            "2023-12-08T02:54:00.000Z",
+        ),
     ],
 )
 async def test_post_and_get_chatroom_messages(
@@ -381,18 +540,26 @@ async def test_post_and_get_chatroom_messages(
 ) -> None:
     """Tests rides instance creation."""
     # post a ride
-    join_id = await test_post_joins_and_do_action(ride_data_1, request_data_1, "accept", fastapi_app, client_test0, client_test)
+    join_id = await test_post_joins_and_do_action(
+        ride_data_1, request_data_1, "accept", fastapi_app, client_test0, client_test
+    )
     if join_id is None:
         pytest.fail("invalid test case, request_data_1 should match ride_data_1")
 
-    # post chatroom_messages 
-    for client_user, contents, send_times in zip([client_test0, client_test], [user1_contents, user2_contents], [user1_send_times, user2_send_times]):
+    # post chatroom_messages
+    for client_user, contents, send_times in zip(
+        [client_test0, client_test],
+        [user1_contents, user2_contents],
+        [user1_send_times, user2_send_times],
+    ):
         resp = await client_user.get(url="/api/users/me")
         assert resp.status_code == status.HTTP_200_OK
         user_id = resp.json()["id"]
 
         for content, send_time in zip(contents, send_times):
-            post_message_url = fastapi_app.url_path_for("post_chatroom_messages", join_id=join_id)
+            post_message_url = fastapi_app.url_path_for(
+                "post_chatroom_messages", join_id=join_id
+            )
             post_rides_req_body = {
                 "chat_record": {
                     "user_id": user_id,
@@ -405,7 +572,7 @@ async def test_post_and_get_chatroom_messages(
                 json=post_rides_req_body,
             )
             assert resp.status_code == status.HTTP_200_OK
-            
+
     # get chatroom messages
     get_messages_url = fastapi_app.url_path_for(
         "get_chatroom_messages",
@@ -420,7 +587,9 @@ async def test_post_and_get_chatroom_messages(
         get_messages_resp_obj = GetRideMessagesResponse.model_validate(resp.json())
     except ValidationError:
         pytest.fail("invalid response")
-    assert get_messages_resp_obj.chat_records == sorted(get_messages_resp_obj.chat_records, key=lambda record: record.time), "messages should in order."
-    assert get_messages_resp_obj.chat_records[0].time >= datetime.datetime.fromisoformat(
-        from_time.replace("Z", "+00:00")
-    )
+    assert get_messages_resp_obj.chat_records == sorted(
+        get_messages_resp_obj.chat_records, key=lambda record: record.time
+    ), "messages should in order."
+    assert get_messages_resp_obj.chat_records[
+        0
+    ].time >= datetime.datetime.fromisoformat(from_time)
