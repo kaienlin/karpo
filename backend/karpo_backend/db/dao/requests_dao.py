@@ -103,6 +103,18 @@ class RequestsDAO:
 
         return result.all()
 
+    async def get_num_saved_requests_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> int:
+        result = await self.session.scalars(
+            select(func.count())
+            .select_from(RequestsModel)
+            .where(RequestsModel.user_id == user_id)
+        )
+
+        return result.one()
+
     async def get_request_matches(  # noqa: WPS210
         self,
         requests_model: RequestsModel,

@@ -1,4 +1,5 @@
 # type: ignore
+import datetime
 import uuid
 from typing import Optional
 
@@ -14,7 +15,8 @@ from pydantic import Base64Bytes, Field
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import String
+from sqlalchemy.sql import func
+from sqlalchemy.sql.sqltypes import DateTime, String
 from typing_extensions import Annotated
 
 from karpo_backend.db.base import Base
@@ -31,6 +33,10 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     rating: Mapped[Optional[float]] = mapped_column(insert_default=None)
     rating_count: Mapped[int] = mapped_column(insert_default=0)
     avatar: Mapped[Optional[bytes]]
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):

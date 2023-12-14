@@ -86,6 +86,7 @@ class JoinsDAO:
                 | (JoinsModel.ride_user_id == user_id)
             )
         )
+
     async def put_joins_model_progress_by_id(
        self, join_id: uuid.UUID, progress: Literal["onboard", "fulfilled", "canceled"]     
     ) -> None:

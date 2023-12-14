@@ -38,13 +38,16 @@ async def get_unasked_match_dtos(
     request: RequestsModel,
     limit: int,
     requests_dao: RequestsDAO,
+    rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
     user_db: SQLAlchemyUserDatabase,
 ) -> List[MatchDTO]:
     evaled_matches = await requests_dao.get_request_matches(request, limit)
     match_dtos: List[MatchDTO] = []
     for ride, evaled_match in evaled_matches:
-        driver_user_info = await get_user_info_for_others(ride.user_id, user_db)
+        driver_user_info = await get_user_info_for_others(
+            ride.user_id, user_db, requests_dao, rides_dao
+        )
 
         other_accepted_joins = await joins_dao.get_accepted_joins_model_by_ride_id(
             ride.id,
@@ -92,6 +95,7 @@ async def get_unasked_match_dtos(
 async def get_match_dto_from_request_and_join(
     request: RequestsModel,
     join: JoinsModel,
+    requests_dao: RequestsDAO,
     rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
     user_db: SQLAlchemyUserDatabase,
@@ -124,7 +128,9 @@ async def get_match_dto_from_request_and_join(
     if join.status == "accepted":
         num_avaiable_seat -= 1
 
-    driver_user_info = await get_user_info_for_others(ride.user_id, user_db)
+    driver_user_info = await get_user_info_for_others(
+        ride.user_id, user_db, requests_dao, rides_dao
+    )
 
     return MatchDTO(
         ride_id=join.ride_id,
@@ -158,6 +164,7 @@ async def get_match_dto_from_request_and_join(
 
 async def get_accepted_match_dto(
     request: RequestsModel,
+    requests_dao: RequestsDAO,
     rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
     user_db: SQLAlchemyUserDatabase,
@@ -169,6 +176,7 @@ async def get_accepted_match_dto(
     return await get_match_dto_from_request_and_join(
         request,
         join,
+        requests_dao,
         rides_dao,
         joins_dao,
         user_db,
@@ -177,6 +185,7 @@ async def get_accepted_match_dto(
 
 async def get_pending_match_dtos(
     request: RequestsModel,
+    requests_dao: RequestsDAO,
     rides_dao: RidesDAO,
     joins_dao: JoinsDAO,
     user_db: SQLAlchemyUserDatabase,
@@ -188,6 +197,7 @@ async def get_pending_match_dtos(
         match_dto = await get_match_dto_from_request_and_join(
             request,
             join,
+            requests_dao,
             rides_dao,
             joins_dao,
             user_db,
@@ -202,6 +212,7 @@ async def post_requests(
     req: PostRequestsRequest,
     limit: int = 10,
     requests_dao: RequestsDAO = Depends(),
+    rides_dao: RidesDAO = Depends(),
     joins_dao: JoinsDAO = Depends(),
     user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
     user: User = Depends(current_active_user),
@@ -243,6 +254,7 @@ async def post_requests(
         request,
         limit,
         requests_dao,
+        rides_dao,
         joins_dao,
         user_db,
     )
@@ -323,14 +335,14 @@ async def get_request_id_matches(  # noqa: WPS210
 
     resp = GetRequestIdMatchesResponse(matches=[])
     accepted_match = await get_accepted_match_dto(
-        request, rides_dao, joins_dao, user_db
+        request, requests_dao, rides_dao, joins_dao, user_db
     )
     if accepted_match is not None:
         resp.matches.append(accepted_match)
         return resp
 
     pending_matches = await get_pending_match_dtos(
-        request, rides_dao, joins_dao, user_db
+        request, requests_dao, rides_dao, joins_dao, user_db
     )
     resp.matches.extend(pending_matches)
 
@@ -338,6 +350,7 @@ async def get_request_id_matches(  # noqa: WPS210
         request,
         limit,
         requests_dao,
+        rides_dao,
         joins_dao,
         user_db,
     )

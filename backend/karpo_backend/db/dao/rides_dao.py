@@ -105,6 +105,18 @@ class RidesDAO:
 
         return result.all()
 
+    async def get_num_saved_rides_by_user_id(
+        self,
+        user_id: uuid.UUID,
+    ) -> int:
+        result = await self.session.scalars(
+            select(func.count())
+            .select_from(RidesModel)
+            .where(RidesModel.user_id == user_id)
+        )
+
+        return result.one()
+
     async def put_phase_position_by_id(
         self,
         ride_id: uuid.UUID,

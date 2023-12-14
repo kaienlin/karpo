@@ -294,15 +294,20 @@ async def patch_ride_id_status(
         phase=req.phase,
         last_update_time=datetime.datetime.now(),
     )
-    
+
     schedule = await rides_dao.get_schedule_by_id(ride_id=ride_id)
     if 0 <= req.phase < len(schedule):
         stopover = json.loads(schedule[req.phase])
-        if stopover["status"] == "pick_up": 
-            await joins_dao.put_joins_model_progress_by_id(stopover["join_id"], "onboard")
+        if stopover["status"] == "pick_up":
+            await joins_dao.put_joins_model_progress_by_id(
+                stopover["join_id"], "onboard"
+            )
         elif stopover["status"] == "drop_off":
-            await joins_dao.put_joins_model_progress_by_id(stopover["join_id"], "fulfilled")
+            await joins_dao.put_joins_model_progress_by_id(
+                stopover["join_id"], "fulfilled"
+            )
             await requests_dao.inactivate_request_by_id(stopover["request_id"])
+
 
 @router.get(
     "/{ride_id}/schedule",
@@ -311,6 +316,7 @@ async def patch_ride_id_status(
 )
 async def get_ride_id_schedule(
     ride_id: uuid.UUID,
+    requests_dao: RequestsDAO = Depends(),
     rides_dao: RidesDAO = Depends(),
     user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
 ) -> GetRideIdScheduleResponse:
@@ -325,7 +331,10 @@ async def get_ride_id_schedule(
     for stopover_json in schedule:
         stopover_info = json.loads(stopover_json)
         user_info = await get_user_info_for_others(
-            stopover_info["passenger_id"], user_db
+            stopover_info["passenger_id"],
+            user_db,
+            requests_dao,
+            rides_dao,
         )
         location: Point = wkb.loads(bytes.fromhex(stopover_info["location"]))
 
