@@ -1,10 +1,10 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, SubmitHandler } from 'react-hook-form'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Input, Text } from '@ui-kitten/components'
 
-import { InputCounter, InputTime, PassengerInputCounter } from '~/components/InputModals'
+import { InputCounter, InputTime, PassengerInputCounter, PassengerInputTime } from '~/components/InputModals'
 import { useWaypoints } from '~/hooks/useWaypoints'
 import { useGetSavedRidesQuery } from '~/redux/api/users'
 import { displayDatetime } from '~/utils/format'
@@ -16,7 +16,13 @@ import { useCreateRequestMutation } from '~/redux/passenger'
 export function PassengerSubScreen() {
   const navigation = useNavigation()
 
-  const { control, handleSubmit } = useForm({
+  type FormValues = {
+    time: Date | null
+    numPassengers: number | null
+    waypoints: Waypoint[]
+  }
+
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: {
       time: null,
       numPassengers: null,
@@ -31,9 +37,7 @@ export function PassengerSubScreen() {
   })
 
   const [ createRequest ] = useCreateRequestMutation()
-  const onSubmit = async (
-    {time, numPassengers} : {time: string, numPassengers: number}
-  ) => {
+  const onSubmit: SubmitHandler<FormValues> = async ({time, numPassengers}) => {
     const request = {
       time: time,
       numPassengers: numPassengers,
@@ -95,7 +99,7 @@ export function PassengerSubScreen() {
             name="time"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <InputTime
+              <PassengerInputTime
                 title="選擇上車時間"
                 value={value}
                 onChange={onChange}
@@ -161,7 +165,15 @@ export function PassengerSubScreen() {
             </TouchableOpacity>
           </View>
           {savedRides?.map((ride, index) => (
-            <SavedRideCard {...ride} key={`${ride.label}-${index}`} />
+            <SavedRideCard 
+              {...ride} 
+              key={`${ride.label}-${index}`}
+              onPress={() => reset({
+                time: ride.time,
+                numPassengers: ride.numSeats,
+                waypoints: [ride.origin, ride.destination]
+              })}
+            />
           ))}
         </View>
       </View>

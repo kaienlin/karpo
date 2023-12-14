@@ -1,4 +1,4 @@
-import { Match } from "~/types/data";
+import { Match, RideStatus } from "~/types/data";
 import { apiSlice } from "./api";
 
 const passengerSlice = apiSlice.injectEndpoints({
@@ -47,6 +47,12 @@ const passengerSlice = apiSlice.injectEndpoints({
           patchResult.undo()
         }
       }
+    }),
+    getRideStatus: builder.query({
+      query: (rideId) => ({
+        url: `/rides/${rideId}/status`,
+        method: 'GET'
+      })
     })
   })
 })
@@ -55,5 +61,6 @@ export const {
   useCreateRequestMutation, 
   useGetRequestQuery,
   useGetMatchesQuery,
-  useCreateJoinRequestMutation
+  useCreateJoinRequestMutation,
+  useGetRideStatusQuery
 } = passengerSlice

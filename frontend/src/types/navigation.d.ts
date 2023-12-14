@@ -31,6 +31,7 @@ type MainStackParamList = {
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
   ChatScreen: { rideId: string }
   SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
+  RideCompleteScreen: { userIds: string[] }
 }
 
 type BottomTabParamList = {

@@ -7,7 +7,6 @@ import {
   IconProps 
 } from '@ui-kitten/components'
 import { displayProximity, displayTime } from '~/utils/format'
-import { useGetUserProfileQuery } from '~/redux/users'
 import { useNavigation } from '@react-navigation/native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 

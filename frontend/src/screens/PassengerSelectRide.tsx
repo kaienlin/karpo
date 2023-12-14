@@ -21,6 +21,7 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
 
   // https://redux-toolkit.js.org/rtk-query/usage/queries#selecting-data-from-a-query-result
   const { unaskedMatches } = useGetMatchesQuery(requestId, {
+    pollingInterval: 20000,
     selectFromResult: ({data}) => ({
       unaskedMatches: data?.matches?.filter(
         (match: Match) => match.status === 'unasked'

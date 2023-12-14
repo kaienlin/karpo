@@ -12,6 +12,9 @@ import { LocationIcon } from "./PassengerRideInfo"
 import { Match } from "~/types/data"
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useMemo, useRef } from "react"
+import { useGetRideStatusQuery } from "~/redux/passenger"
+import { skipToken } from "@reduxjs/toolkit/query"
+import { useNavigation } from "@react-navigation/native"
 
 type ArrivingScreenProps = NativeStackScreenProps<PassengerStackParamList, 'ArrivingScreen'>
 
@@ -21,6 +24,15 @@ function ArrivalCard ({ride} : { ride: Match }) {
 
   // variables
   const snapPoints = useMemo(() => ['25%'], []);
+
+  const navigation = useNavigation()
+  const handleConfirm = () => {
+    const userIds = ride.otherPassengers.concat([ride.driverInfo.id])
+    navigation.navigate(
+      'RideCompleteScreen',
+      { userIds: userIds }
+    )
+  }
 
   return (
     <BottomSheet
@@ -61,11 +73,11 @@ function ArrivalCard ({ride} : { ride: Match }) {
           gap: 10,
           padding: 10
         }}> 
-          <View style={{ flex: 1}}>
-            <Button status="danger">取消預約</Button>
-          </View>
-          <View style={{ flex: 1}}>
+          <View style={{ flex: 1 }}>
             <Button>傳訊息給駕駛</Button>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button onPress={handleConfirm}>確認上車</Button>
           </View>
         </View>
       </View>
@@ -75,9 +87,13 @@ function ArrivalCard ({ride} : { ride: Match }) {
 
 export default function Arriving({ route, navigation }: ArrivingScreenProps) {
   const { ride } = route.params
+  const { driverPosition } = useGetRideStatusQuery(ride.rideId, {
+    pollingInterval: 5000,
+    selectFromResult: ({ data }) => ({ driverPosition: data?.driverPosition })
+  })
 
   const { data: driverRoute } = useGetRouteQuery(
-    [ride.driverOrigin, ride.pickUpLocation]
+    driverPosition ? [driverPosition, ride.pickUpLocation] : skipToken
   )
   
   return (
@@ -90,6 +106,13 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
         <Marker coordinate={ride.pickUpLocation}>
           <LocationIcon />
         </Marker>
+        
+        {driverPosition && (
+          <Marker 
+            coordinate={driverPosition}
+            icon={require('~/assets/sports-car.png')}              
+          />
+        )}
         <Marker
           anchor={{ x: 0.5, y: 2 }}
           coordinate={ride.pickUpLocation}
@@ -113,23 +136,4 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
       <ArrivalCard ride={ride} />      
     </>
   )
-}
-
-const shadowPresets = {
-  modal: {
-    stretch: true,
-    startColor: '#00000025',
-    sides: {
-      start: true,
-      end: true,
-      top: false,
-      bottom: true
-    },
-    corners: {
-      topStart: false,
-      topEnd: false,
-      bottomStart: true,
-      bottomEnd: true
-    }
-  }
 }
