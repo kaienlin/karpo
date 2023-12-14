@@ -47,7 +47,7 @@ const RandomAvatar = ({ onChange }: { onChange: (uri: string) => void }) => {
   return (
     <View style={{ alignItems: 'center', marginVertical: 30 }}>
       <Pressable onPress={generate}>
-        <ViewShot ref={ref} options={{ result: 'data-uri' }}>
+        <ViewShot ref={ref} options={{ result: 'base64' }}>
           <Avatar size={100} {...config} />
         </ViewShot>
       </Pressable>
