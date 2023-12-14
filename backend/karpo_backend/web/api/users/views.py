@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, status
+import uuid
+
+from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi_users.db import SQLAlchemyUserDatabase
 
 from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.requests_dao import RequestsDAO
@@ -8,12 +11,14 @@ from karpo_backend.db.models.users import UserRead  # type: ignore
 from karpo_backend.db.models.users import UserUpdate  # type: ignore
 from karpo_backend.db.models.users import api_users  # type: ignore
 from karpo_backend.db.models.users import auth_cookie  # type: ignore
-from karpo_backend.db.models.users import User, current_active_user
+from karpo_backend.db.models.users import User, current_active_user, get_user_db
 from karpo_backend.web.api.users.schema import (
     DriverStateDTO,
     GetUserActiveItemsResponse,
     PassengerStateDTO,
+    UserInfoForOthersDTO,
 )
+from karpo_backend.web.api.users.utils import get_user_info_for_others
 
 router = APIRouter()
 
@@ -115,3 +120,30 @@ async def delete_user_me_data(
     await joins_dao.delete_all_by_user_id(user.id)
     await requests_dao.delete_all_by_user_id(user.id)
     await rides_dao.delete_all_by_user_id(user.id)
+
+
+@router.get(
+    "/users/{user_id}/profile",
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "description": "User not found",
+        },
+    },
+    tags=["users"],
+)
+async def get_user_id_profile(
+    user_id: uuid.UUID,
+    requests_dao: RequestsDAO = Depends(),
+    rides_dao: RidesDAO = Depends(),
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
+) -> UserInfoForOthersDTO:
+    try:
+        info = await get_user_info_for_others(
+            user_id,
+            user_db,
+            requests_dao,
+            rides_dao,
+        )
+        return info
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
