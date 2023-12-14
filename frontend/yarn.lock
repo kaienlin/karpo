@@ -9041,6 +9041,18 @@ reactotron-core-client@2.8.10:
   resolved "https://registry.yarnpkg.com/reactotron-core-client/-/reactotron-core-client-2.8.10.tgz#798f2a7aa9fd7e18e7a510531a613e8ae3008eb0"
   integrity sha512-SYRO4OCutJzfWMnaULUGVyETZnMDCU5ECNflXyM3Z5Gnfxp/wV6d7jYonhfxHdpU/aGb4Eg15C22myOCXSu6HQ==
 
+reactotron-core-client@^2.8.11:
+  version "2.8.11"
+  resolved "https://registry.yarnpkg.com/reactotron-core-client/-/reactotron-core-client-2.8.11.tgz#93c7d9c0038704c22b0e9d1e6de54e1578051442"
+  integrity sha512-zoqKrAqWjTPpa1s1AtVZPZItYE8Kjgs99v9gcKMCW2Ejcba9fYOoRCwu0zqoHU8iWyBzJsOWVai0FdRVRUHf8Q==
+  dependencies:
+    reactotron-core-contract "0.1.1"
+
+reactotron-core-contract@0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/reactotron-core-contract/-/reactotron-core-contract-0.1.1.tgz#3fc0e72e17a71c830c752985b5d2a5dd3df79166"
+  integrity sha512-NmmojG6Pz97NJe8ov0oZgIxxaaEkXsVAiFOeFTI4QH03qMqAs6d28nUd5bTrKLipxWy5rPr4PXITE7AHdT0kaw==
+
 reactotron-react-native@^5.0.3:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/reactotron-react-native/-/reactotron-react-native-5.0.3.tgz#5ab884f33e6ffa0437b8b0f4d93cabb5acb7da24"
@@ -9052,6 +9064,11 @@ reactotron-react-native@^5.0.3:
     rn-host-detect "1.2.0"
   optionalDependencies:
     react-native-flipper "^0.164.0"
+
+reactotron-redux@^3.1.4:
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/reactotron-redux/-/reactotron-redux-3.1.4.tgz#8dc8101f508eb33f57033613da14a6fd0ba77777"
+  integrity sha512-UaEi1J4FwUqWWOv6QjLz8XBVUhC8JCo1e6PQJpWOteU45yIhWCCYZH2BZgt7ALPPkoOxG/hMBL01wmGy2rYRTw==
 
 read-pkg-up@^7.0.1:
   version "7.0.1"

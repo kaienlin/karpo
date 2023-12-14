@@ -4,7 +4,7 @@ import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import { Button } from '@ui-kitten/components'
+import { Button, Text } from '@ui-kitten/components'
 
 import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
@@ -54,7 +54,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   })
 
   const waypoints = watch('waypoints')
-  const [createRide] = useCreateRideMutation()
+  const [createRide, { isLoading }] = useCreateRideMutation()
   const { rideRoute, steps, durations } = useGetRouteQuery(
     isValidWaypoints(waypoints) ? waypoints : skipToken,
     {
@@ -67,18 +67,23 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   )
 
   const onSubmit = async (data: RidePlan) => {
-    await createRide({
-      departureTime: data.time.toISOString(),
-      numSeats: data.numSeats,
-      origin: data.waypoints[0],
-      destination: data.waypoints[data.waypoints.length - 1],
-      intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
-      route: {
-        steps,
-        durations
-      }
-    })
-    navigation.navigate('DriverSelectJoinScreen')
+    try {
+      await createRide({
+        label: 'ride',
+        departureTime: data.time.toISOString(),
+        numSeats: data.numSeats,
+        origin: data.waypoints[0],
+        destination: data.waypoints[data.waypoints.length - 1],
+        intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
+        route: {
+          steps,
+          durations
+        }
+      })
+      navigation.navigate('DriverSelectJoinScreen')
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -103,8 +108,13 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
-            發布行程
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            size="large"
+            style={{ borderRadius: 12 }}
+            disabled={isLoading}
+          >
+            <Text>發布行程</Text>
           </Button>
         </View>
       </BottomSheetModalProvider>

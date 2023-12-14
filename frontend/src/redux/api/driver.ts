@@ -1,6 +1,7 @@
 import type { Join, JoinDetailed, Ride, Schedule } from '~/types/data'
 
 import { apiSlice } from './index'
+import { usersSlice } from './users'
 
 interface GetJoinsResponse<T extends Join> {
   numAvailableSeat: number
@@ -55,10 +56,22 @@ export const driverSlice = apiSlice.injectEndpoints({
     }),
     createRide: builder.mutation<{ rideId: string }, Ride>({
       query: (ride) => ({
-        url: `/rides`,
+        url: `/rides/`,
         method: 'POST',
         body: ride
-      })
+      }),
+      onQueryStarted: async (ride, { dispatch, queryFulfilled }) => {
+        try {
+          const {
+            data: { rideId }
+          } = await queryFulfilled
+          const patchResult = dispatch(
+            usersSlice.util.upsertQueryData('getCurrentActivity', undefined, {
+              driverState: { rideId }
+            })
+          )
+        } catch {}
+      }
     }),
     respondJoin: builder.mutation<string, RespondJoinRequest>({
       query: ({ rideId, joinId, action }) => ({

@@ -4,7 +4,7 @@ import type { DriverActivity, SavedRide, User } from '~/types/data'
 
 import { apiSlice } from './index'
 
-const usersSlice = apiSlice.injectEndpoints({
+export const usersSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getCurrentActivity: builder.query<DriverActivity, void>({
       query: () => `/users/me/active_items`

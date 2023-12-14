@@ -18,10 +18,10 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const modalRef = useRef<BottomSheetModal>(null)
 
   const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+    selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data }) => ({ rideRoute: data?.ride.route.route })
+    selectFromResult: ({ data }) => ({ rideRoute: data?.ride?.route_with_time?.route })
   })
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
     selectFromResult: ({ data }) => ({
@@ -145,7 +145,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           index={1}
           snapPoints={['18%', '45%', '75%']}
         >
-          {(acceptedJoins?.length ?? selectedJoins?.length) && (
+          {(acceptedJoins.length > 0 ?? selectedJoins.length > 0) && (
             <Animated.View entering={FadeIn.delay(100)}>
               <PassengerAvatarList
                 title="已選擇的乘客"

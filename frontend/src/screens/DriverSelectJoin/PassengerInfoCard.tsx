@@ -158,10 +158,10 @@ function PassengerInfoCardFooter({ onReject, onSelect }: PassengerInfoCardFooter
       }}
     >
       <Button onPress={onReject} status="basic" style={{ flex: 1, borderRadius: 100 }}>
-        拒絕
+        <Text>拒絕</Text>
       </Button>
       <Button onPress={onSelect} style={{ flex: 1, borderRadius: 100 }}>
-        選取
+        <Text>選取</Text>
       </Button>
     </View>
   )
