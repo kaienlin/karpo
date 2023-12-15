@@ -3,7 +3,6 @@ import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import reactotron from 'reactotron-react-native'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'

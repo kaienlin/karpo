@@ -138,7 +138,7 @@ export default function DriverInfo({ navigation, route }: UserProfileScreenProps
   const { role, userId } = route?.params
 
   const screenTitle = role === 'driver' ? '駕駛資訊' : '乘客資訊'
-  const { data: user, isLoading } = useGetUserProfileQuery(userId)
+  const { data: user, isSuccess } = useGetUserProfileQuery(userId)
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -148,7 +148,7 @@ export default function DriverInfo({ navigation, route }: UserProfileScreenProps
         accessoryLeft={() => <TopNavigationAction icon={BackIcon} onPress={navigation?.goBack} />}
       />
 
-      {isLoading ? <UserProfileSkeleton /> : <UserProfileCard user={user} />}
+      {!isSuccess ? <UserProfileSkeleton /> : <UserProfileCard user={user} />}
     </SafeAreaView>
   )
 }
