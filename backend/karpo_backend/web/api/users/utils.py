@@ -22,6 +22,7 @@ async def get_user_info_for_others(
     num_requests = await requests_dao.get_num_saved_requests_by_user_id(user_id)
     num_rides = await rides_dao.get_num_saved_rides_by_user_id(user_id)
     return UserInfoForOthersDTO(
+        id=user.id,
         name=user.name,
         rating=user.rating if user.rating else None,
         phone_number=user.phone_number,

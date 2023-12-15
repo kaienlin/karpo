@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, NonNegativeInt
 
 
 class UserInfoForOthersDTO(BaseModel):
+    id: uuid.UUID
     name: str
     rating: Optional[float] = Field(None, ge=0, le=5.0)
     phone_number: Optional[str] = None
