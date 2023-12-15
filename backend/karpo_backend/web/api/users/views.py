@@ -137,13 +137,12 @@ async def get_user_id_profile(
     rides_dao: RidesDAO = Depends(),
     user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
 ) -> UserInfoForOthersDTO:
-    try:
-        info = await get_user_info_for_others(
-            user_id,
-            user_db,
-            requests_dao,
-            rides_dao,
-        )
-        return info
-    except ValueError:
+    info = await get_user_info_for_others(
+        user_id,
+        user_db,
+        requests_dao,
+        rides_dao,
+    )
+    if info is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return info

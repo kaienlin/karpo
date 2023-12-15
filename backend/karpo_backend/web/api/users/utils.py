@@ -1,5 +1,6 @@
 import uuid
 from base64 import b64encode
+from typing import Optional
 
 from fastapi_users.db import SQLAlchemyUserDatabase
 
@@ -14,16 +15,17 @@ async def get_user_info_for_others(
     user_db: SQLAlchemyUserDatabase,
     requests_dao: RequestsDAO,
     rides_dao: RidesDAO,
-) -> UserInfoForOthersDTO:
+) -> Optional[UserInfoForOthersDTO]:
     user: User = await user_db.get(user_id)
     if user is None:
-        raise ValueError(f"user {user_id} does not exists")
+        return None
     num_requests = await requests_dao.get_num_saved_requests_by_user_id(user_id)
     num_rides = await rides_dao.get_num_saved_rides_by_user_id(user_id)
     return UserInfoForOthersDTO(
         name=user.name,
         rating=user.rating if user.rating else None,
-        avatar=b64encode(user.avatar).decode() if user.avatar else None,
+        phone_number=user.phone_number,
+        avatar=user.avatar if user.avatar else None,
         created_at=user.created_at,
         num_requests=num_requests,
         num_rides=num_rides,

@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: 06592acb7855
+Revision ID: 2a26ebf875f4
 Revises: 2b7380507a71
-Create Date: 2023-12-14 09:19:11.083206
+Create Date: 2023-12-15 03:04:14.086719
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "06592acb7855"
+revision = "2a26ebf875f4"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("phone_number", sa.String(length=20), nullable=True),
         sa.Column("rating", sa.Float(), nullable=True),
         sa.Column("rating_count", sa.Integer(), nullable=False),
-        sa.Column("avatar", sa.LargeBinary(), nullable=True),
+        sa.Column("avatar", sa.String(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

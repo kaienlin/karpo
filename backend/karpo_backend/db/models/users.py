@@ -11,7 +11,7 @@ from fastapi_users.authentication import (
     RedisStrategy,
 )
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
-from pydantic import Base64Bytes, Field
+from pydantic import Field
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -32,7 +32,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     phone_number: Mapped[Optional[str]] = mapped_column(String(length=20))
     rating: Mapped[Optional[float]] = mapped_column(insert_default=None)
     rating_count: Mapped[int] = mapped_column(insert_default=0)
-    avatar: Mapped[Optional[bytes]]
+    avatar: Mapped[Optional[str]]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -47,7 +47,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     rating: Optional[
         Annotated[float, Field(strict=True, ge=0, le=5.0)]
     ] = None  # noqa: WPS432
-    avatar: Optional[Base64Bytes] = None
+    avatar: Optional[str] = None
 
 
 class UserCreate(schemas.BaseUserCreate):
@@ -55,7 +55,7 @@ class UserCreate(schemas.BaseUserCreate):
 
     name: str
     phone_number: Optional[str] = None
-    avatar: Optional[Base64Bytes] = None
+    avatar: Optional[str] = None
 
 
 class UserUpdate(schemas.BaseUserUpdate):
@@ -63,7 +63,7 @@ class UserUpdate(schemas.BaseUserUpdate):
 
     name: Optional[str] = None
     phone_number: Optional[str] = None
-    avatar: Optional[Base64Bytes] = None
+    avatar: Optional[str] = None
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):

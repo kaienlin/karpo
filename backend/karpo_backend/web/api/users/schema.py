@@ -2,13 +2,14 @@ import datetime
 import uuid
 from typing import Optional
 
-from pydantic import Base64Str, BaseModel, Field, NonNegativeInt
+from pydantic import BaseModel, Field, NonNegativeInt
 
 
 class UserInfoForOthersDTO(BaseModel):
     name: str
     rating: Optional[float] = Field(None, ge=0, le=5.0)
-    avatar: Optional[Base64Str] = None
+    phone_number: Optional[str] = None
+    avatar: Optional[str] = None
     created_at: datetime.datetime
     num_requests: NonNegativeInt
     num_rides: NonNegativeInt
