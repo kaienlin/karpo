@@ -21,8 +21,16 @@ export default function RateScreen({ navigation, route }: RateScreenProps) {
     selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
   })
 
-  const { userIds } = route.params
+  // const { userIds } = route.params
   // TODO: create mock data on mockoon
+  const userIds  = [
+    '94bd2c03-54b4-469a-9af4-df34e29bfd69',
+    "6dc48bd6-da3b-4550-84a2-b9b2ba426b08",
+    "08cc78e3-f735-4afe-8f15-02568e6cbeb2",
+    "a28202cb-be1b-450e-8970-b8ab138d5314",
+    "c2545b36-44cb-48dd-a6f1-a08068e91d1a"
+  ]
+  
   const { data: users, isSuccess } = useGetUserProfileBatchQuery(userIds ?? skipToken)
 
 
@@ -52,7 +60,9 @@ export default function RateScreen({ navigation, route }: RateScreenProps) {
           />
         )}
       />
-
+      {/* <View>
+        <Text>{users[0]}</Text>
+      </View> */}
       {isSuccess && (
         <FlatList 
           data={users} 

@@ -1,14 +1,15 @@
 // Users
 export interface User {
   id: string
-  name: string
   email: string
-  phoneNumber: string
-  avatar: string
-  rating: number
   isActive?: boolean
   isSuperuser?: boolean
   isVerified?: boolean
+  name: string
+  phoneNumber: string
+  rating: number
+  avatar: string
+  
 }
 
 export interface UserEditable
