@@ -47,4 +47,7 @@ class MessagesDAO:
             .order_by(MessagesModel.created_at),
         )
 
-        return result.all()
+        result_instances = result.all()
+        for result_instance in result_instances:
+            self.session.expunge(result_instance)
+        return result_instances

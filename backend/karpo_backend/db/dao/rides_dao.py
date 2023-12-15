@@ -80,8 +80,10 @@ class RidesDAO:
         result = await self.session.scalars(
             select(RidesModel).where(RidesModel.id == ride_id),
         )
-
-        return result.one_or_none()
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def delete_all_by_user_id(
         self,
@@ -103,7 +105,10 @@ class RidesDAO:
             .limit(limit=limit),
         )
 
-        return result.all()
+        result_instances = result.all()
+        for result_instance in result_instances:
+            self.session.expunge(result_instance)
+        return result_instances
 
     async def get_num_saved_rides_by_user_id(
         self,
@@ -153,17 +158,19 @@ class RidesDAO:
         self,
         ride_id: uuid.UUID,
     ) -> Optional[RidesModel]:
-        result = await self.session.execute(
-            select(RidesModel.phase, RidesModel.driver_position).where(
-                RidesModel.id == ride_id
-            ),
+        result = await self.session.scalars(
+            select(RidesModel).where(RidesModel.id == ride_id),
         )
-        return result.one_or_none()
+
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def get_schedule_by_id(
         self,
         ride_id: uuid.UUID,
-    ) -> Optional[RidesModel]:
+    ) -> Optional[List]:
         result = await self.session.scalars(
             select(RidesModel.schedule).where(RidesModel.id == ride_id),
         )
@@ -179,7 +186,11 @@ class RidesDAO:
                 & (RidesModel.phase < func.cardinality(RidesModel.schedule))
             )
         )
-        return result.one_or_none()
+
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def update_schedule_by_ride_id(
         self,

@@ -65,7 +65,10 @@ class JoinsDAO:
             select(JoinsModel).where(JoinsModel.id == join_id)
         )
 
-        return result.one_or_none()
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def put_joins_model_status_by_id(
         self, join_id: uuid.UUID, action: Literal["accept", "reject", "cancel"]
@@ -105,7 +108,10 @@ class JoinsDAO:
             )
         )
 
-        return result.all()
+        result_instances = result.all()
+        for result_instance in result_instances:
+            self.session.expunge(result_instance)
+        return result_instances
 
     async def get_joins_model_by_ride_id_and_status(
         self,
@@ -123,7 +129,10 @@ class JoinsDAO:
                 )
             )
 
-        return result.all()
+        result_instances = result.all()
+        for result_instance in result_instances:
+            self.session.expunge(result_instance)
+        return result_instances
 
     async def get_accepted_joins_by_request_id(
         self,
@@ -136,7 +145,10 @@ class JoinsDAO:
             )
         )
 
-        return result.one_or_none()
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def get_pending_joins_by_request_id(
         self,
@@ -148,4 +160,7 @@ class JoinsDAO:
             )
         )
 
-        return result.all()
+        result_instances = result.all()
+        for result_instance in result_instances:
+            self.session.expunge(result_instance)
+        return result_instances

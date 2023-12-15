@@ -54,7 +54,10 @@ class RequestsDAO:
             select(RequestsModel).where(RequestsModel.id == request_id),
         )
 
-        return result.one_or_none()
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def delete_all_by_user_id(
         self,
@@ -87,7 +90,10 @@ class RequestsDAO:
             )
         )
 
-        return result.one_or_none()
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def get_saved_request_by_user_id(
         self,
@@ -101,7 +107,10 @@ class RequestsDAO:
             .limit(limit=limit),
         )
 
-        return result.all()
+        result_instances = result.all()
+        for result_instance in result_instances:
+            self.session.expunge(result_instance)
+        return result_instances
 
     async def get_num_saved_requests_by_user_id(
         self,
@@ -156,6 +165,7 @@ class RequestsDAO:
         for partition in candidates.partitions(size=100):
             evaled_matches: List[Tuple[RidesModel, Match]] = []
             for ride in partition:
+                self.session.expunge(ride)
                 match = evaluate_match(ride, requests_model)
                 if match is not None:
                     evaled_matches.append((ride, match))
