@@ -1,3 +1,4 @@
+import { MapsAPI } from '~/services/maps'
 import type { Join, JoinDetailed, Ride, Schedule } from '~/types/data'
 
 import { apiSlice } from './index'
@@ -20,7 +21,7 @@ interface UpdateDriverStatusRequest {
   phase: number
 }
 
-export const driverSlice = apiSlice.injectEndpoints({
+export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] }).injectEndpoints({
   endpoints: (builder) => ({
     getRide: builder.query<{ ride: Ride }, string>({
       query: (rideId) => ({
@@ -29,7 +30,8 @@ export const driverSlice = apiSlice.injectEndpoints({
       })
     }),
     getJoins: builder.query<GetJoinsResponse<JoinDetailed>, { rideId: string; status: string }>({
-      async queryFn(arg, api, extraOptions, baseQuery) {
+      providesTags: ['Joins'],
+      queryFn: async (arg, api, extraOptions, baseQuery) => {
         const { rideId, status } = arg
         const joinsResult = await baseQuery(`rides/${rideId}/joins?status=${status}`)
         if (joinsResult.error) return { error: joinsResult.error }
@@ -38,9 +40,15 @@ export const driverSlice = apiSlice.injectEndpoints({
         const result = await Promise.all(
           joins.map(async (join) => {
             const { data: passengerInfo } = await baseQuery(`users/${join.passengerId}/profile`)
+            join.pickUpLocation.description = await MapsAPI.getPlaceTitle(join.pickUpLocation)
+            join.dropOffLocation.description = await MapsAPI.getPlaceTitle(join.dropOffLocation)
+
             return {
               ...join,
-              passengerInfo
+              passengerInfo: {
+                id: join.passengerId,
+                ...passengerInfo
+              }
             }
           })
         )
@@ -74,6 +82,7 @@ export const driverSlice = apiSlice.injectEndpoints({
       }
     }),
     respondJoin: builder.mutation<string, RespondJoinRequest>({
+      invalidatesTags: ['Joins'],
       query: ({ rideId, joinId, action }) => ({
         url: `/rides/${rideId}/joins/${joinId}/status`,
         method: 'PUT',

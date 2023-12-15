@@ -54,7 +54,9 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const [respondJoin] = useRespondJoinMutation()
 
   const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
-  const selectedJoins = pendingJoins?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+  const selectedJoins = pendingJoins
+    ?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+    ?.map((item) => ({ status: 'pending', ...item }))
   const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
 
   const screenTitle = !isAcceptedJoinsSuccess

@@ -77,6 +77,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const handleChat = (userId: string) => {
     navigation.navigate('ChatScreen', { rideId })
   }
+  console.log(ride)
 
   useEffect(() => {
     if (stage === schedule?.length) {
@@ -136,7 +137,11 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
         </TouchableOpacity>
       </View>
       <MapViewWithRoute
-        route={ride?.route?.route}
+        // TODO: refactor
+        route={ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
+          latitude,
+          longitude
+        }))}
         edgePadding={{ bottom: stage === -1 ? 550 : 300 }}
       >
         {/* TODO: mark passenger location */}
