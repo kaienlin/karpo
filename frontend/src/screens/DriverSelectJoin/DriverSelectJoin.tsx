@@ -79,6 +79,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
       for (const joinId of selectedJoinIds) {
         await respondJoin({ rideId, joinId, action: 'accept' })
       }
+      setSelectedJoinIds([])
     } catch (error) {
       console.log(error)
     }
