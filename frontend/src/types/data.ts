@@ -136,6 +136,3 @@ export interface Message {
   time: Date
 }
 
-export interface Messages {
-  messages: Message[]
-}
