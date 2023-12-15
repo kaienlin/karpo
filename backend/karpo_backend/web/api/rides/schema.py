@@ -115,7 +115,7 @@ class GetRideJoinsResponse(BaseModel):
 class StopoverDTO(BaseModel):
     join_id: uuid.UUID
     request_id: uuid.UUID
-    passenger_info: UserInfoForOthersDTO
+    passenger_id: uuid.UUID
     time: datetime.datetime
     location: LocationWithDescDTO
     status: Literal["pick_up", "drop_off"]

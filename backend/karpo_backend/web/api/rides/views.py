@@ -332,19 +332,13 @@ async def get_ride_id_schedule(
     stopover_list = []
     for stopover_json in schedule:
         stopover_info = json.loads(stopover_json)
-        user_info = await get_user_info_for_others(
-            stopover_info["passenger_id"],
-            user_db,
-            requests_dao,
-            rides_dao,
-        )
         location: Point = wkb.loads(bytes.fromhex(stopover_info["location"]))
 
         stopover_list.append(
             StopoverDTO(
                 join_id=stopover_info["join_id"],
                 request_id=stopover_info["request_id"],
-                passenger_info=user_info,
+                passenger_id=stopover_info["passenger_id"],
                 time=stopover_info["time"],
                 location=LocationWithDescDTO(
                     longitude=location.x,
