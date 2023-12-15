@@ -77,7 +77,6 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const handleChat = (userId: string) => {
     navigation.navigate('ChatScreen', { rideId })
   }
-  console.log(ride)
 
   useEffect(() => {
     if (stage === schedule?.length) {
