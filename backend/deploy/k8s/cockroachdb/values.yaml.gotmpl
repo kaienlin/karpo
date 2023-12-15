@@ -240,13 +240,13 @@ statefulset:
   # Uncomment the following resources definitions or pass them from
   # command line to control the CPU and memory resources allocated
   # by Pods of this StatefulSet.
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 512Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 512Mi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
 
   # Custom Liveness probe
   # https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-http-request
@@ -324,8 +324,8 @@ service:
 ingress:
   enabled: false
   labels: {}
-  annotations: {}
-  #   kubernetes.io/ingress.class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
   #   cert-manager.io/cluster-issuer: letsencrypt
   paths: [/]
   hosts: []
@@ -342,7 +342,7 @@ securityContext:
 
 # CockroachDB's Prometheus operator ServiceMonitor support
 serviceMonitor:
-  enabled: false
+  enabled: true
   labels: {}
   annotations: {}
   interval: 10s
@@ -352,7 +352,8 @@ serviceMonitor:
 
   # tlsConfig: TLS configuration to use when scraping the endpoint.
   # Of type: https://github.com/coreos/prometheus-operator/blob/main/Documentation/api.md#tlsconfig
-  tlsConfig: {}
+  tlsConfig:
+    insecureSkipVerify: true
 
 # CockroachDB's data persistence.
 # If neither `persistentVolume` nor `hostPath` is used, then data will be
@@ -426,17 +427,18 @@ init:
     enabled: true
 
   provisioning:
-    enabled: false
+    enabled: true
     # https://www.cockroachlabs.com/docs/stable/cluster-settings.html
     clusterSettings:
       # cluster.organization: "'FooCorp - Local Testing'"
       # enterprise.license: "'xxxxx'"
-    users: []
-    # - name:
-    #   password:
+    users:
+     - name: karpo_backend
+       password: {{ .Values.dbPass | quote }}
     #   # https://www.cockroachlabs.com/docs/stable/create-user.html#parameters
     #   options: [LOGIN]
-    databases: []
+    databases:
+      - name: karpo_backend
     # - name:
     #   # https://www.cockroachlabs.com/docs/stable/create-database.html#parameters
     #   options: [encoding='utf-8']
