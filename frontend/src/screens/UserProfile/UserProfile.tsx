@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
-  Avatar,
   Icon,
   Layout,
   Text,
@@ -12,6 +11,7 @@ import {
 import { MotiView } from 'moti'
 import { Skeleton } from 'moti/skeleton'
 
+import { Avatar } from '~/components/Avatar'
 import { useGetUserProfileQuery } from '~/redux/api/users'
 import type { User } from '~/types/data'
 import type { UserProfileScreenProps } from '~/types/screens'
@@ -28,9 +28,6 @@ const driverInfo = {
   joinedDays: 3
 }
 
-const getPhotoPath = (fileName: string): string => `../../assets/${fileName}`
-
-const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone-outline" />
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 
 function UserProfileCard({ user }: { user: User }) {
@@ -41,7 +38,7 @@ function UserProfileCard({ user }: { user: User }) {
     <>
       {/* name */}
       <View style={styles.profilePhotoContainer}>
-        <Avatar source={{ uri: avatar }} style={{ height: 80, width: 80 }} size="giant" />
+        <Avatar base64Uri={avatar} size="large" />
       </View>
       <View style={{ marginHorizontal: 30, marginTop: 15 }}>
         <Text style={{ fontSize: 38, fontWeight: 'bold' }}>{name}</Text>
