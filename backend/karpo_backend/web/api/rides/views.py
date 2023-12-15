@@ -595,6 +595,16 @@ async def put_ride_id_joins_join_id_status(
         raise HTTPException(
             status_code=403, detail="Ride id doesn't match the ride id in join"
         )
+    
+    if req.action in ["cancel"]:
+        if join.request_user_id != user.id:
+            raise HTTPException(status_code=403, detail="Permission denied")
+
+        await joins_dao.put_joins_model_status_by_id(join_id, req.action)
+        await joins_dao.put_joins_model_progress_by_id(join_id, "canceled")
+
+    if join.status != "pending":
+        raise HTTPException(status_code=404, detail="The request is not pending.")
 
     if req.action in ["accept", "reject"]:
         if join.ride_user_id != user.id:
@@ -617,11 +627,5 @@ async def put_ride_id_joins_join_id_status(
                 last_update_time=datetime.datetime.now(),
             )
 
-    if req.action in ["cancel"]:
-        if join.request_user_id != user.id:
-            raise HTTPException(status_code=403, detail="Permission denied")
-
-        await joins_dao.put_joins_model_status_by_id(join_id, req.action)
-        await joins_dao.put_joins_model_progress_by_id(join_id, "canceled")
 
     await rides_dao.update_schedule_by_ride_id(ride_id)
