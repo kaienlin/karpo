@@ -32,6 +32,7 @@ class JoinsDAO:
         drop_off_time: datetime.datetime,
         pick_up_distance: float,
         drop_off_distance: float,
+        proximity: float,
     ) -> uuid.UUID:
         join = JoinsModel(
             request_id=request_id,
@@ -51,6 +52,7 @@ class JoinsDAO:
             drop_off_time=drop_off_time,
             pick_up_distance=pick_up_distance,
             drop_off_distance=drop_off_distance,
+            proximity=proximity,
             progress="waiting",
         )
         self.session.add(join)

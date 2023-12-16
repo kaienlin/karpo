@@ -1,4 +1,5 @@
 import datetime
+import math
 import uuid
 from typing import Tuple
 
@@ -273,6 +274,7 @@ async def test_get_matches(
     assert get_match_resp_obj.matches[0].ride_id == post_rides_resp_obj.ride_id
     assert get_match_resp_obj.matches[0].status == "unasked"
     assert get_match_resp_obj.matches[0].join_id is None
+    proximity = get_match_resp_obj.matches[0].proximity
 
     post_joins_url = fastapi_app.url_path_for(
         "post_ride_id_joins",
@@ -298,6 +300,7 @@ async def test_get_matches(
     assert len(get_match_resp_obj.matches) == 1
     assert get_match_resp_obj.matches[0].status == "pending"
     assert get_match_resp_obj.matches[0].join_id == post_joins_resp_obj.join_id
+    assert math.isclose(get_match_resp_obj.matches[0].proximity, proximity)
 
     # driver put join status
     put_join_status_url = fastapi_app.url_path_for(

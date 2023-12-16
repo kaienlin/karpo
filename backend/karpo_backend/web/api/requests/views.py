@@ -156,7 +156,7 @@ async def get_match_dto_from_request_and_join(
             ride.route,
             ride.route_timestamps,
         ),
-        proximity=0,  # TODO: add proximity to JoinsModel
+        proximity=join.proximity,
         status=join.status,
         join_id=join.id,
     )

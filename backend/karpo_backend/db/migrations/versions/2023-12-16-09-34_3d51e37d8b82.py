@@ -1,9 +1,9 @@
 # type: ignore
 """empty message
 
-Revision ID: 2a26ebf875f4
+Revision ID: 3d51e37d8b82
 Revises: 2b7380507a71
-Create Date: 2023-12-15 03:04:14.086719
+Create Date: 2023-12-16 09:34:48.469415
 
 """
 import fastapi_users_db_sqlalchemy
@@ -12,7 +12,7 @@ from alembic import op
 from geoalchemy2 import Geography
 
 # revision identifiers, used by Alembic.
-revision = "2a26ebf875f4"
+revision = "3d51e37d8b82"
 down_revision = "2b7380507a71"
 branch_labels = None
 depends_on = None
@@ -219,6 +219,7 @@ def upgrade() -> None:
         sa.Column("drop_off_time", sa.DateTime(timezone=True), nullable=False),
         sa.Column("pick_up_distance", sa.Float(), nullable=False),
         sa.Column("drop_off_distance", sa.Float(), nullable=False),
+        sa.Column("proximity", sa.Float(), nullable=False),
         sa.Column(
             "progress",
             sa.Enum("waiting", "onboard", "fulfilled", "canceled", native_enum=False),

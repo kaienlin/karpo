@@ -36,6 +36,7 @@ class JoinsModel(Base):
     drop_off_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     pick_up_distance: Mapped[float]
     drop_off_distance: Mapped[float]
+    proximity: Mapped[float]
     progress: Mapped[Literal["waiting", "onboard", "fulfilled", "canceled"]]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

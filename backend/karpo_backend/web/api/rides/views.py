@@ -409,6 +409,7 @@ async def post_ride_id_joins(
         drop_off_time=match.drop_off_time,
         pick_up_distance=match.pick_up_distance,
         drop_off_distance=match.drop_off_distance,
+        proximity=match.estimated_travel_time,
     )
     return PostRideIdJoinsResponse(join_id=join_id)
 
