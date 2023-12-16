@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { TouchableOpacity, View } from 'react-native'
+import { Marker } from 'react-native-maps'
 import Animated, { Easing, SlideInDown } from 'react-native-reanimated'
 import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, StyleService, useStyleSheet } from '@ui-kitten/components'
 
+import { Avatar } from '~/components/Avatar'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
 import {
@@ -40,7 +42,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
     selectFromResult: ({ data, ...rest }) => ({
       data: {
         numAvailableSeat: data?.numAvailableSeat,
-        passengers: data?.joins.map((join) => ({
+        passengers: data?.joins.map(join => ({
           ...join.passengerInfo,
           numPassengers: join.numPassengers
         }))
@@ -53,7 +55,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
     rideId ?? skipToken,
     { selectFromResult: ({ data, ...rest }) => ({ data: data?.schedule, ...rest }) }
   )
-  const passenger = passengers?.find((passenger) => passenger.id === schedule?.[stage]?.passengerId)
+  const passenger = passengers?.find(passenger => passenger.id === schedule?.[stage]?.passengerId)
 
   const [updateStatus] = useUpdateStatusMutation()
 
@@ -65,7 +67,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
       phase: stage + 1
     })
     setTimeout(() => {
-      setStage((prev) => prev + 1)
+      setStage(prev => prev + 1)
       setIsLoading(false)
     }, 500)
   }
@@ -81,7 +83,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   useEffect(() => {
     if (stage === schedule?.length) {
       navigation.navigate('RideCompleteScreen', {
-        userIds: passengers?.map((passenger) => passenger.id)
+        userIds: passengers?.map(passenger => passenger.id)
       })
     }
   }, [stage])
@@ -137,13 +139,19 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
       </View>
       <MapViewWithRoute
         // TODO: refactor
-        route={ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
-          latitude,
-          longitude
-        }))}
+        route={ride?.routeWithTime?.route.map(([longitude, latitude]) => ({ latitude, longitude }))}
         edgePadding={{ bottom: stage === -1 ? 550 : 300 }}
       >
-        {/* TODO: mark passenger location */}
+        {stage > -1 && (
+          <Marker
+            coordinate={{
+              latitude: schedule?.[stage]?.location.latitude,
+              longitude: schedule?.[stage]?.location.longitude
+            }}
+          >
+            <Avatar base64Uri={passenger.avatar} size="mini" />
+          </Marker>
+        )}
       </MapViewWithRoute>
 
       <View

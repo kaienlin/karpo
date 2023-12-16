@@ -1,5 +1,5 @@
 import { MapsAPI } from '~/services/maps'
-import type { Join, JoinDetailed, Ride, Schedule } from '~/types/data'
+import type { Join, JoinDetailed, RideRequest, RideResponse, Schedule } from '~/types/data'
 
 import { apiSlice } from './index'
 import { usersSlice } from './users'
@@ -22,9 +22,9 @@ interface UpdateDriverStatusRequest {
 }
 
 export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] }).injectEndpoints({
-  endpoints: (builder) => ({
-    getRide: builder.query<{ ride: Ride }, string>({
-      query: (rideId) => ({
+  endpoints: builder => ({
+    getRide: builder.query<{ ride: RideResponse }, string>({
+      query: rideId => ({
         url: `/rides/${rideId}`,
         method: 'GET'
       })
@@ -38,7 +38,7 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
 
         const { numAvailableSeat, joins } = joinsResult.data as GetJoinsResponse<Join>
         const result = await Promise.all(
-          joins.map(async (join) => {
+          joins.map(async join => {
             const { data: passengerInfo } = await baseQuery(`users/${join.passengerId}/profile`)
             join.pickUpLocation.description = await MapsAPI.getPlaceTitle(join.pickUpLocation)
             join.dropOffLocation.description = await MapsAPI.getPlaceTitle(join.dropOffLocation)
@@ -57,13 +57,31 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
       }
     }),
     getSchedule: builder.query<Schedule, string>({
-      query: (rideId) => ({
-        url: `/rides/${rideId}/schedule`,
-        method: 'GET'
-      })
+      queryFn: async (arg, api, extraOptions, baseQuery) => {
+        const rideId = arg
+        const scheduleResult = await baseQuery(`rides/${rideId}/schedule`)
+        if (scheduleResult.error) return { error: scheduleResult.error }
+
+        const { schedule } = scheduleResult.data as Schedule
+        const scheduleWithDescription = await Promise.all(
+          schedule.map(async step => {
+            const description = await MapsAPI.getPlaceTitle(step.location)
+
+            return {
+              ...step,
+              location: {
+                ...step.location,
+                description
+              }
+            }
+          })
+        )
+
+        return { data: { schedule: scheduleWithDescription } }
+      }
     }),
-    createRide: builder.mutation<{ rideId: string }, Ride>({
-      query: (ride) => ({
+    createRide: builder.mutation<{ rideId: string }, RideRequest>({
+      query: ride => ({
         url: `/rides/`,
         method: 'POST',
         body: ride
@@ -92,7 +110,7 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
       }),
       onQueryStarted: async ({ rideId, joinId, action }, { dispatch, queryFulfilled }) => {
         const patchResult = dispatch(
-          driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, (draft) => {
+          driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, draft => {
             const target = draft.joins.find(({ joinId: id }) => id === joinId)
             target.status = action === 'accept' ? 'accepted' : 'rejected'
           })

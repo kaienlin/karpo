@@ -34,33 +34,43 @@ export interface DriverActivity extends Required<Pick<ActivityItems, 'driverStat
 export interface PassengerActivity extends Required<Pick<ActivityItems, 'passengerState'>> {}
 
 // Drivers
-export interface Ride {
-  // departureTime: Date
-  time: Date
+export interface RideBase {
+  departureTime: Date
   origin: Waypoint
   destination: Waypoint
   intermediates?: Waypoint[]
   numSeats: number
+}
+
+export interface RideRequest extends RideBase {
   route: {
     steps: Array<Array<[number, number]>>
     durations: number[]
   }
 }
 
-export interface SavedRide extends Omit<Ride, 'route'> {
+export interface RideResponse extends RideBase {
+  routeWithTime: {
+    route: Array<Array<[number, number]>>
+    timestamps: number[]
+  }
+}
+
+export interface SavedRide extends RideBase {
   label: string
 }
 
 export interface ScheduleStep {
+  joinId: string
   requestId: string
   passengerId: string
   time: Date
   location: Waypoint
-  status: 'pickup' | 'dropoff'
+  status: 'pick_up' | 'drop_off'
 }
 
 export interface Schedule {
-  scheduele: ScheduleStep[]
+  schedule: ScheduleStep[]
 }
 
 // Passengers
