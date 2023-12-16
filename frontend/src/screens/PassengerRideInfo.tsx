@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { Marker } from 'react-native-maps'
 import { Shadow } from 'react-native-shadow-2'
@@ -8,7 +8,7 @@ import { Avatar, Button, Spinner, Text, Toggle, useTheme } from '@ui-kitten/comp
 
 import { Header } from '~/components/CardHeader'
 import { PassengerStackParamList } from '~/types/navigation'
-import { useCreateJoinRequestMutation, useGetRequestQuery } from '~/redux/passenger'
+import { useCreateJoinRequestMutation, useGetRequestQuery } from '~/redux/api/passenger'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useGetWalkingRouteQuery } from '~/redux/api/maps'
 import { useGetUserProfileQuery } from '~/redux/api/users'
@@ -16,6 +16,8 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { Image } from 'expo-image'
 import { useNavigation } from '@react-navigation/native'
 import { Match } from '~/types/data'
+import { displayTime } from '~/utils/format'
+import { MapsAPI } from '~/services/maps'
 
 export const LocationIcon = () => {
   const theme = useTheme()
@@ -134,6 +136,64 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
         : [match.dropOffLocation, request.destination]
   )
 
+  const [pickupDescription, setPickupDescription] = useState('')
+  const [dropoffDescription, setDropoffDescription] = useState('')
+
+  useEffect(() => {
+    const fetchDescription = async () => {
+      if (match.pickUpLocation.latitude 
+        && match.pickUpLocation.longitude) {
+        const pickup = await MapsAPI.getPlaceTitle({
+          latitude: match.pickUpLocation.latitude,
+          longitude: match.pickUpLocation.longitude
+        })
+        setPickupDescription(pickup)
+      }
+
+      if (match.dropOffLocation.latitude 
+        && match.dropOffLocation.longitude) {
+        const dropoff = await MapsAPI.getPlaceTitle({
+          latitude: match.dropOffLocation.latitude,
+          longitude: match.dropOffLocation.longitude
+        })
+        setDropoffDescription(dropoff)
+      }
+    }
+    
+    fetchDescription()
+      .catch(console.error)
+  }, [])
+
+  const originStr = () => {
+    if (request.origin)
+      return `起點：\n${request.origin.description}`
+    return '起點'
+  }
+
+  const destinationStr = () => {
+    if (request.destination)
+      return `目的地：\n${request.origin.description}`
+    return '目的地'
+  }
+
+  const pickupStr = () => {
+    return (
+      '上車地點：\n'
+      + pickupDescription
+      + '\n預估上車時間：\n'
+      + displayTime(match.pickUpTime.toString(), false)
+    )
+  }
+
+  const dropoffStr = () => {
+    return (
+      '下車地點：\n'
+      + pickupDescription
+      + '\n預估下車時間：\n'
+      + displayTime(match.dropOffTime.toString(), false)
+    )
+  }
+
   return (
     <>
       <View style={{ padding: 10 }}>
@@ -169,11 +229,43 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
         edgePadding={{ top: 80, right: 80, left: 80, bottom: 80 }}
         fitToRouteButtonPosition={{ left: '86%', bottom: '40%' }}
       >
+        {request && (
+          <>
+            <Marker coordinate={toggleNote === '上車' ? request.origin : request.destination}>
+              <LocationIcon />
+            </Marker>
+            <Marker
+              anchor={{ x: 0.5, y: 1.5 }}
+              coordinate={toggleNote === '上車' ? request.origin : request.destination}
+            >
+              <Shadow>
+                <View
+                  style={{
+                    width: 110,
+                    alignItems: 'center',
+                    backgroundColor: 'white',
+                    paddingHorizontal: 10,
+                    paddingVertical: 5
+                  }}
+                >
+                  {toggleNote === '上車' ? (
+                    <Text category="label">{originStr()}</Text>
+                  ) : (
+                    <Text category="label">{destinationStr()}</Text>
+                  )}
+
+                  {/* TODO: indicate duration and distance on polyline <Text category="label">{`步行時間${walkingRoute?.duration}`}</Text> */}
+                </View>
+              </Shadow>
+            </Marker>
+          </>
+        )}
+
         <Marker coordinate={toggleNote === '上車' ? match.pickUpLocation : match.dropOffLocation}>
           <LocationIcon />
         </Marker>
         <Marker
-          anchor={{ x: 0.5, y: 2 }}
+          anchor={{ x: 0.5, y: 1.5 }}
           coordinate={toggleNote === '上車' ? match.pickUpLocation : match.dropOffLocation}
         >
           <Shadow>
@@ -187,20 +279,26 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
               }}
             >
               {toggleNote === '上車' ? (
-                <Text category="label">{`上車地點 ${match.pickUpTime}`}</Text>
+                <Text category="label">{pickupStr()}</Text>
               ) : (
-                <Text category="label">{`下車地點 ${match.dropOffTime}`}</Text>
+                <Text category="label">{dropoffStr()}</Text>
               )}
 
               {/* TODO: indicate duration and distance on polyline <Text category="label">{`步行時間${walkingRoute?.duration}`}</Text> */}
             </View>
           </Shadow>
-        </Marker>
+        </Marker> 
       </MapViewWithRoute>
 
       <View style={{ padding: 20 }}>
-        <Text style={{ fontSize: 18 }}>其他乘客</Text>
-        <OtherPassegners match={match} />
+        {match.otherPassengers.length === 0 ? (
+          <Text style={{ fontSize: 18 }}>尚無其他乘客</Text>  
+        ) : (
+          <>
+            <Text style={{ fontSize: 18 }}>其他乘客</Text>
+            <OtherPassegners match={match} />
+          </>
+        )}
       </View>
       <View style={{ paddingVertical: 10 }}>
         <View style={{ padding: 20 }}>

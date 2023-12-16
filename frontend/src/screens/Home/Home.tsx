@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, Tab, TabBar } from '@ui-kitten/components'
 import { Image } from 'expo-image'
-import { useCreateRequestMutation } from '~/redux/passenger'
+import { useCreateRequestMutation } from '~/redux/api/passenger'
 import type { HomeScreenProps } from '~/types/screens'
 
 import { DriverSubScreen } from './DriverSubScreen'

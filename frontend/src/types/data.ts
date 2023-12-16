@@ -34,7 +34,6 @@ export interface PassengerActivity extends Required<Pick<ActivityItems, 'passeng
 
 // Drivers
 export interface Ride {
-  // departureTime: Date
   time: Date
   origin: Waypoint
   destination: Waypoint

@@ -41,7 +41,7 @@ function UserProfileCard({ user }: { user: User }) {
     <>
       {/* name */}
       <View style={styles.profilePhotoContainer}>
-        <Avatar source={{ uri: avatar }} style={{ height: 80, width: 80 }} size="giant" />
+        <Avatar source={{ uri: `data:image/png;base64,${avatar}` }} style={{ height: 80, width: 80 }} size="giant" />
       </View>
       <View style={{ marginHorizontal: 30, marginTop: 15 }}>
         <Text style={{ fontSize: 38, fontWeight: 'bold' }}>{name}</Text>

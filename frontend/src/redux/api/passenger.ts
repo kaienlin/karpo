@@ -1,5 +1,5 @@
 import { Match, RideStatus } from "~/types/data";
-import { apiSlice } from "./api";
+import { apiSlice } from "./index";
 
 const passengerSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,6 +19,12 @@ const passengerSlice = apiSlice.injectEndpoints({
     getMatches: builder.query({
       query: (requestId) => ({
         url: `/requests/${requestId}/matches`,
+        method: 'GET'
+      })
+    }),
+    getRideStatus: builder.query({
+      query: (rideId) => ({
+        url: `/rides/${rideId}/status`,
         method: 'GET'
       })
     }),
@@ -48,11 +54,30 @@ const passengerSlice = apiSlice.injectEndpoints({
         }
       }
     }),
-    getRideStatus: builder.query({
-      query: (rideId) => ({
-        url: `/rides/${rideId}/status`,
-        method: 'GET'
-      })
+    cancelJoinRequest: builder.mutation({
+      query: ({ rideId, joinId }) => ({
+        url: `/rides/${rideId}/joins/${joinId}/status`,
+        method: 'PUT',
+        body: { action: 'cancel' }
+      }),
+      async onQueryStarted({ requestId, rideId }, { dispatch, queryFulfilled }) {
+        // `updateQueryData` requires the endpoint name and cache key arguments,
+        // so it knows which piece of cache state to update
+        const patchResult = dispatch(
+          passengerSlice.util.updateQueryData('getMatches', requestId, matches => {
+            // The `draft` is Immer-wrapped and can be "mutated" like in createSlice
+            const match = matches.matches.find((match: Match) => match.rideId === rideId)
+            if (match) {
+              match.status = 'unasked'
+            }
+          })
+        )
+        try {
+          await queryFulfilled
+        } catch {
+          patchResult.undo()
+        }
+      }
     })
   })
 })
@@ -61,6 +86,7 @@ export const {
   useCreateRequestMutation, 
   useGetRequestQuery,
   useGetMatchesQuery,
+  useGetRideStatusQuery,
   useCreateJoinRequestMutation,
-  useGetRideStatusQuery
+  useCancelJoinRequestMutation
 } = passengerSlice

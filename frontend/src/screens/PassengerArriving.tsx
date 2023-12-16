@@ -12,7 +12,7 @@ import { LocationIcon } from "./PassengerRideInfo"
 import { Match } from "~/types/data"
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useMemo, useRef } from "react"
-import { useGetRideStatusQuery } from "~/redux/passenger"
+import { useGetRideStatusQuery } from "~/redux/api/passenger"
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useNavigation } from "@react-navigation/native"
 

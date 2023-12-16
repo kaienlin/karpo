@@ -3,7 +3,8 @@ import { Button, Card, Icon, IconProps, PopoverPlacements, Text } from '@ui-kitt
 
 import { Header, HeaderProps } from './CardHeader'
 import { Match } from '~/types/data'
-import { useGetUserProfileQuery } from '~/redux/users'
+import { useEffect, useState } from 'react'
+import { MapsAPI } from '~/services/maps'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
 const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
@@ -25,16 +26,47 @@ const styles = StyleSheet.create({
 })
 
 function Footer({ pickUpDistance, dropOffDistance }: FooterProps) {
+  const pickUpDistanceStr = (pickUpDistance / 1000).toFixed(2)
+  const dropOffDistanceStr = (dropOffDistance / 1000).toFixed(2)
+
   return (
     <View style={{ margin: 10 }}>
       <Text style={styles.lightText}>
-        起點 / 終點與路線最短距離： {pickUpDistance} km / {dropOffDistance} km
+        起點 / 終點與路線最短距離： {pickUpDistanceStr} km / {dropOffDistanceStr} km
       </Text>
     </View>
   )
 }
 
 export function InfoCard(cardProps: CardProps) {
+
+  const [pickupDescription, setPickupDescription] = useState('')
+  const [dropoffDescription, setDropoffDescription] = useState('')
+
+  useEffect(() => {
+    const fetchDescription = async () => {
+      if (cardProps.pickUpLocation.latitude 
+        && cardProps.pickUpLocation.longitude) {
+        const pickup = await MapsAPI.getPlaceTitle({
+          latitude: cardProps.pickUpLocation.latitude,
+          longitude: cardProps.pickUpLocation.longitude
+        })
+        setPickupDescription(pickup)
+      }
+
+      if (cardProps.dropOffLocation.latitude 
+        && cardProps.dropOffLocation.longitude) {
+        const dropoff = await MapsAPI.getPlaceTitle({
+          latitude: cardProps.dropOffLocation.latitude,
+          longitude: cardProps.dropOffLocation.longitude
+        })
+        setDropoffDescription(dropoff)
+      }
+    }
+    
+    fetchDescription()
+      .catch(console.error)
+  }, [])
 
   return (
     <Card
@@ -80,7 +112,7 @@ export function InfoCard(cardProps: CardProps) {
             <Icon name="radio-button-on" style={{ width: 24, height: 24 }} fill={'#F0C414'} />
             <View style={{ marginHorizontal: 10 }}>
               <Text style={styles.lightText}>
-                {cardProps.driverOrigin.description}
+                {pickupDescription}
               </Text>
             </View>
           </View>
@@ -88,7 +120,7 @@ export function InfoCard(cardProps: CardProps) {
             <Icon name="pin-outline" style={{ width: 24, height: 24 }} />
             <View style={{ marginHorizontal: 10 }}>
               <Text style={styles.lightText}>
-                {cardProps.driverDestination.description}
+                {dropoffDescription}
               </Text>
             </View>
           </View>
@@ -99,7 +131,6 @@ export function InfoCard(cardProps: CardProps) {
               accessoryLeft={TrashIcon}
               style={{ borderRadius: 100, width: 40, height: 40 }}
               status="danger"
-              // onPress={handleDelete}
             />
           )}
           <Button

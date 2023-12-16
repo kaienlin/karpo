@@ -6,12 +6,13 @@ import { Button, Icon, Input, Text } from '@ui-kitten/components'
 
 import { InputCounter, InputTime, PassengerInputCounter, PassengerInputTime } from '~/components/InputModals'
 import { useWaypoints } from '~/hooks/useWaypoints'
-import { useGetSavedRidesQuery } from '~/redux/api/users'
+import { useGetCurrentActivityQuery, useGetSavedRidesQuery } from '~/redux/api/users'
 import { displayDatetime } from '~/utils/format'
 
 import { emptyWaypoint } from '../DriverPlanRide/PlanPanel'
 import { SavedRideCard } from './components/SavedRideCard'
-import { useCreateRequestMutation } from '~/redux/passenger'
+import { useCreateRequestMutation } from '~/redux/api/passenger'
+import { useEffect } from 'react'
 
 export function PassengerSubScreen() {
   const navigation = useNavigation()
@@ -62,6 +63,22 @@ export function PassengerSubScreen() {
       waypoint: waypoints[index] 
     })
   }
+
+  const { passengerState } = useGetCurrentActivityQuery(undefined, {
+    selectFromResult: ({ data, ...rest }) => ({
+      passengerState: data?.passengerState,
+      ...rest
+    })
+  })
+
+  useEffect(() => {
+    if (passengerState?.requestId) {
+      navigation.navigate('PassengerStack', {
+        screen: 'SelectRideScreen',
+        params: { requestId: passengerState?.requestId }
+      })
+    }
+  }, [passengerState])
 
   return (
     <BottomSheetModalProvider>
