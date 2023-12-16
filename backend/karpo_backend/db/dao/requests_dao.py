@@ -170,6 +170,7 @@ class RequestsDAO:
         for partition in candidates.partitions(size=100):
             evaled_matches: List[Tuple[RidesModel, Match]] = []
             for ride in partition:
+                self.session.expunge(ride)
                 match = evaluate_match(ride, requests_model)
                 if match is not None:
                     evaled_matches.append((ride, match))
