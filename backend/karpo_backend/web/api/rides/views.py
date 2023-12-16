@@ -402,7 +402,7 @@ async def post_ride_id_joins(
         request_user_id=request.user_id,
         ride_user_id=ride.user_id,
         num_passengers=request.num_passengers,
-        # fare=,
+        fare=match.fare,
         pick_up_location=LocationWithDescDTO.from_point(match.pick_up_location),
         drop_off_location=LocationWithDescDTO.from_point(match.drop_off_location),
         pick_up_time=match.pick_up_time,
@@ -534,7 +534,7 @@ async def get_ride_id_joins(
                 passenger_pick_up_distance=join_model.pick_up_distance,
                 passenger_drop_off_distance=join_model.drop_off_distance,
                 num_passengers=join_model.num_passengers,
-                fare=0,  # TBA
+                fare=join_model.fare,
             )
         )
 

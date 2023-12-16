@@ -21,6 +21,7 @@ class Match:
     drop_off_distance: float
     estimated_passenger_walking_time: float
     estimated_travel_time: float
+    fare: int
 
 
 def clip_route_by_start_time(
@@ -63,13 +64,17 @@ def find_point_idx_on_linestring(point: Point, line: LineString) -> int:
     return 0
 
 
+def calc_distance(p1: Point, p2: Point) -> float:
+    geod = Geod(ellps="WGS84")
+    return geod.geometry_length(LineString([p1, p2]))
+
+
 def get_rendezvous_point_and_dist(
     route: LineString,
     origin: Point,
 ) -> Tuple[Point, float]:
     rendezvous_point, _ = nearest_points(route, origin)
-    geod = Geod(ellps="WGS84")
-    dist = geod.geometry_length(LineString([origin, rendezvous_point]))
+    dist = calc_distance(origin, rendezvous_point)
     return rendezvous_point, dist
 
 
@@ -123,6 +128,10 @@ def evaluate_match(  # noqa: WPS210
 
     drop_off_time_ub = sub_ts[find_point_idx_on_linestring(drop_off_loc, sub_route) + 1]
     estimated_arrival_time = drop_off_time_ub + estimate_walking_time(dist_destination)
+    driving_dist = calc_distance(pick_up_loc, drop_off_loc)
+    fare = 50
+    if driving_dist > 1000:
+        fare += int((driving_dist - 1000) * 0.02)
 
     logger.debug(
         f"evaluated the match between request {req.id} and ride {ride.id}. "
@@ -140,4 +149,5 @@ def evaluate_match(  # noqa: WPS210
         drop_off_distance=dist_destination,
         estimated_passenger_walking_time=estimated_walking_time,
         estimated_travel_time=(estimated_arrival_time - req.start_time).seconds,
+        fare=fare,
     )

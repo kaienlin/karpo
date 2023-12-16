@@ -25,7 +25,7 @@ class JoinsDAO:
         request_user_id: uuid.UUID,
         ride_user_id: uuid.UUID,
         num_passengers: int,
-        # fare: int,
+        fare: int,
         pick_up_location: LocationWithDescDTO,
         drop_off_location: LocationWithDescDTO,
         pick_up_time: datetime.datetime,
@@ -40,7 +40,7 @@ class JoinsDAO:
             request_user_id=request_user_id,
             ride_user_id=ride_user_id,
             num_passengers=num_passengers,
-            fare=0,  # TBA
+            fare=fare,
             status="pending",  # status -> driver_response?
             pick_up_location=f"POINT({pick_up_location.longitude} {pick_up_location.latitude})",
             pick_up_location_description="",  # TBA

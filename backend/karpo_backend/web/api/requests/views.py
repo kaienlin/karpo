@@ -78,7 +78,7 @@ async def get_unasked_match_dtos(
             ),
             num_available_seat=ride.num_seats - len(other_accepted_joins),
             other_passengers=other_passengers,
-            fare=0,
+            fare=evaled_match.fare,
             driver_info=driver_user_info,
             driver_route=RouteDTO.from_wkb_and_timestamps(
                 ride.route,
@@ -151,7 +151,7 @@ async def get_match_dto_from_request_and_join(
         num_available_seat=num_avaiable_seat,
         other_passengers=other_passengers,
         driver_info=driver_user_info,
-        fare=0,
+        fare=join.fare,
         driver_route=RouteDTO.from_wkb_and_timestamps(
             ride.route,
             ride.route_timestamps,
