@@ -11,27 +11,42 @@ interface CardProps {
   userInfo: Pick<User, 'id' | 'name'>
   onBlacklist?: (userId: string) => void
   onSubmit?: (userId: string, rating: number, comment: string) => void
+  onSubmitSuccess?: () => void;
 }
 
 export default function RateCard({
-  userInfo,
+  userInfo = {} as User,
   onBlacklist = () => {},
-  onSubmit = () => {}
+  onSubmit = () => {},
+  onSubmitSuccess = () => {},
 }: CardProps) {
-  const { id, name } = userInfo
+  const id  = userInfo.id
+  const name  = userInfo.name
   const [rating, setRating] = useState<number>(0)
   const [comment, setComment] = useState<string>('')
+  const [isVisible, setIsVisible] = useState(true);
 
   const handleBlacklist = () => {
     onBlacklist(id)
+  }
+
+  const handleAddTemplateComments = (c: string) => {
+    setComment((prevComment) => prevComment + ' ' + c);
   }
 
   const handleSubmit = () => {
     if (comment.trim() !== '') {
       setComment('')
     }
-    onSubmit(id, rating, comment)
+    onSubmit(id, rating, comment);
+    setIsVisible(false); // Hide the RateCard after submission
+    onSubmitSuccess();
   }
+
+  if (!isVisible) {
+    return null; // Don't render the RateCard if it's not visible
+  }
+  
   return (
     <Card
       style={{
@@ -43,14 +58,14 @@ export default function RateCard({
       <View style={styles.container}>
         <View style={styles.textContainer}>
           <Text style={styles.text}>與 {name} 共乘體驗如何？</Text>
-          <Button
+          {/* <Button
             onPress={handleBlacklist}
             status="basic"
             size="small"
             style={{ borderRadius: 100 }}
           >
             加入黑名單
-          </Button>
+          </Button> */}
         </View>
 
         <View style={styles.ratingContainer}>
@@ -72,7 +87,12 @@ export default function RateCard({
             style={{ paddingVertical: 10 }}
             ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
             renderItem={({ item }) => (
-              <Button size="small" appearance="outline" style={{ borderRadius: 100 }}>
+              <Button 
+                onPress={() => handleAddTemplateComments(item)}
+                size="small" 
+                appearance="outline" 
+                style={{ borderRadius: 100 }}
+              >
                 {item}
               </Button>
             )}
@@ -82,7 +102,8 @@ export default function RateCard({
             placeholder="留下您的建議"
             autoCapitalize="none"
             multiline={true}
-            onChangeText={setComment}
+            value={comment}
+            onChangeText={(text) => setComment(text)}
           />
           <Button style={styles.button} size="large" onPress={handleSubmit}>
             提交評價
@@ -118,7 +139,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   text: {
-    fontSize: 15
+    fontSize: 19,
+    marginTop: 8,
   },
   ratingContainer: {
     alignItems: 'center'
