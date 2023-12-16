@@ -181,6 +181,14 @@ async def setup_test_users(app: FastAPI):
         phone_number="+886000000000",
     )
 
+    await create_and_login_test_user(  # noqa: S106
+        app,
+        email="test1@karpo.com",
+        name="TestUser1",
+        token="test1",
+        phone_number="+886000000000",
+    )
+
 
 def register_startup_event(
     app: FastAPI,

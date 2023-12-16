@@ -26,7 +26,7 @@ async def post_matched_ride_requests_joins_and_get_ids(
     ride_data: Dict,
     request_datas: List[Dict],
     client_driver: AsyncClient,
-    client_passengers: list[AsyncClient],
+    client_passengers: List[AsyncClient],
     fastapi_app: FastAPI,
 ) -> (uuid.UUID, List[uuid.UUID], List[uuid.UUID]):
     """
@@ -45,7 +45,6 @@ async def post_matched_ride_requests_joins_and_get_ids(
         post_rides_resp_obj = PostRidesResponse.model_validate(resp.json())
     except ValidationError:
         pytest.fail("invalid response")
-
     return_request_ids = []
     return_join_ids = []
     for client_passenger, request_data in zip(client_passengers, request_datas):
@@ -64,6 +63,7 @@ async def post_matched_ride_requests_joins_and_get_ids(
         return_request_ids.append(post_requests_resp_obj.request_id)
 
         match_len = len(post_requests_resp_obj.matches)
+        assert match_len > 0, "invald input data"
         if match_len > 0:
             assert (
                 post_requests_resp_obj.matches[0].ride_id == post_rides_resp_obj.ride_id
@@ -101,8 +101,7 @@ async def post_matched_ride_requests_joins_and_get_ids(
                 json=put_join_status_req_body,
             )
             assert resp.status_code == status.HTTP_200_OK
-
-        return (post_rides_resp_obj.ride_id, return_request_ids, return_join_ids)
+    return (post_rides_resp_obj.ride_id, return_request_ids, return_join_ids)
 
 
 @pytest.mark.anyio

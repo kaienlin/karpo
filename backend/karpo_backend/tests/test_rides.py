@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import contextlib
 from typing import Any, Dict, List, Tuple
 
 import httpx
@@ -11,12 +12,15 @@ from pydantic import ValidationError
 from shapely import LineString, Point, wkb, wkt
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from itertools import permutations
+from karpo_backend.db.models.users import User, get_user_db
 from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.rides_dao import RidesDAO
 from karpo_backend.tests.test_join import (
     post_matched_ride_requests_joins_and_get_ids,
     test_post_joins_and_do_action,
 )
+from karpo_backend.web.api.users.schema import UserInfoForOthersDTO
 from karpo_backend.web.api.requests.schema import PostRequestsResponse
 from karpo_backend.web.api.rides.schema import (
     GetRideIdResponse,
@@ -49,6 +53,22 @@ async def post_ride_and_get_ride_id(
         pytest.fail("invalid response")
 
     return resp_obj.ride_id
+
+
+async def get_client_user_id(
+    client: AsyncClient,
+) -> uuid.UUID:
+    resp = await client.get(url="/api/users/me")
+    assert resp.status_code == status.HTTP_200_OK
+    user_id = resp.json()["id"]
+    return user_id
+
+
+def make_not_exist_uuid(
+    uuid: uuid.UUID
+) -> uuid.UUID:
+    """make a uuid that does not exist"""
+    return str(uuid)[:-1] + "0" if str(uuid)[-1] == "e" else str(uuid)[:-1] + "e"
 
 
 @pytest.mark.anyio
@@ -207,9 +227,7 @@ async def test_get_saved_rides_not_found(
     resp = await client_test.get(url="/api/users/me")
     assert resp.status_code == status.HTTP_200_OK
     user_id = resp.json()["id"]
-    wrong_user_id = (
-        str(user_id)[:-1] + "0" if str(user_id)[-1] == "e" else str(user_id)[:-1] + "e"
-    )
+    wrong_user_id = make_not_exist_uuid(uuid=user_id)
 
     url = fastapi_app.url_path_for("get_saved_rides", user_id=user_id)
     resp = await client_test.get(
@@ -329,11 +347,7 @@ async def test_get_and_update_ride_status_without_phase_change(
     post_ride_id = resp_obj.ride_id
 
     # check wrong ride status
-    wrong_ride_id = (
-        str(post_ride_id)[:-1] + "e"
-        if str(post_ride_id)[-1] == "0"
-        else str(post_ride_id)[:-1] + "0"
-    )
+    wrong_ride_id = make_not_exist_uuid(uuid=post_ride_id)
     get_ride_id_status_url = fastapi_app.url_path_for(
         "get_ride_id_status", ride_id=wrong_ride_id
     )
@@ -548,7 +562,7 @@ async def test_get_and_update_ride_status_with_phase_change(
     dbsession: AsyncSession,
     client_test0: AsyncClient,
     client_test: AsyncClient,
-    client_test2: AsyncClient,
+    client_test1: AsyncClient,
 ) -> None:
     """Tests rides instance creation."""
 
@@ -560,7 +574,7 @@ async def test_get_and_update_ride_status_with_phase_change(
         ride_data=ride_data_1,
         request_datas=match_ride_data_1_request_datas,
         client_driver=client_test0,
-        client_passengers=[client_test, client_test2],
+        client_passengers=[client_test, client_test1],
         fastapi_app=fastapi_app,
     )
     post_ride_id = ride_id
@@ -627,8 +641,7 @@ async def test_get_and_update_ride_status_with_phase_change(
     assert resp_obj.phase == -1
 
     # update ride status to 0 ~ 3
-    joins_dao = JoinsDAO(dbsession)
-    for patch_phase in range(2 * len(schedule)):
+    for patch_phase in range(len(schedule)):
         patch_ride_id_status_url = fastapi_app.url_path_for(
             "patch_ride_id_status", ride_id=post_ride_id
         )
@@ -660,15 +673,15 @@ async def test_get_and_update_ride_status_with_phase_change(
             pytest.fail("invalid response")
         assert resp_obj.phase == patch_phase
 
-        ## TODO: check the status of completed stopover after patch
-        # completed_status = schedule[patch_phase].status
-        # join_id = schedule[patch_phase].join_id
-        # join_model = await joins_dao.get_joins_model_by_id(join_id)
-        # print(schedule)
-        # if completed_status == "pick_up":
-        #     assert join_model.progress == "onboard"
-        # else:
-        #     assert join_model.progress == "fulfilled"
+        # check the status of completed stopover after patch
+        completed_status = schedule[patch_phase].status
+        join_id = schedule[patch_phase].join_id
+        joins_dao = JoinsDAO(dbsession)
+        join_model = await joins_dao.get_joins_model_by_id(join_id)
+        if completed_status == "pick_up":
+            assert join_model.progress == "onboard"
+        else:
+            assert join_model.progress == "fulfilled"
 
 
 @pytest.mark.anyio
@@ -764,3 +777,183 @@ async def test_post_and_get_chatroom_messages(
     assert get_messages_resp_obj.chat_records[
         0
     ].time >= datetime.datetime.fromisoformat(from_time)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "ratings",
+    [
+        [1, 2, 5],
+        [1],
+        [1, 2, 5, 4, 4, 3, 5, 2],
+        [1, 2, 5, 4, 4, 3, 5, 2, 3, 5, 1,2 ,5, 4, 3, 4, 2, 3],
+    ],
+)
+async def test_update_rating(
+    ratings: List[int],
+    ride_data_1: Dict,
+    match_ride_data_1_request_datas: List[Dict],
+    fastapi_app: FastAPI,
+    dbsession: AsyncSession,
+    client_test: AsyncClient,
+    client_test0: AsyncClient,
+    client_test1: AsyncClient,
+) -> None:
+    """Tests post rating in post comment API"""
+    (
+        ride_id,
+        request_ids,
+        join_ids,
+    ) = await post_matched_ride_requests_joins_and_get_ids(
+        ride_data=ride_data_1,
+        request_datas=match_ride_data_1_request_datas,
+        client_driver=client_test,
+        client_passengers=[client_test0, client_test1],
+        fastapi_app=fastapi_app,
+    )
+
+    user_list = []
+    for client in [client_test, client_test0, client_test1]:
+        user_id = await get_client_user_id(client=client)
+        user_list.append((user_id, client))
+
+    # test different permutations
+    get_user_db_context = contextlib.asynccontextmanager(get_user_db)
+    async with get_user_db_context(dbsession) as user_db:
+        user_pairs = list(permutations(user_list, 2)) 
+        for i, ((user_id_1, client_1), (user_id_2, client_2)) in enumerate(user_pairs):
+            # user 1 get origin rating
+            user: User = await user_db.get(user_id_1)
+            origin_rating_count = user.rating_count
+            origin_rating = user.rating if origin_rating_count != 0 else 0
+
+            # user 2 post rating
+            post_rating_url = fastapi_app.url_path_for(
+                "post_comments",
+                ride_id=ride_id,
+            )
+            post_rating = ratings[i%len(ratings)]
+            post_rating_req_body = {
+                "user_id": user_id_1,
+                "rate": post_rating,
+                "comment": "test",
+            }
+            resp = await client_2.post(
+                url=post_rating_url,
+                json=post_rating_req_body,
+            )
+            assert resp.status_code == status.HTTP_200_OK
+
+            # user 1 check new rating
+            get_user_profile_url = fastapi_app.url_path_for(
+                "get_user_id_profile", 
+                user_id=user_id_1,
+            )
+            resp = await client_1.get(
+                url=get_user_profile_url,
+            )
+            assert resp.status_code == status.HTTP_200_OK
+
+            try:
+                resp_obj = UserInfoForOthersDTO.model_validate(resp.json())
+            except ValidationError:
+                pytest.fail("invalid response")
+            new_rating = resp_obj.rating
+            assert new_rating == (origin_rating + post_rating) / (origin_rating_count + 1)
+
+
+@pytest.mark.anyio
+async def test_update_rating_errors(
+    ride_data_1: Dict,
+    match_ride_data_1_request_datas: List[Dict],
+    fastapi_app: FastAPI,
+    dbsession: AsyncSession,
+    client_test: AsyncClient,
+    client_test0: AsyncClient,
+    client_test1: AsyncClient,
+) -> None:
+    """Tests post rating in post comment API"""
+    (
+        ride_id,
+        request_ids,
+        join_ids,
+    ) = await post_matched_ride_requests_joins_and_get_ids(
+        ride_data=ride_data_1,
+        request_datas=match_ride_data_1_request_datas[:1],
+        client_driver=client_test,
+        client_passengers=[client_test0],
+        fastapi_app=fastapi_app,
+    )
+    user_id = await get_client_user_id(client_test)
+    user_id_0 = await get_client_user_id(client_test0)
+    user_id_1 = await get_client_user_id(client_test1)
+
+
+    # test user cannot rate themselve 400 error
+    post_rating_url = fastapi_app.url_path_for(
+        "post_comments",
+        ride_id=ride_id,
+    )
+    post_rating_req_body = {
+        "user_id": user_id,
+        "rate": 5,
+        "comment": "test",
+    }
+    print(post_rating_url, post_rating_req_body)
+    resp = await client_test.post(
+        url=post_rating_url,
+        json=post_rating_req_body,
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST, "Users cannot rate themselves."
+
+    # test other user not in this ride 403 error
+    post_rating_url = fastapi_app.url_path_for(
+        "post_comments",
+        ride_id=ride_id,
+    )
+    post_rating_req_body = {
+        "user_id": user_id,
+        "rate": 5,
+        "comment": "test",
+    }
+    print(post_rating_url, post_rating_req_body)
+    resp = await client_test1.post(
+        url=post_rating_url,
+        json=post_rating_req_body,
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN, "this user not in this ride."
+    
+
+    # test no such ride 404 error
+    post_rating_url = fastapi_app.url_path_for(
+        "post_comments",
+        ride_id=make_not_exist_uuid(ride_id),
+    )
+    post_rating_req_body = {
+        "user_id": user_id,
+        "rate": 5,
+        "comment": "test",
+    }
+    print(post_rating_url, post_rating_req_body)
+    resp = await client_test0.post(
+        url=post_rating_url,
+        json=post_rating_req_body,
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+    # test no such user 404 error
+    post_rating_url = fastapi_app.url_path_for(
+        "post_comments",
+        ride_id=ride_id,
+    )
+    post_rating_req_body = {
+        "user_id": make_not_exist_uuid(user_id),
+        "rate": 5,
+        "comment": "test",
+    }
+    resp = await client_test0.post(
+        url=post_rating_url,
+        json=post_rating_req_body,
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND

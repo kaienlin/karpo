@@ -188,7 +188,7 @@ async def client_test0(
 
 
 @pytest.fixture
-async def client_test2(
+async def client_test1(
     fastapi_app: FastAPI,
     anyio_backend: Any,
 ) -> AsyncGenerator[AsyncClient, None]:
@@ -198,7 +198,7 @@ async def client_test2(
     async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
         ac.headers.update(
             {
-                "Authorization": "Bearer test2",
+                "Authorization": "Bearer test1",
             },
         )
         yield ac
