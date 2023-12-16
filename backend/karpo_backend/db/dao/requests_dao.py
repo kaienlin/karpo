@@ -150,7 +150,8 @@ class RequestsDAO:
                     ~(
                         exists(
                             select(JoinsModel.id).where(
-                                JoinsModel.request_id == requests_model.id
+                                (JoinsModel.ride_id == RidesModel.id)
+                                & (JoinsModel.request_id == requests_model.id)
                             ),
                         )
                     )
