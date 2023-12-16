@@ -559,6 +559,8 @@ async def post_comments(
     users: List[uuid.UUID] = [j.request_user_id for j in accepted_joins_in_ride]
     users.append(accepted_joins_in_ride[0].ride_user_id)
 
+    if user.id == req.user_id:
+        raise HTTPException(status_code=400, detail="Users cannot rate themselves")
     if user.id not in users:
         raise HTTPException(status_code=403, detail="Permission denied")
     if req.user_id not in users:
