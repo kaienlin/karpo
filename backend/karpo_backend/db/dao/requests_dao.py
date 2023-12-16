@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from fastapi import Depends
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
-from sqlalchemy import delete, func, select, type_coerce, update
+from sqlalchemy import delete, exists, func, select, type_coerce, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import true
 
@@ -137,7 +137,6 @@ class RequestsDAO:
 
         query = (
             select(RidesModel)
-            .join(JoinsModel, isouter=True)
             .where(
                 (RidesModel.phase < 0)
                 & (RidesModel.num_seats >= requests_model.num_passengers)
@@ -148,8 +147,13 @@ class RequestsDAO:
                     > requests_model.start_time
                 )
                 & (
-                    (JoinsModel.id == None)  # noqa: E711
-                    | (JoinsModel.request_id != requests_model.id)
+                    ~(
+                        exists(
+                            select(JoinsModel.id).where(
+                                JoinsModel.request_id == requests_model.id
+                            ),
+                        )
+                    )
                 )
             )
             .order_by(
