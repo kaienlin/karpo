@@ -3,15 +3,16 @@ import { TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useDispatch } from 'react-redux'
 import { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
-import { Avatar, Divider, Icon, List, ListItem, Text, useTheme } from '@ui-kitten/components'
+import { Divider, Icon, List, ListItem, Text, useTheme } from '@ui-kitten/components'
+import { Image } from 'expo-image'
 import * as SecureStore from 'expo-secure-store'
 import { MotiView } from 'moti'
 import { Skeleton } from 'moti/skeleton'
 
 import { ConfirmModal } from '~/components/modals/Confirm'
 import { useSignOutMutation } from '~/redux/api/auth'
+import { useGetMyProfileQuery } from '~/redux/api/users'
 import { signOut } from '~/redux/auth'
-import { useGetMyProfileQuery } from '~/redux/users'
 import { type AccountScreenProps } from '~/types/screens'
 
 const items = [
@@ -37,12 +38,16 @@ const ProfileCard = ({
         paddingVertical: 30,
         paddingHorizontal: 20,
         flexDirection: 'row',
-        gap: 30
+        gap: 30,
+        alignItems: 'center'
       }}
     >
-      <Avatar shape="rounded" style={{ width: 100, height: 100 }} source={{ uri: avatar }} />
+      <Image
+        style={{ width: 85, height: 85 }}
+        source={{ uri: `data:image/png;base64,${avatar}` }}
+      />
       <View>
-        <Text category="h4" style={{ marginTop: 25, marginBottom: 10 }}>
+        <Text category="h4" style={{ marginTop: 10, marginBottom: 10 }}>
           {name}
         </Text>
         <View style={{ flexDirection: 'row', gap: 5 }}>
@@ -56,7 +61,7 @@ const ProfileCard = ({
                 backgroundColor: theme['color-basic-200']
               }}
             >
-              <Text category="label">評分 &#9733; {rating.toFixed(1)}</Text>
+              <Text category="label">評分 &#9733; {rating?.toFixed(1) ?? `5.0`}</Text>
             </View>
           </TouchableOpacity>
         </View>

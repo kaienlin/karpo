@@ -14,6 +14,7 @@ import {
 } from '@ui-kitten/components'
 import { Image } from 'expo-image'
 
+import { Avatar } from '~/components/Avatar'
 import SwipeButton from '~/components/SwipeButton'
 import type { User } from '~/types/data'
 import { displayDatetime } from '~/utils/format'
@@ -72,7 +73,7 @@ const PassengerItem = ({
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
       <TouchableOpacity onPress={onViewProfile(id)} activeOpacity={0.8}>
-        <Image source={{ uri: avatar }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+        <Avatar base64Uri={avatar} size="small" />
       </TouchableOpacity>
       <View
         style={{

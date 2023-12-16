@@ -1,4 +1,4 @@
-import { apiSlice } from '../api'
+import { apiSlice } from './index'
 
 interface AccessToken {
   accessToken: string
@@ -23,9 +23,9 @@ export const authSlice = apiSlice.injectEndpoints({
       query: ({ username, password }) => ({
         url: `/auth/cookie/login`,
         method: 'POST',
-        body: {
-          username,
-          password
+        body: `username=${username}&password=${password}`,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
     }),

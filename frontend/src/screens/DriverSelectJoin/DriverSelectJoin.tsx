@@ -7,8 +7,8 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
 import TopNavBar from '~/components/nav/TopNavBar'
-import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/driver'
-import { useGetCurrentActivityQuery } from '~/redux/users'
+import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/api/driver'
+import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
@@ -18,23 +18,34 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const modalRef = useRef<BottomSheetModal>(null)
 
   const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+    selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data }) => ({ rideRoute: data?.ride.route.route })
+    selectFromResult: ({ data }) => {
+      // note: backend uses [longitude, latitude]
+      const route = data?.ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
+        latitude,
+        longitude
+      }))
+
+      return { rideRoute: route }
+    }
   })
-  const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+  const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
+    pollingInterval: 3000,
     selectFromResult: ({ data }) => ({
-      pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
+      // pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
+      pendingJoins: data?.joins
     })
   })
   const {
     acceptedJoins,
     numAvailableSeat,
     isSuccess: isAcceptedJoinsSuccess
-  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'accepted' }, {
     selectFromResult: ({ data, ...rest }) => ({
-      acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
+      // acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
+      acceptedJoins: data?.joins,
       numAvailableSeat: data?.numAvailableSeat,
       ...rest
     })
@@ -43,7 +54,9 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const [respondJoin] = useRespondJoinMutation()
 
   const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
-  const selectedJoins = pendingJoins?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+  const selectedJoins = pendingJoins
+    ?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+    ?.map((item) => ({ status: 'pending', ...item }))
   const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
 
   const screenTitle = !isAcceptedJoinsSuccess
@@ -66,6 +79,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
       for (const joinId of selectedJoinIds) {
         await respondJoin({ rideId, joinId, action: 'accept' })
       }
+      setSelectedJoinIds([])
     } catch (error) {
       console.log(error)
     }
@@ -145,7 +159,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           index={1}
           snapPoints={['18%', '45%', '75%']}
         >
-          {(acceptedJoins?.length ?? selectedJoins?.length) && (
+          {(acceptedJoins?.length > 0 || selectedJoins?.length > 0) && (
             <Animated.View entering={FadeIn.delay(100)}>
               <PassengerAvatarList
                 title="已選擇的乘客"

@@ -11,8 +11,8 @@ import {
   useGetRideQuery,
   useGetScheduleQuery,
   useUpdateStatusMutation
-} from '~/redux/driver'
-import { useGetCurrentActivityQuery } from '~/redux/users'
+} from '~/redux/api/driver'
+import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverDepartScreenProps } from '~/types/screens'
 import { makePhoneCall } from '~/utils/device'
 
@@ -36,16 +36,14 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const {
     data: { numAvailableSeat, passengers },
     isSuccess: isJoinsSuccess
-  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'all' }, {
+  } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'accepted' }, {
     selectFromResult: ({ data, ...rest }) => ({
       data: {
         numAvailableSeat: data?.numAvailableSeat,
-        passengers: data?.joins
-          ?.filter(({ status }) => status === 'accepted')
-          .map((join) => ({
-            ...join.passengerInfo,
-            numPassengers: join.numPassengers
-          }))
+        passengers: data?.joins.map((join) => ({
+          ...join.passengerInfo,
+          numPassengers: join.numPassengers
+        }))
       },
       ...rest
     })
@@ -103,7 +101,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
           buttonOnPress={handleContinueAccept}
         />
         <ReadyCard
-          time={ride?.time}
+          time={ride?.departureTime}
           origin={ride?.origin.description}
           destination={ride?.destination.description}
           passengers={passengers}
@@ -138,7 +136,11 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
         </TouchableOpacity>
       </View>
       <MapViewWithRoute
-        route={ride?.route?.route}
+        // TODO: refactor
+        route={ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
+          latitude,
+          longitude
+        }))}
         edgePadding={{ bottom: stage === -1 ? 550 : 300 }}
       >
         {/* TODO: mark passenger location */}

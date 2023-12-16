@@ -1,14 +1,28 @@
+import { useEffect } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Icon, Text, useTheme } from '@ui-kitten/components'
 
-import { useGetSavedRidesQuery } from '~/redux/users'
+import { useGetCurrentActivityQuery, useGetSavedRidesQuery } from '~/redux/api/users'
 
 import { SavedRideCard } from './components/SavedRideCard'
 
 export function DriverSubScreen() {
   const theme = useTheme()
   const navigation = useNavigation()
+
+  const { rideId } = useGetCurrentActivityQuery(undefined, {
+    selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
+  })
+
+  useEffect(() => {
+    if (rideId) {
+      navigation.navigate('DriverStack', {
+        screen: 'DriverSelectJoinScreen'
+      })
+    }
+  }, [rideId])
+
   const { data: savedRides } = useGetSavedRidesQuery(undefined, {
     selectFromResult: ({ data }) => ({ data: data?.savedRides })
   })

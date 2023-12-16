@@ -97,7 +97,9 @@ const initMapsAPI = (apiKey: string) => ({
   getRoute: async (
     coordinates: Waypoint[],
     travelMode: 'DRIVE' | 'WALK' = 'DRIVE'
-  ): Promise<Partial<{ polyline: string; legs: any[] }>> => {
+  ): Promise<
+    Partial<{ polyline: string; legs: any[]; duration?: string; distanceMeters?: string }>
+  > => {
     const [origin, ...intermediates] = coordinates
     const destination = intermediates.pop()
 

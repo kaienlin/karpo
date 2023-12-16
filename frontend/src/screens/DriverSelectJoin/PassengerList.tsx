@@ -6,6 +6,7 @@ import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
 import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
 
+import { Avatar } from '~/components/Avatar'
 import type { JoinDetailed } from '~/types/data'
 
 import { PassengerInfoCard } from './PassengerInfoCard'
@@ -40,7 +41,8 @@ export const PassengerAvatarList = ({
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const {
       status,
-      passengerInfo: { id, name, avatar }
+      passengerId,
+      passengerInfo: { name, avatar }
     } = item
     return (
       // TODO: make it a reusable component
@@ -57,8 +59,8 @@ export const PassengerAvatarList = ({
               )}
             </Pressable>
           )}
-          <TouchableOpacity activeOpacity={0.8} onPress={handleViewProfile(id)}>
-            <Image style={{ height: 50, width: 50, borderRadius: 25 }} source={{ uri: avatar }} />
+          <TouchableOpacity activeOpacity={0.8} onPress={handleViewProfile(passengerId)}>
+            <Avatar base64Uri={avatar} size="small" />
           </TouchableOpacity>
         </View>
         <Text style={{ fontSize: 13 }}>{name}</Text>
@@ -86,7 +88,7 @@ export const PassengerAvatarList = ({
           renderItem={renderItem}
         />
         <Button onPress={onConfirm} size="small" style={{ borderRadius: 100 }}>
-          確認同行
+          <Text>確認同行</Text>
         </Button>
       </View>
     </View>
@@ -102,7 +104,7 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
   }
 
   const handleChat = (userId: string) => () => {
-    throw new Error('Not implemented')
+    // throw new Error('Not implemented')
   }
 
   const handleCall = (phone: string) => async () => {
@@ -117,7 +119,7 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
       <Animated.View>
         <PassengerInfoCard
           data={{ passengerInfo, ...join }}
-          onViewProfile={handleViewProfile(passengerInfo?.id)}
+          onViewProfile={handleViewProfile(join.passengerId)}
           onChat={handleChat(passengerInfo?.id)}
           onCall={handleCall(passengerInfo?.phoneNumber)}
           onReject={onReject(join.joinId)}

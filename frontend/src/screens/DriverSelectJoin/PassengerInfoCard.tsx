@@ -1,8 +1,8 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
 import { Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
-import { Image } from 'expo-image'
 
+import { Avatar } from '~/components/Avatar'
 import type { JoinDetailed } from '~/types/data'
 import { displayDatetime, displayProximity } from '~/utils/format'
 
@@ -55,7 +55,7 @@ function PassengerInfoCardHeader({
         activeOpacity={0.8}
         style={{ padding: 10, paddingLeft: 0 }}
       >
-        <Image source={{ uri: avatar }} style={{ height: 50, width: 50, borderRadius: 25 }} />
+        <Avatar base64Uri={avatar} size="small" />
       </TouchableOpacity>
       <View
         style={{
@@ -86,7 +86,7 @@ function PassengerInfoCardHeader({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <Icon name="star" style={{ width: 16, height: 16 }} fill={'#F0C414'} />
-              <Text style={styles.lightText}>{rating.toFixed(1)}</Text>
+              <Text style={styles.lightText}>{rating ? rating.toFixed(1) : 'N/A'}</Text>
             </View>
             <Text style={styles.lightText}>|</Text>
             <Text style={styles.lightText}>{numPassengers} 人</Text>
@@ -158,10 +158,10 @@ function PassengerInfoCardFooter({ onReject, onSelect }: PassengerInfoCardFooter
       }}
     >
       <Button onPress={onReject} status="basic" style={{ flex: 1, borderRadius: 100 }}>
-        拒絕
+        <Text>拒絕</Text>
       </Button>
       <Button onPress={onSelect} style={{ flex: 1, borderRadius: 100 }}>
-        選取
+        <Text>選取</Text>
       </Button>
     </View>
   )
@@ -175,7 +175,7 @@ export function PassengerInfoCard({
     numPassengers,
     proximity,
     fare,
-    passengerInfo: { id, avatar, rating, phoneNumber }
+    passengerInfo: { avatar, rating }
   },
   onViewProfile,
   onChat,

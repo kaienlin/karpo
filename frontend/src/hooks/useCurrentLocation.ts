@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { set } from 'date-fns'
 import * as Location from 'expo-location'
 
 export const useCurrentLocation = () => {
   const [location, setLocation] = useState<LatLng | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [isSuccess, setIsSuccess] = useState(false)
 
   useEffect(() => {
@@ -28,7 +30,10 @@ export const useCurrentLocation = () => {
         }
       })
       .catch(console.log)
+      .finally(() => {
+        setIsLoading(false)
+      })
   }, [])
 
-  return { location, isSuccess }
+  return { location, isSuccess, isLoading }
 }

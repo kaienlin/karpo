@@ -7,7 +7,7 @@ import { Text } from '@ui-kitten/components'
 
 import RateCard from '~/components/RateCard'
 
-import { useGetUserProfileBatchQuery, useGetCurrentActivityQuery } from '~/redux/users'
+import { useGetUserProfileBatchQuery, useGetCurrentActivityQuery } from '~/redux/api/users'
 import { useCreateCommentMutation } from '~/redux/comment'
 
 import type { MainStackParamList } from '~/types/navigation'

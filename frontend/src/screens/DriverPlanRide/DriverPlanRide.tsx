@@ -4,15 +4,15 @@ import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import { Button } from '@ui-kitten/components'
+import { Button, Text } from '@ui-kitten/components'
 
 import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import TopNavBar from '~/components/nav/TopNavBar'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
-import { useCreateRideMutation } from '~/redux/driver'
-import { useGetRouteQuery } from '~/redux/maps'
-import { useGetSavedRidesQuery } from '~/redux/users'
+import { useCreateRideMutation } from '~/redux/api/driver'
+import { useGetRouteQuery } from '~/redux/api/maps'
+import { useGetSavedRidesQuery } from '~/redux/api/users'
 import { type DriverPlanRideScreenProps } from '~/types/screens'
 import { isValidWaypoint, isValidWaypoints } from '~/utils/maps'
 
@@ -32,7 +32,7 @@ const defaultValues: RidePlan = {
 
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
   const { savedRideIndex } = route?.params
-  const { location: currentLocation } = useCurrentLocation()
+  const { location: currentLocation, isLoading: isCurrentLocationLoading } = useCurrentLocation()
   const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
     selectFromResult: ({ data, ...rest }) => {
       const ride = data?.savedRides[savedRideIndex]
@@ -54,7 +54,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   })
 
   const waypoints = watch('waypoints')
-  const [createRide] = useCreateRideMutation()
+  const [createRide, { isLoading }] = useCreateRideMutation()
   const { rideRoute, steps, durations } = useGetRouteQuery(
     isValidWaypoints(waypoints) ? waypoints : skipToken,
     {
@@ -67,18 +67,24 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   )
 
   const onSubmit = async (data: RidePlan) => {
-    await createRide({
-      departureTime: data.time.toISOString(),
-      numSeats: data.numSeats,
-      origin: data.waypoints[0],
-      destination: data.waypoints[data.waypoints.length - 1],
-      intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
-      route: {
-        steps,
-        durations
-      }
-    })
-    navigation.navigate('DriverSelectJoinScreen')
+    try {
+      await createRide({
+        label: 'ride',
+        departureTime: data.time.toISOString(),
+        numSeats: data.numSeats,
+        origin: data.waypoints[0],
+        destination: data.waypoints[data.waypoints.length - 1],
+        intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
+        route: {
+          // note: backend uses [longitude, latitude]
+          steps: steps.map((step) => step.map(([lat, lng]) => [lng, lat])),
+          durations
+        }
+      })
+      navigation.navigate('DriverSelectJoinScreen')
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -103,8 +109,13 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>
-          <Button onPress={handleSubmit(onSubmit)} size="large" style={{ borderRadius: 12 }}>
-            發布行程
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            size="large"
+            style={{ borderRadius: 12 }}
+            disabled={isLoading}
+          >
+            <Text>發布行程</Text>
           </Button>
         </View>
       </BottomSheetModalProvider>
