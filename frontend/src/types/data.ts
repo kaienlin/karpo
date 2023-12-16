@@ -1,14 +1,15 @@
 // Users
 export interface User {
   id: string
-  name: string
   email: string
-  phoneNumber: string
-  avatar: string
-  rating: number
   isActive?: boolean
   isSuperuser?: boolean
   isVerified?: boolean
+  name: string
+  phoneNumber: string
+  rating: number
+  avatar: string
+  
 }
 
 export interface UserEditable
@@ -120,3 +121,18 @@ export interface Join {
 export interface JoinDetailed extends Join {
   passengerInfo: User
 }
+
+// Comments
+export interface Comments {
+  userId: string,
+  rate: number,
+  comment: string
+}
+
+// Messages
+export interface Message {
+  userId: string
+  content: string
+  time: Date
+}
+
