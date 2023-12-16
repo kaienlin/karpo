@@ -1,21 +1,28 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, SubmitHandler } from 'react-hook-form'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Input, Text } from '@ui-kitten/components'
 
-import { InputCounter, InputTime } from '~/components/InputModals'
+import { InputCounter, InputTime, PassengerInputCounter, PassengerInputTime } from '~/components/InputModals'
 import { useWaypoints } from '~/hooks/useWaypoints'
 import { useGetSavedRidesQuery } from '~/redux/api/users'
 import { displayDatetime } from '~/utils/format'
 
 import { emptyWaypoint } from '../DriverPlanRide/PlanPanel'
 import { SavedRideCard } from './components/SavedRideCard'
+import { useCreateRequestMutation } from '~/redux/passenger'
 
 export function PassengerSubScreen() {
   const navigation = useNavigation()
 
-  const { control, handleSubmit } = useForm({
+  type FormValues = {
+    time: Date | null
+    numPassengers: number | null
+    waypoints: Waypoint[]
+  }
+
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: {
       time: null,
       numPassengers: null,
@@ -29,28 +36,36 @@ export function PassengerSubScreen() {
     selectFromResult: ({ data }) => ({ data: data?.savedRides })
   })
 
-  const onSubmit = async (data) => {
+  const [ createRequest ] = useCreateRequestMutation()
+  const onSubmit: SubmitHandler<FormValues> = async ({time, numPassengers}) => {
     const request = {
-      time: data.time,
-      numPassengers: data.numPassengers,
+      time: time,
+      numPassengers: numPassengers,
       origin: waypoints[0],
       destination: waypoints[1]
     }
-    // TODO: send request to backend
 
-    navigation.navigate('PassengerStack', { screen: 'SelectRideScreen' })
+    try {
+      const response = await createRequest(request).unwrap()
+      navigation.navigate('PassengerStack', {
+        screen: 'SelectRideScreen',
+        params: { requestId: response.requestId }
+      })
+    } catch (err) {
+      console.error('Failed to create request: ', err)
+    }
   }
 
   const handleSelectWaypoint = (index: number) => {
-    navigation.navigate('SelectWaypointScreen', {
+    navigation.navigate('SelectWaypointScreen', {      
       waypointIndex: index,
-      waypoint: waypoints[index]
+      waypoint: waypoints[index] 
     })
   }
 
   return (
     <BottomSheetModalProvider>
-      <View style={{ gap: 10 }}>
+      <View style={{ flex: 1, gap: 10, padding: 15 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Icon name="radio-button-on" fill={'#F0C414'} style={{ width: 32, height: 32 }} />
           <Input
@@ -84,7 +99,7 @@ export function PassengerSubScreen() {
             name="time"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <InputTime
+              <PassengerInputTime
                 title="選擇上車時間"
                 value={value}
                 onChange={onChange}
@@ -111,8 +126,8 @@ export function PassengerSubScreen() {
             name="numPassengers"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <InputCounter
-                title="選擇上車時間"
+              <PassengerInputCounter
+                title="選擇人數"
                 value={value}
                 onChange={onChange}
                 renderTriggerComponent={({ onOpen, value }) => (
@@ -133,7 +148,7 @@ export function PassengerSubScreen() {
             )}
           />
 
-          <View style={styles.submitButtonContainer}>
+          <View>
             <Button size="large" style={{ borderRadius: 12 }} onPress={handleSubmit(onSubmit)}>
               搜尋
             </Button>
@@ -150,17 +165,18 @@ export function PassengerSubScreen() {
             </TouchableOpacity>
           </View>
           {savedRides?.map((ride, index) => (
-            <SavedRideCard {...ride} key={`${ride.label}-${index}`} />
+            <SavedRideCard 
+              {...ride} 
+              key={`${ride.label}-${index}`}
+              onPress={() => reset({
+                time: ride.time,
+                numPassengers: ride.numSeats,
+                waypoints: [ride.origin, ride.destination]
+              })}
+            />
           ))}
         </View>
       </View>
     </BottomSheetModalProvider>
   )
 }
-
-const styles = StyleSheet.create({
-  submitButtonContainer: {
-    width: '100%',
-    padding: 20
-  }
-})

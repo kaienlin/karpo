@@ -3,13 +3,11 @@ import { combineReducers, configureStore, type PreloadedState } from '@reduxjs/t
 import Reactotron from '../../ReactotronConfig'
 import { apiSlice } from './api'
 import authReducer from './auth'
-import rideReducer from './ride'
 import waypointsReducer from './waypoints'
 
 export const rootReducer = combineReducers({
   auth: authReducer,
   waypoints: waypointsReducer,
-  rides: rideReducer,
   [apiSlice.reducerPath]: apiSlice.reducer
 })
 

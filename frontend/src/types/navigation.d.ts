@@ -29,8 +29,9 @@ type MainStackParamList = {
   HistoryStack: NavigatorScreenParams<HistoryStackParamList>
   AccountStack: NavigatorScreenParams<AccountStackParamList>
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
-  ChatScreen: { joinId: string }
-  RateScreen: { userIds: []}
+  ChatScreen: { rideId: string }
+  SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
+  RideCompleteScreen: { userIds: string[] }
 }
 
 type BottomTabParamList = {
@@ -49,7 +50,19 @@ type DriverStackParamList = {
 }
 
 type PassengerStackParamList = {
-  // TODO:
+  SelectRideScreen: {
+    requestId: string
+  }
+  RideInfoScreen: {
+    requestId: string
+    match: Match
+  }
+  WaitingListScreen: {
+    requestId: string
+  }
+  ArrivingScreen: {
+    ride: Match
+  }
 }
 
 type HistoryStackParamList = {

@@ -1,24 +1,30 @@
 import { View, StyleSheet } from 'react-native'
+import { Image } from 'expo-image'
 import { 
   Text, 
   Avatar, 
   Icon, 
   IconProps 
 } from '@ui-kitten/components'
+import { displayProximity, displayTime } from '~/utils/format'
+import { useNavigation } from '@react-navigation/native'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 interface RideStatusProps {
-  rating: number
-  vacuumSeat: number
-  rideStatus: string
+  rating: number | undefined
+  numAvailableSeat: number
+  proximity: number
 }
 
 interface RideTimeProps {
-  departTime: string
-  arrivalTime: string
+  pickUpTime: string
+  dropOffTime: string
 }
 
 export interface HeaderProps extends RideStatusProps, RideTimeProps {
-  price: number
+  fare: number
+  userId: string
+  avatar: string
 }
 
 const styles = StyleSheet.create({
@@ -29,8 +35,8 @@ const styles = StyleSheet.create({
 
 function RideStatus ({ 
   rating, 
-  vacuumSeat, 
-  rideStatus
+  numAvailableSeat, 
+  proximity
 }: RideStatusProps) {
   return (
     <View style={{ 
@@ -48,42 +54,58 @@ function RideStatus ({
         <Text style={ styles.lightText }>|</Text>
       </View>
       
-      <Text style={ styles.lightText }>{ vacuumSeat } 個空位</Text>
+      <Text style={ styles.lightText }>{ numAvailableSeat } 個空位</Text>
       
       <View style={{ paddingLeft: 10, paddingRight: 10 }}>
         <Text style={ styles.lightText }>|</Text>
       </View>
 
-      <Text style={{ color: '#F0C414' }}>{ rideStatus }</Text>
+      <Text style={{ color: '#F0C414' }}>{ displayProximity(proximity) }</Text>
     </View>
   )
 }
 
 function RideTime ({
-  departTime,
-  arrivalTime
+  pickUpTime,
+  dropOffTime
 }: RideTimeProps) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Text style={{ fontSize: 24 }}>{ departTime }</Text>
+      <Text style={{ fontSize: 24 }}>{ displayTime(pickUpTime, false) }</Text>
       <Icon 
         name='arrow-forward-outline' 
         style={{ width: 42, height: 30 }}
       />
-      <Text style={{ fontSize: 24 }}>{ arrivalTime }</Text>
+      <Text style={{ fontSize: 24 }}>{ displayTime(dropOffTime, false) }</Text>
     </View>
   )
 }
 
 export function Header (props: HeaderProps) {
+  const navigation = useNavigation()  
+  const handleViewProfile = () => {
+    navigation.navigate(
+      'UserProfileScreen', 
+      { role: 'driver', 'userId': props.userId }
+    )
+  }
+
   return (
-    <View style={{ flexDirection: 'row' }}>      
-      <View style={{ padding: 10 }}>
-        <Avatar
-          source={require('../../assets/riceball.jpg')}
-          size='giant'
-        />
-      </View>
+    <View style={{ flexDirection: 'row' }}>
+      <TouchableOpacity onPress={handleViewProfile}>
+        <View
+          onStartShouldSetResponder={(event) => true}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+          }} 
+          style={{ padding: 10 }}
+        >
+          <Image 
+            source={{ uri: props.avatar }} 
+            style={{ width: 56, height: 56, borderRadius: 28 }} 
+          />
+        </View>  
+      </TouchableOpacity>      
 
       <View style={{ 
         flex: 1, 
@@ -97,7 +119,7 @@ export function Header (props: HeaderProps) {
         }}>
           <RideTime {...props} />
           <View>
-            <Text style={{ fontSize: 22 }}>NT${ props.price }</Text>
+            <Text style={{ fontSize: 22 }}>NT${ props.fare }</Text>
           </View>
         </View>
         <RideStatus {...props} />

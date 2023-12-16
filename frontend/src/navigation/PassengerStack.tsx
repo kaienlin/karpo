@@ -2,26 +2,16 @@ import { View } from 'react-native'
 import { HeaderBackButton } from '@react-navigation/elements'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
-import { QueryProps } from '~/components/QueryBlock'
-import PassengerPlanRideScreen from '~/screens/PassengerPlanRide'
 import RideInfo from '~/screens/PassengerRideInfo'
 import SelectRide from '~/screens/PassengerSelectRide'
 import WaitingList from '~/screens/PassengerWaitingList'
-import SelectRideScreen from '~/screens/SelectRide'
-import SelectLocationScreen from '~/screens/SelectWaypoint'
+import { Match } from '~/types/data'
+import { PassengerStackParamList } from '~/types/navigation'
+import SelectWaypoint from '~/screens/SelectWaypoint'
+import Arriving from '~/screens/PassengerArriving'
+import UserProfile from '~/screens/UserProfile'
 
 const Stack = createNativeStackNavigator<PassengerStackParamList>()
-
-export type PassengerStackParamList = {
-  SelectRideScreen: undefined
-  RideInfoScreen: {
-    rideId: string
-    query: QueryProps
-  }
-  WaitingListScreen: {
-    query: QueryProps
-  }
-}
 
 export default function PassengerStack() {
   return (
@@ -31,18 +21,30 @@ export default function PassengerStack() {
         component={SelectRide}
         options={{ title: '選擇共乘' }}
       />
-      <Stack.Screen name="RideInfoScreen" component={RideInfo} options={{ title: '共乘資訊' }} />
+      <Stack.Screen 
+        name="RideInfoScreen" 
+        component={RideInfo} 
+        options={{ title: '共乘資訊' }} 
+      />
       <Stack.Screen
         name="WaitingListScreen"
         component={WaitingList}
-        options={({ navigation }) => ({
+        options={({ route, navigation }) => ({
           title: '等待回應',
           headerLeft: () => (
             <View style={{ marginLeft: -12, marginRight: 12 }}>
-              <HeaderBackButton onPress={() => navigation.navigate('SelectRideScreen')} />
+              <HeaderBackButton onPress={() => navigation.navigate(
+                'SelectRideScreen',
+                { requestId: route.params.requestId }
+              )} />
             </View>
           )
         })}
+      />
+      <Stack.Screen 
+        name="ArrivingScreen"
+        component={Arriving}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   )

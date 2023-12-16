@@ -1,13 +1,28 @@
 import { useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Tab, TabBar } from '@ui-kitten/components'
+import { Button, Tab, TabBar } from '@ui-kitten/components'
 import { Image } from 'expo-image'
-
+import { useCreateRequestMutation } from '~/redux/passenger'
 import type { HomeScreenProps } from '~/types/screens'
 
 import { DriverSubScreen } from './DriverSubScreen'
 import { PassengerSubScreen } from './PassengerSubScreen'
+
+const request = {
+  time: new Date().toString(),
+  origin: {
+    latitude: 24.768607823378787,
+    longitude: 121.01470454621833,
+    description: '台積電 12 廠'
+  }, 
+  destination: { 
+    latitude: 24.824314037354945,
+    longitude: 121.02436304972142,
+    description: '十興國小'
+  },
+  numPassengers: 1
+}
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -46,9 +61,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           />
         </TabBar>
       </View>
-      <ScrollView style={{ marginTop: 15, paddingHorizontal: 20 }}>
-        {selectedIndex === 0 ? <DriverSubScreen /> : <PassengerSubScreen />}
-      </ScrollView>
+      {selectedIndex === 0 ? (
+        <ScrollView style={{ marginTop: 15, paddingHorizontal: 20 }}>
+          <DriverSubScreen />
+        </ScrollView>
+      ) : <PassengerSubScreen />}
     </SafeAreaView>
   )
 }
