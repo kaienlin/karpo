@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "karpo_backend.fullname" . }}
+  labels:
+    {{- include "karpo_backend.labels" . | nindent 4 }}
+spec:
+  groups:
+  - name: karpo-api
+    rules:
+    - alert: Http4xxErrorRateTooHigh
+      expr: sum(rate(http_requests_total{status=~"^4.."}[1m])) / sum(rate(http_requests_total[1m])) * 100 > 5
+      for: 10m
+      annotations:
+        description: Too many 4xx codes in service {{`{{$labels.service}}`}} within 1 minute.
+      labels:
+        severity: warning
+    - alert: Http5xxError
+      expr: sum(rate(http_requests_total{status=~"^5.."}[1m])) > 0
+      annotations:
+        description: 5xx code occurs in pod {{`{{$labels.pod}}`}}.
+      labels:
+        severity: critical
+    - alert: LatencyTooHigh
+      expr: histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket[10m])) by (service, le)) > 5
+      for: 10m
+      annotations:
+        description: The 90-th percentile request duration of service {{`{{$labels.service}}`}} is higher than 5 seconds.
+      labels:
+        severity: critical
+    

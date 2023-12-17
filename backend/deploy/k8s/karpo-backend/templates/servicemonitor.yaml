@@ -2,6 +2,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "karpo_backend.fullname" . }}
+  labels:
+    {{- include "karpo_backend.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
