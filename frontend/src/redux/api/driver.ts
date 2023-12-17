@@ -25,6 +25,12 @@ interface RespondJoinRequest {
   action: 'accept' | 'reject'
 }
 
+interface RespondJoinsRequest {
+  rideId: string
+  action: 'accept' | 'reject'
+  joinIds: string[]
+}
+
 interface UpdateDriverStatusRequest {
   rideId: string
   position: LatLng
@@ -84,7 +90,9 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
         const { schedule } = scheduleResult.data as Schedule
         const scheduleWithDescription = await Promise.all(
           schedule.map(async step => {
-            const description = await MapsAPI.getPlaceTitle(step.location)
+            const { data: description } = await api.dispatch(
+              mapsSlice.endpoints.getPlaceDescription.initiate(step.location)
+            )
 
             return {
               ...step,
@@ -138,7 +146,7 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
         queryFulfilled.catch(patchResult.undo)
       }
     }),
-    respondJoins: builder.mutation<string, RespondJoinRequest>({
+    respondJoins: builder.mutation<string, RespondJoinsRequest>({
       invalidatesTags: ['Joins'],
       queryFn: async (arg, api, extraOptions, baseQuery) => {
         const { rideId, action, joinIds } = arg
@@ -161,7 +169,7 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
         const patchResult = dispatch(
           driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, draft => {
             draft.joins.forEach((join, index) => {
-              if (joinIds.includes(join.id)) {
+              if (joinIds.includes(join.joinId)) {
                 draft.joins[index].status = action === 'accept' ? 'accepted' : 'rejected'
               }
             })
