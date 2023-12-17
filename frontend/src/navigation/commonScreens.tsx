@@ -14,7 +14,7 @@ export function commonScreens(Stack) {
       <Stack.Screen
         name="RideCompleteScreen"
         component={RateScreen}
-        options={{ gestureEnabled: false }}
+        options={{ gestureEnabled: false, headerShown: false }}
       />
       <Stack.Screen
         name="UserProfileScreen"
