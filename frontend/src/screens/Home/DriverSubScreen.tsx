@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
+import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, Text, useTheme } from '@ui-kitten/components'
 
 import savedRidesRaw from '~/assets/templates/savedRides.json'
 import { transformSavedRide, useGetCurrentActivityQuery } from '~/redux/api/users'
+import { useGetRideStatusQuery } from '~/redux/passenger'
 
 import { SavedRideCard } from './components/SavedRideCard'
 
@@ -15,15 +17,24 @@ export function DriverSubScreen() {
   const { rideId } = useGetCurrentActivityQuery(undefined, {
     selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
+  const { ridePhase } = useGetRideStatusQuery(rideId ?? skipToken, {
+    selectFromResult: ({ data, ...rest }) => ({ ridePhase: data?.phase, ...rest })
+  })
   const savedRides = savedRidesRaw.map(value => transformSavedRide(value))
 
   useEffect(() => {
+    if (ridePhase >= 0) {
+      navigation.navigate('DriverStack', {
+        screen: 'DriverDepartScreen'
+      })
+      return
+    }
     if (rideId) {
       navigation.navigate('DriverStack', {
         screen: 'DriverSelectJoinScreen'
       })
     }
-  }, [rideId])
+  }, [rideId, ridePhase])
 
   const onPressPlan = () => {
     navigation.navigate('DriverStack', {

@@ -146,7 +146,6 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   }
 
   useEffect(() => {
-    // TODO: resume to phase
     if (schedule && ridePhase === schedule.length) {
       navigation.navigate('RideCompleteScreen', {
         userIds: [...new Set(schedule.map(({ passengerId }) => passengerId))]

@@ -235,7 +235,7 @@ export function StageCard({
     navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
   }
 
-  const { name } = passenger
+  const { name } = passenger ?? {}
 
   const headerText = status === 'pick_up' ? `正在前往 ${name} 所在位置` : `接近 ${name} 目的地`
   const swipeButtonText = status === 'pick_up' ? `到達 ${name} 起點` : `已到達 ${name} 目的地`
