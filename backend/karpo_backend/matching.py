@@ -59,8 +59,13 @@ def find_point_idx_on_linestring(point: Point, line: LineString) -> int:
         p1 = Point(line.coords[i])
         p2 = Point(line.coords[i + 1])
         segment = LineString([p1, p2])
-        if point == p1 or point == p2 or within(point, segment):
+        if point == p1 or point == p2:
             return i
+        _, dist_to_seg = get_rendezvous_point_and_dist(segment, point)
+        if dist_to_seg < 5:
+            return i
+
+    logger.warning("cannot find point on linestring")
     return 0
 
 
