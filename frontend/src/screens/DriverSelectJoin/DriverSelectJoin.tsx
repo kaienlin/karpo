@@ -68,12 +68,9 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   }
 
   const onPressConfirm = async () => {
+    if (!rideId) return
     if (selectedJoinIds.length > numAvailableSeat) {
       // TODO: show error message
-      return
-    }
-
-    if (!rideId) {
       return
     }
 
@@ -88,8 +85,9 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   }
 
   const onPressReject = (joinId: string) => async () => {
+    if (!rideId) return
     try {
-      await respondJoin({ rideId, joinId, action: 'reject' })
+      await respondJoins({ rideId, action: 'reject', joinIds: [joinId] })
     } catch (error) {
       console.log(error)
     }
