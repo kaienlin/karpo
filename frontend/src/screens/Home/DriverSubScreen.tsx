@@ -3,7 +3,8 @@ import { TouchableOpacity, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Icon, Text, useTheme } from '@ui-kitten/components'
 
-import { useGetCurrentActivityQuery, useGetSavedRidesQuery } from '~/redux/api/users'
+import savedRidesRaw from '~/assets/templates/savedRides.json'
+import { transformSavedRide, useGetCurrentActivityQuery } from '~/redux/api/users'
 
 import { SavedRideCard } from './components/SavedRideCard'
 
@@ -14,6 +15,7 @@ export function DriverSubScreen() {
   const { rideId } = useGetCurrentActivityQuery(undefined, {
     selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
   })
+  const savedRides = savedRidesRaw.map(value => transformSavedRide(value))
 
   useEffect(() => {
     if (rideId) {
@@ -23,24 +25,20 @@ export function DriverSubScreen() {
     }
   }, [rideId])
 
-  const { data: savedRides } = useGetSavedRidesQuery(undefined, {
-    selectFromResult: ({ data }) => ({ data: data?.savedRides })
-  })
-
-  const handleMainPress = () => {
+  const onPressPlan = () => {
     navigation.navigate('DriverStack', {
       screen: 'DriverPlanRideScreen'
     })
   }
 
-  const handleSelectSavedRide = (index: number) => {
+  const onSelectSavedRide = (index: number) => {
     navigation.navigate('DriverStack', {
       screen: 'DriverPlanRideScreen',
       params: { savedRideIndex: index }
     })
   }
 
-  const handleManageSavedRide = () => {}
+  const onPressManageSavedRide = () => {}
 
   return (
     <>
@@ -51,7 +49,7 @@ export function DriverSubScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={handleMainPress}
+          onPress={onPressPlan}
           activeOpacity={0.7}
           style={{
             flex: 1,
@@ -78,7 +76,7 @@ export function DriverSubScreen() {
         >
           <Text category="h5">常用行程</Text>
           <TouchableOpacity
-            onPress={handleManageSavedRide}
+            onPress={onPressManageSavedRide}
             style={{ flexDirection: 'row', alignItems: 'center' }}
           >
             <Text>管理</Text>
@@ -90,7 +88,7 @@ export function DriverSubScreen() {
             {...ride}
             key={`${ride.label}-${index}`}
             onPress={() => {
-              handleSelectSavedRide(index)
+              onSelectSavedRide(index)
             }}
           />
         ))}
