@@ -77,7 +77,6 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
       return
     }
 
-    // TODO: send accept request to server
     try {
       await respondJoins({ rideId, action: 'accept', joinIds: selectedJoinIds })
       setSelectedJoinIds([])

@@ -3,7 +3,6 @@ import Animated from 'react-native-reanimated'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
-import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
 
 import { Avatar } from '~/components/Avatar'

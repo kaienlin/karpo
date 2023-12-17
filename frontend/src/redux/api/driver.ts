@@ -1,6 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit'
 
-import { passengerSlice } from '~/redux/passenger'
 import type {
   ActivityItems,
   Join,
@@ -13,11 +12,6 @@ import type {
 import { apiSlice } from './index'
 import { mapsSlice } from './maps'
 import { usersSlice } from './users'
-
-interface GetRideStatusResponse {
-  driverPosition: LatLng
-  phase: number
-}
 
 interface GetJoinsResponse<T extends Join> {
   numAvailableSeat: number
@@ -180,11 +174,7 @@ export const driverSlice = apiSlice
         onQueryStarted: async ({ rideId, action, joinIds }, { dispatch, queryFulfilled }) => {
           const patchResult = dispatch(
             driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, draft => {
-              draft.joins.forEach((join, index) => {
-                if (joinIds.includes(join.joinId)) {
-                  draft.joins[index].status = action === 'accept' ? 'accepted' : 'rejected'
-                }
-              })
+              draft.joins = draft.joins.filter(({ joinId }) => !joinIds.includes(joinId))
             })
           )
           queryFulfilled.catch(patchResult.undo)
