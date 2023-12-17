@@ -40,7 +40,7 @@ class RetryTxnMiddleware:
                     do_retry = True
                 if do_retry:
                     logger.warning("transaction failed, retrying...")
-                    retry_count += 1
+                    retry_cnt += 1
                     self._retry_exponential_backoff(retry_cnt)
 
 
