@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-invalid-void-type: 0 */
 
-import type { DriverActivity, SavedRide, User } from '~/types/data'
+import type { DriverActivity, SavedRide, User, UserProfile } from '~/types/data'
 
 import { apiSlice } from './index'
 
@@ -9,7 +9,7 @@ export const usersSlice = apiSlice.injectEndpoints({
     getCurrentActivity: builder.query<DriverActivity, void>({
       query: () => `/users/me/active_items`
     }),
-    getUserProfile: builder.query<User, string>({
+    getUserProfile: builder.query<UserProfile, string>({
       query: (userId) => `/users/${userId}/profile`
     }),
     getMyProfile: builder.query<User, void>({
