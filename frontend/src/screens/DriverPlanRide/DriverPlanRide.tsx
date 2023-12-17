@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useForm } from 'react-hook-form'
 import { Marker } from 'react-native-maps'
@@ -31,8 +32,35 @@ const defaultValues: RidePlan = {
   waypoints: [emptyWaypoint, emptyWaypoint]
 }
 
+const RouteMarkers = ({
+  waypoints,
+  updatedWaypointIndex
+}: {
+  waypoints: Waypoint[]
+  updatedWaypointIndex?: number
+}) => {
+  const ref = useRef<Marker[]>([])
+
+  useEffect(() => {
+    ref.current = ref.current.slice(0, waypoints.length)
+  }, [waypoints])
+
+  if (updatedWaypointIndex) {
+    ref.current[updatedWaypointIndex]?.redraw()
+  }
+
+  return waypoints.map(
+    (waypoint, index) =>
+      isValidWaypoint(waypoint) && (
+        <Marker key={index} ref={el => (ref.current[index] = el)} coordinate={waypoint}>
+          {index === 0 ? <RouteMarker.Radio /> : <RouteMarker.Box label={`${index}`} />}
+        </Marker>
+      )
+  )
+}
+
 export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
-  const { savedRideIndex } = route?.params
+  const { savedRideIndex, updatedWaypoint } = route?.params
   const { location: currentLocation, isLoading: isCurrentLocationLoading } = useCurrentLocation()
 
   const savedRide = savedRideIndex >= 0 && transformSavedRide(savedRides[savedRideIndex])
@@ -86,14 +114,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
             fitToRouteButtonPosition={{ left: '86%', bottom: '11%' }}
             initialRegion={{ ...currentLocation, latitudeDelta: 0.005, longitudeDelta: 0.002 }}
           >
-            {waypoints.map(
-              (waypoint, index) =>
-                isValidWaypoint(waypoint) && (
-                  <Marker key={index} coordinate={waypoint}>
-                    {index === 0 ? <RouteMarker.Radio /> : <RouteMarker.Box label={`${index}`} />}
-                  </Marker>
-                )
-            )}
+            <RouteMarkers waypoints={waypoints} updatedWaypointIndex={updatedWaypoint?.index} />
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>

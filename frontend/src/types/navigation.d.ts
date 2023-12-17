@@ -29,7 +29,10 @@ type BottomTabParamList = {
 }
 
 type DriverStackParamList = {
-  DriverPlanRideScreen: { savedRideIndex: number }
+  DriverPlanRideScreen: {
+    savedRideIndex: number
+    updatedWaypoint?: { index: number; payload: Waypoint }
+  }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
 }
