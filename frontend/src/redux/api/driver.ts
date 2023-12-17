@@ -1,7 +1,17 @@
+import { createSelector } from '@reduxjs/toolkit'
+
 import { MapsAPI } from '~/services/maps'
-import type { Join, JoinDetailed, RideRequest, RideResponse, Schedule } from '~/types/data'
+import type {
+  ActivityItems,
+  Join,
+  JoinDetailed,
+  RideRequest,
+  RideResponse,
+  Schedule
+} from '~/types/data'
 
 import { apiSlice } from './index'
+import { mapsSlice } from './maps'
 import { usersSlice } from './users'
 
 interface GetJoinsResponse<T extends Join> {
@@ -39,9 +49,18 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
         const { numAvailableSeat, joins } = joinsResult.data as GetJoinsResponse<Join>
         const result = await Promise.all(
           joins.map(async join => {
-            const { data: passengerInfo } = await baseQuery(`users/${join.passengerId}/profile`)
-            join.pickUpLocation.description = await MapsAPI.getPlaceTitle(join.pickUpLocation)
-            join.dropOffLocation.description = await MapsAPI.getPlaceTitle(join.dropOffLocation)
+            const { data: passengerInfo } = await api.dispatch(
+              usersSlice.endpoints.getUserProfile.initiate(join.passengerId)
+            )
+            const { data: pickUpLocationDescription } = await api.dispatch(
+              mapsSlice.endpoints.getPlaceDescription.initiate(join.pickUpLocation)
+            )
+            const { data: dropOffLocationDescription } = await api.dispatch(
+              mapsSlice.endpoints.getPlaceDescription.initiate(join.dropOffLocation)
+            )
+
+            join.pickUpLocation.description = pickUpLocationDescription
+            join.dropOffLocation.description = dropOffLocationDescription
 
             return {
               ...join,
@@ -99,6 +118,7 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
         } catch {}
       }
     }),
+    /* @deprecated: prefer respondJoins that support multiple joins */
     respondJoin: builder.mutation<string, RespondJoinRequest>({
       invalidatesTags: ['Joins'],
       query: ({ rideId, joinId, action }) => ({
@@ -113,6 +133,38 @@ export const driverSlice = apiSlice.enhanceEndpoints({ addTagTypes: ['Joins'] })
           driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, draft => {
             const target = draft.joins.find(({ joinId: id }) => id === joinId)
             target.status = action === 'accept' ? 'accepted' : 'rejected'
+          })
+        )
+        queryFulfilled.catch(patchResult.undo)
+      }
+    }),
+    respondJoins: builder.mutation<string, RespondJoinRequest>({
+      invalidatesTags: ['Joins'],
+      queryFn: async (arg, api, extraOptions, baseQuery) => {
+        const { rideId, action, joinIds } = arg
+        try {
+          await Promise.all(
+            joinIds.map(async joinId => {
+              await baseQuery({
+                url: `/rides/${rideId}/joins/${joinId}/status`,
+                method: 'PUT',
+                body: { action }
+              })
+            })
+          )
+          return { data: 'success' }
+        } catch (error) {
+          return { error }
+        }
+      },
+      onQueryStarted: async ({ rideId, action, joinIds }, { dispatch, queryFulfilled }) => {
+        const patchResult = dispatch(
+          driverSlice.util.updateQueryData('getJoins', { rideId, status: 'pending' }, draft => {
+            draft.joins.forEach((join, index) => {
+              if (joinIds.includes(join.id)) {
+                draft.joins[index].status = action === 'accept' ? 'accepted' : 'rejected'
+              }
+            })
           })
         )
         queryFulfilled.catch(patchResult.undo)
@@ -137,5 +189,19 @@ export const {
   useGetJoinsQuery,
   useGetScheduleQuery,
   useRespondJoinMutation,
+  useRespondJoinsMutation,
   useUpdateStatusMutation
 } = driverSlice
+
+export const selectDriverState = createSelector(
+  (res: { data: ActivityItems }) => res.data,
+  data => data?.driverState
+)
+
+export const selectRideRoute = createSelector(
+  (res: { data: { ride: RideResponse } }) => res.data,
+  // note: backend uses [longitude, latitude]
+  data => data?.ride?.routeWithTime?.route.map(([longitude, latitude]) => ({ latitude, longitude }))
+)
+
+// export const selectAcceptedJoins = createSelector()

@@ -7,7 +7,14 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
 import TopNavBar from '~/components/nav/TopNavBar'
-import { useGetJoinsQuery, useGetRideQuery, useRespondJoinMutation } from '~/redux/api/driver'
+import {
+  selectDriverState,
+  selectRideRoute,
+  useGetJoinsQuery,
+  useGetRideQuery,
+  useRespondJoinMutation,
+  useRespondJoinsMutation
+} from '~/redux/api/driver'
 import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
@@ -18,25 +25,14 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const modalRef = useRef<BottomSheetModal>(null)
 
   const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: ({ data }) => ({ rideId: data?.driverState?.rideId })
+    selectFromResult: result => ({ ...result, ...selectDriverState(result) })
   })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data }) => {
-      // note: backend uses [longitude, latitude]
-      const route = data?.ride?.routeWithTime?.route.map(([longitude, latitude]) => ({
-        latitude,
-        longitude
-      }))
-
-      return { rideRoute: route }
-    }
+    selectFromResult: result => ({ ...result, rideRoute: selectRideRoute(result) })
   })
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
     pollingInterval: 3000,
-    selectFromResult: ({ data }) => ({
-      // pendingJoins: data?.joins.filter(({ status }) => status === 'pending')
-      pendingJoins: data?.joins
-    })
+    selectFromResult: ({ data }) => ({ pendingJoins: data?.joins })
   })
   const {
     acceptedJoins,
@@ -44,41 +40,46 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     isSuccess: isAcceptedJoinsSuccess
   } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'accepted' }, {
     selectFromResult: ({ data, ...rest }) => ({
-      // acceptedJoins: data?.joins.filter(({ status }) => status === 'accepted'),
       acceptedJoins: data?.joins,
       numAvailableSeat: data?.numAvailableSeat,
       ...rest
     })
   })
 
-  const [respondJoin] = useRespondJoinMutation()
+  // const [respondJoin] = useRespondJoinMutation()
+  const [respondJoins] = useRespondJoinsMutation()
 
   const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
   const selectedJoins = pendingJoins
     ?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
-    ?.map((item) => ({ status: 'pending', ...item }))
+    ?.map(item => ({ ...item, status: 'pending' }))
   const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
 
-  const screenTitle = !isAcceptedJoinsSuccess
-    ? '載入中．．．'
-    : acceptedJoins?.length === 0
-      ? '發布成功，等待乘客邀請．．．'
-      : numAvailableSeat >= 0
-        ? `剩餘 ${numAvailableSeat} 座，選擇更多乘客．．．`
-        : `已滿座，準備出發`
+  let screenTitle = ''
+  if (!isAcceptedJoinsSuccess) {
+    screenTitle = '載入中．．．'
+  } else {
+    screenTitle =
+      acceptedJoins?.length === 0
+        ? '發布成功，等待乘客邀請．．．'
+        : numAvailableSeat >= 0
+          ? `剩餘 ${numAvailableSeat} 座，選擇更多乘客．．．`
+          : `已滿座，準備出發`
+  }
 
-  // TODO: implement
-  const handleConfirm = async () => {
+  const onPressConfirm = async () => {
     if (selectedJoinIds.length > numAvailableSeat) {
       // TODO: show error message
       return
     }
 
+    if (!rideId) {
+      return
+    }
+
     // TODO: send accept request to server
     try {
-      for (const joinId of selectedJoinIds) {
-        await respondJoin({ rideId, joinId, action: 'accept' })
-      }
+      await respondJoins({ rideId, action: 'accept', joinIds: selectedJoinIds })
       setSelectedJoinIds([])
     } catch (error) {
       console.log(error)
@@ -87,7 +88,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     navigation.navigate('DriverDepartScreen')
   }
 
-  const handleReject = (joinId: string) => async () => {
+  const onPressReject = (joinId: string) => async () => {
     try {
       await respondJoin({ rideId, joinId, action: 'reject' })
     } catch (error) {
@@ -95,12 +96,12 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     }
   }
 
-  const handleSelect = (joinId: string) => () => {
-    setSelectedJoinIds((prev) => [...prev, joinId])
+  const onPressSelect = (joinId: string) => () => {
+    setSelectedJoinIds(prev => [...prev, joinId])
   }
 
-  const handleDeselect = (joinId: string) => () => {
-    setSelectedJoinIds((prev) => prev.filter((id) => id !== joinId))
+  const onPressDeselect = (joinId: string) => () => {
+    setSelectedJoinIds(prev => prev.filter(id => id !== joinId))
   }
 
   return (
@@ -164,8 +165,8 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
               <PassengerAvatarList
                 title="已選擇的乘客"
                 data={[...(acceptedJoins ?? []), ...(selectedJoins ?? [])]}
-                onDeselect={handleDeselect}
-                onConfirm={handleConfirm}
+                onDeselect={onPressDeselect}
+                onConfirm={onPressConfirm}
               />
             </Animated.View>
           )}
@@ -173,8 +174,8 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
             <PassengerCardList
               title="已發出請求的乘客"
               data={unselectedJoins ?? []}
-              onReject={handleReject}
-              onSelect={handleSelect}
+              onReject={onPressReject}
+              onSelect={onPressSelect}
             />
           </Animated.View>
         </BottomSheet>
