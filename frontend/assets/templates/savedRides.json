@@ -1,0 +1,29 @@
+[
+  {
+    "label": "上班",
+    "departureTime": "Mon Dec 18 2023 14:06:02 GMT+0800 (台北標準時間)",
+    "origin": {
+      "latitude": 25.01700306644082,
+      "longitude": 121.54514779709237,
+      "description": "長興街31號"
+    },
+    "destination": {
+      "latitude": 25.04909977959145,
+      "longitude": 121.51620709689955,
+      "description": "台北轉運站"
+    },
+    "intermediates": [
+      {
+        "latitude": 25.0195339338003,
+        "longitude": 121.5413015891459,
+        "description": "台大資訊工程館（德田館）"
+      },
+      {
+        "latitude": 25.03386046924679,
+        "longitude": 121.53589167337304,
+        "description": "大安森林公園"
+      }
+    ],
+    "numSeats": 4
+  }
+]

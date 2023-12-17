@@ -51,7 +51,7 @@ export interface RideRequest extends RideBase {
 
 export interface RideResponse extends RideBase {
   routeWithTime: {
-    route: Array<Array<[number, number]>>
+    route: Array<[number, number]>
     timestamps: number[]
   }
 }
