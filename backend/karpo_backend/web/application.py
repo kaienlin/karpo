@@ -28,20 +28,19 @@ class RetryTxnMiddleware:
     async def __call__(self, request: Request, call_next):
         retry_cnt = 0
         max_retries = 3
-        while True:
+        while retry_cnt <= max_retries:
             try:
                 result = await call_next(request)
                 return result
             except DBAPIError as e:
                 if retry_cnt >= max_retries:
                     raise
-                do_retry = False
                 if isinstance(e.orig, SerializationError):
-                    do_retry = True
-                if do_retry:
                     logger.warning("transaction failed, retrying...")
                     retry_cnt += 1
                     self._retry_exponential_backoff(retry_cnt)
+                else:
+                    raise
 
 
 def get_app() -> FastAPI:
