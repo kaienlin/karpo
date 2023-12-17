@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
@@ -158,23 +157,19 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           snapPoints={['18%', '45%', '75%']}
         >
           {(acceptedJoins?.length > 0 || selectedJoins?.length > 0) && (
-            <Animated.View entering={FadeIn.delay(100)}>
-              <PassengerAvatarList
-                title="已選擇的乘客"
-                data={[...(acceptedJoins ?? []), ...(selectedJoins ?? [])]}
-                onDeselect={onPressDeselect}
-                onConfirm={onPressConfirm}
-              />
-            </Animated.View>
-          )}
-          <Animated.View style={{ flex: 1 }} layout={CurvedTransition}>
-            <PassengerCardList
-              title="已發出請求的乘客"
-              data={unselectedJoins ?? []}
-              onReject={onPressReject}
-              onSelect={onPressSelect}
+            <PassengerAvatarList
+              title="已選擇的乘客"
+              data={[...(acceptedJoins ?? []), ...(selectedJoins ?? [])]}
+              onDeselect={onPressDeselect}
+              onConfirm={onPressConfirm}
             />
-          </Animated.View>
+          )}
+          <PassengerCardList
+            title="已發出請求的乘客"
+            data={unselectedJoins ?? []}
+            onReject={onPressReject}
+            onSelect={onPressSelect}
+          />
         </BottomSheet>
       </BottomSheetModalProvider>
     </SafeAreaView>

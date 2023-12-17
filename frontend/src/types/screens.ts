@@ -6,6 +6,7 @@ import type {
   AccountStackParamList,
   AuthStackParamList,
   BottomTabParamList,
+  CommonScreensParamList,
   DriverStackParamList,
   HistoryStackParamList,
   MainStackParamList,
@@ -39,7 +40,7 @@ export type DriverPlanRideScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParamList>
 >
 export type SelectWaypointScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<DriverStackParamList, 'SelectWaypointScreen'>,
+  NativeStackScreenProps<CommonScreensParamList, 'SelectWaypointScreen'>,
   NativeStackScreenProps<MainStackParamList>
 >
 export type DriverSelectJoinScreenProps = CompositeScreenProps<

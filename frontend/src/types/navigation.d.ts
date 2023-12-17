@@ -1,38 +1,26 @@
 import type { NavigatorScreenParams } from '@react-navigation/native'
 
-/* @deprecated: replaced by MainStackParamList */
-type HomeStackParamList = {
-  BottomTab: undefined
-  HomeScreen: undefined
-  SelectLocationScreen: { waypointIndex: number }
-  SelectRideScreen: undefined
-  RideInfoScreen: {
-    rating: number
-    vacuumSeat: number
-    rideStatus: string
-    departTime: string
-    arrivalTime: string
-    price: number
-  }
-}
-
 type AuthStackParamList = {
   WelcomeScreen: undefined
   SignInScreen: undefined
   SignUpScreen: undefined
 }
 
-type MainStackParamList = {
-  BottomTab: NavigatorScreenParams<BottomTabParamList>
-  DriverStack: NavigatorScreenParams<DriverStackParamList>
-  PassengerStack: NavigatorScreenParams<PassengerStackParamList>
-  HistoryStack: NavigatorScreenParams<HistoryStackParamList>
-  AccountStack: NavigatorScreenParams<AccountStackParamList>
+type CommonScreensParamList = {
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
   ChatScreen: { rideId: string }
   SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   RideCompleteScreen: { userIds: string[] }
 }
+
+type MainStackParamList = AuthStackParamList &
+  CommonScreensParamList & {
+    BottomTab: NavigatorScreenParams<BottomTabParamList>
+    DriverStack: NavigatorScreenParams<DriverStackParamList>
+    PassengerStack: NavigatorScreenParams<PassengerStackParamList>
+    HistoryStack: NavigatorScreenParams<HistoryStackParamList>
+    AccountStack: NavigatorScreenParams<AccountStackParamList>
+  }
 
 type BottomTabParamList = {
   HomeScreen: undefined
@@ -42,11 +30,8 @@ type BottomTabParamList = {
 
 type DriverStackParamList = {
   DriverPlanRideScreen: { savedRideIndex: number }
-  SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
-  ChatScreen: { joinId: string }
-  RideCompleteScreen: undefined
 }
 
 type PassengerStackParamList = {

@@ -1,3 +1,4 @@
+/* @deprecated: now intergrated into root-level navigator */
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps
