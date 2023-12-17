@@ -3,7 +3,6 @@ import Animated, { CurvedTransition, FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
-import reactotron from 'reactotron-react-native'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
@@ -55,7 +54,9 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const [respondJoin] = useRespondJoinMutation()
 
   const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
-  const selectedJoins = pendingJoins?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+  const selectedJoins = pendingJoins
+    ?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
+    ?.map((item) => ({ status: 'pending', ...item }))
   const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
 
   const screenTitle = !isAcceptedJoinsSuccess
@@ -78,6 +79,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
       for (const joinId of selectedJoinIds) {
         await respondJoin({ rideId, joinId, action: 'accept' })
       }
+      setSelectedJoinIds([])
     } catch (error) {
       console.log(error)
     }

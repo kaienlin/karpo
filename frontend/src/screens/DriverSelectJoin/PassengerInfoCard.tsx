@@ -1,8 +1,8 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
 import { Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
-import { Image } from 'expo-image'
 
+import { Avatar } from '~/components/Avatar'
 import type { JoinDetailed } from '~/types/data'
 import { displayDatetime, displayProximity } from '~/utils/format'
 
@@ -55,7 +55,7 @@ function PassengerInfoCardHeader({
         activeOpacity={0.8}
         style={{ padding: 10, paddingLeft: 0 }}
       >
-        <Image source={{ uri: avatar }} style={{ height: 50, width: 50, borderRadius: 25 }} />
+        <Avatar base64Uri={avatar} size="small" />
       </TouchableOpacity>
       <View
         style={{
@@ -175,7 +175,7 @@ export function PassengerInfoCard({
     numPassengers,
     proximity,
     fare,
-    passengerInfo: { id, avatar, rating, phoneNumber }
+    passengerInfo: { avatar, rating }
   },
   onViewProfile,
   onChat,
