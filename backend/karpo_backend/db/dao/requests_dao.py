@@ -5,7 +5,17 @@ from typing import List, Optional, Tuple
 from fastapi import Depends
 from geoalchemy2 import Geography
 from geoalchemy2.shape import to_shape  # noqa: WPS347
-from sqlalchemy import delete, exists, func, select, type_coerce, update
+from sqlalchemy import (
+    delete,
+    exists,
+    func,
+    insert,
+    literal,
+    select,
+    true,
+    type_coerce,
+    update,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import true
 
@@ -32,19 +42,50 @@ class RequestsDAO:
         start_time: datetime.datetime,
         is_active: bool = True,
     ) -> RequestsModel:
-        request = RequestsModel(
-            user_id=user_id,
-            origin=f"POINT({origin.longitude} {origin.latitude})",
-            destination=f"POINT({destination.longitude} {destination.latitude})",
-            origin_description=origin.description,
-            destination_description=destination.description,
-            num_passengers=num_passengers,
-            start_time=start_time,
-            is_active=is_active,
+        select_stmt = select(
+            literal(uuid.uuid4()),
+            literal(user_id),
+            func.st_makepoint(origin.longitude, origin.latitude),
+            func.st_makepoint(destination.longitude, destination.latitude),
+            literal(origin.description),
+            literal(destination.description),
+            literal(num_passengers),
+            literal(start_time),
+            literal(is_active),
+        ).where(
+            ~(
+                exists(
+                    select(RequestsModel.id).where(
+                        (RequestsModel.user_id == user_id)
+                        & (RequestsModel.is_active == true())
+                    )
+                )
+            )
         )
-        self.session.add(request)
-        await self.session.flush()
-        return request
+        query = (
+            insert(RequestsModel)
+            .from_select(
+                [
+                    "id",
+                    "user_id",
+                    "origin",
+                    "destination",
+                    "origin_description",
+                    "destination_description",
+                    "num_passengers",
+                    "start_time",
+                    "is_active",
+                ],
+                select_stmt,
+            )
+            .returning(RequestsModel)
+        )
+        result = await self.session.scalars(query)
+
+        result_instance = result.one_or_none()
+        if result_instance is not None:
+            self.session.expunge(result_instance)
+        return result_instance
 
     async def get_requests_model_by_id(
         self,

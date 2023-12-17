@@ -235,13 +235,6 @@ async def post_requests(
     + **request_id**
     + **matches**: the same as the reponse of GET /requests/{request_id}/matches.
     """
-    request = await requests_dao.get_active_request_by_user_id(user.id)
-    if request is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="exists a active request for the current user",
-        )
-
     request = await requests_dao.create_requests_model(
         user_id=user.id,
         origin=req.origin,
@@ -249,6 +242,12 @@ async def post_requests(
         num_passengers=req.num_passengers,
         start_time=req.time,
     )
+
+    if request is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="exists a active request for the current user",
+        )
 
     unasked_matches = await get_unasked_match_dtos(
         request,
