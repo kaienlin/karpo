@@ -13,7 +13,7 @@ import { Skeleton } from 'moti/skeleton'
 
 import { Avatar } from '~/components/Avatar'
 import { useGetUserProfileQuery } from '~/redux/api/users'
-import type { User } from '~/types/data'
+import type { User, UserProfile } from '~/types/data'
 import type { UserProfileScreenProps } from '~/types/screens'
 
 const driverInfo = {
@@ -30,9 +30,19 @@ const driverInfo = {
 
 const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
 
-function UserProfileCard({ user }: { user: User }) {
+function UserProfileCard({ user }: { user: UserProfile}) {
   // TODO: extend User fields
-  const { avatar, name, phoneNumber, rating, languages, city, carpoolTimes, joinedDays } = user
+  const { name, rating, avatar, createdAt, numRequests, numRides } = user
+  console.log(name)
+
+  const createdAtTimestamp = new Date(createdAt).getTime();
+  const todayTimestamp = new Date().getTime();
+
+  // Calculate the time difference in milliseconds
+  const timeDifference = todayTimestamp - createdAtTimestamp;
+
+  // Convert the time difference to days
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
   return (
     <>
@@ -56,39 +66,42 @@ function UserProfileCard({ user }: { user: User }) {
           <Layout style={styles.iconContainer}>
             <Icon name="home-outline" fill="#000" width={20} height={20} />
           </Layout>
-          <View style={{ marginHorizontal: 10 }}>
-            <Text style={styles.lightText}>{city}</Text>
+          <View style={{ marginHorizontal: 10, flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.lightText}>來自: </Text>
+            <Text style={{ fontWeight: 'bold' }}> 台北市 </Text>
           </View>
         </View>
-        <View style={styles.iconTextContainer}>
+        {/* <View style={styles.iconTextContainer}>
           <Layout style={styles.iconContainer}>
             <Icon name="phone-outline" fill="#000" width={20} height={20} />
           </Layout>
           <View style={{ marginHorizontal: 10 }}>
             <Text style={styles.lightText}>{phoneNumber}</Text>
           </View>
-        </View>
+        </View> */}
         <View style={styles.iconTextContainer}>
           <Layout style={styles.iconContainer}>
             <Icon name="globe-outline" fill="#000" width={20} height={20} />
           </Layout>
-          <View style={{ marginHorizontal: 10 }}>
-            <Text style={styles.lightText}>{languages}</Text>
+          <View style={{ marginHorizontal: 10, flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.lightText}>通曉語言: </Text>
+            <Text style={{ fontWeight: 'bold' }}> 中文 和 英文 </Text>
+            {/* <Text style={styles.lightText}> 中文 和 英文</Text> */}
           </View>
         </View>
-        <View style={styles.iconTextContainer}>
+        {/* <View style={styles.iconTextContainer}>
           <Layout style={styles.iconContainer}>
             <Icon name="message-circle-outline" fill="#000" width={20} height={20} />
           </Layout>
           <View style={{ marginHorizontal: 10 }}>
             <Text style={styles.lightText}>傳訊息</Text>
           </View>
-        </View>
+        </View> */}
       </View>
       {/* carpooling info */}
       <View style={styles.carpoolInfoContainer}>
         <View style={styles.carpoolInfo}>
-          <Text style={styles.yellowBoldText}>{carpoolTimes}</Text>
+          <Text style={styles.yellowBoldText}>{numRequests+numRides}</Text>
           <Text style={styles.lightText}>共乘</Text>
         </View>
         <View style={styles.carpoolInfo}>
@@ -96,8 +109,8 @@ function UserProfileCard({ user }: { user: User }) {
           <Text style={styles.lightText}>評分</Text>
         </View>
         <View style={styles.carpoolInfo}>
-          <Text style={styles.yellowBoldText}>{joinedDays}</Text>
-          <Text style={styles.lightText}>年經驗</Text>
+          <Text style={styles.yellowBoldText}>{daysDifference}</Text>
+          <Text style={styles.lightText}>加入天數</Text>
         </View>
       </View>
     </>
@@ -135,10 +148,15 @@ const UserProfileSkeleton = () => {
 }
 
 export default function DriverInfo({ navigation, route }: UserProfileScreenProps) {
-  const { role, userId } = route?.params
+  // const { role, userId } = route?.params
+  const role = 'driver'
+  const userId = '54321'
 
   const screenTitle = role === 'driver' ? '駕駛資訊' : '乘客資訊'
   const { data: user, isSuccess } = useGetUserProfileQuery(userId)
+  console.log(useGetUserProfileQuery(userId))
+  console.log(user)
+  console.log(isSuccess)
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -176,7 +194,7 @@ const styles = StyleSheet.create({
   },
   iconTextContainer: {
     flexDirection: 'row',
-    gap: 15,
+    gap: 8,
     alignItems: 'center'
     // marginTop: 2,
   },

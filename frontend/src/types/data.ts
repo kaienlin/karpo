@@ -12,6 +12,17 @@ export interface User {
   
 }
 
+export interface UserProfile {
+  name: string
+  rating: number
+  avatar: string
+  createdAt: string
+  numRequests: number
+  numRides: number
+  
+}
+
+
 export interface UserEditable
   extends Partial<Pick<User, 'name' | 'email' | 'phoneNumber' | 'avatar'>> {}
 
