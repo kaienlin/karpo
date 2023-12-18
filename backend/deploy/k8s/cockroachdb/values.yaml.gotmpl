@@ -169,7 +169,7 @@ conf:
     attrs:
 
 statefulset:
-  replicas: 3
+  replicas: 2
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: Parallel
@@ -243,7 +243,7 @@ statefulset:
   resources:
     limits:
       cpu: 500m
-      memory: 1Gi
+      memory: 1536Mi
     requests:
       cpu: 100m
       memory: 256Mi
