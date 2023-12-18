@@ -73,7 +73,6 @@ function PassengerInfoCardHeader({
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ fontSize: 18, fontWeight: '500' }}>{displayDatetime(time, true)}</Text>
-            <Text style={{ fontSize: 12, color: '#F0C414' }}>{displayProximity(proximity)}</Text>
           </View>
           <Text style={{ fontSize: 18 }}>NT${fare}</Text>
         </View>
@@ -86,12 +85,14 @@ function PassengerInfoCardHeader({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <Icon name="star" style={{ width: 16, height: 16 }} fill={'#F0C414'} />
-              <Text style={styles.lightText}>{rating ? rating.toFixed(1) : 'N/A'}</Text>
+              <Text style={styles.lightText}>{rating ? rating.toFixed(1) : '5.0'}</Text>
             </View>
             <Text style={styles.lightText}>|</Text>
             <Text style={styles.lightText}>{numPassengers} 人</Text>
             <Text style={styles.lightText}>|</Text>
             <Text style={styles.lightText}>願拼車</Text>
+            <Text style={styles.lightText}>|</Text>
+            <Text style={{ fontSize: 12, color: '#F0C414' }}>{displayProximity(proximity)}</Text>
           </View>
         </View>
       </View>
