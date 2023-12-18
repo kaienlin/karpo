@@ -10,8 +10,8 @@ import { useGetUserProfileQuery, useGetMyProfileQuery } from '~/redux/api/users'
 export type ChatScreenProps = NativeStackScreenProps<MainStackParamList, 'ChatScreen'>
 
 export default function ChatScreen({ navigation, route }: ChatScreenProps) {
-  // const { joinId } = route.params
-  const joinId = 'abc'
+  const { joinId } = route.params
+  // const joinId = 'abc'
   const { data } = useGetMyProfileQuery()
   const user2Id: string | number = data?.id || ''
   const user2Name = data?.name

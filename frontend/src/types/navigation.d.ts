@@ -29,7 +29,7 @@ type MainStackParamList = {
   HistoryStack: NavigatorScreenParams<HistoryStackParamList>
   AccountStack: NavigatorScreenParams<AccountStackParamList>
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
-  ChatScreen: { rideId: string }
+  ChatScreen: { joinId: string }
   SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   RideCompleteScreen: { userIds: string[] }
 }

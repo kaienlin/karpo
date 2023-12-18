@@ -172,7 +172,7 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
 
   const destinationStr = () => {
     if (request.destination)
-      return `目的地：\n${request.origin.description}`
+      return `目的地：\n${request.destination.description}`
     return '目的地'
   }
 
@@ -188,7 +188,7 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
   const dropoffStr = () => {
     return (
       '下車地點：\n'
-      + pickupDescription
+      + dropoffDescription
       + '\n預估下車時間：\n'
       + displayTime(match.dropOffTime.toString(), false)
     )

@@ -1,11 +1,8 @@
-import { useMemo, useState } from 'react'
 import { FlatList, View } from 'react-native'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 
 import { InfoCard } from '~/components/InfoCard'
 import { QueryBlock } from '~/components/QueryBlock'
-import { HeaderProps } from '~/components/CardHeader'
-import { shallowEqual, useSelector } from 'react-redux'
 import { Button, Spinner, Text } from '@ui-kitten/components'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { Match } from '~/types/data'
@@ -20,7 +17,7 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
 
   // https://redux-toolkit.js.org/rtk-query/usage/queries#selecting-data-from-a-query-result
   const matchRes = useGetMatchesQuery(requestId, {
-    pollingInterval: 20000,
+    pollingInterval: 5000,
     selectFromResult: ({data, ...rest}) => ({
       unaskedMatches: data?.matches?.filter(
         (match: Match) => match.status === 'unasked'

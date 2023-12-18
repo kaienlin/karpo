@@ -34,6 +34,14 @@ function ArrivalCard ({ride} : { ride: Match }) {
     )
   }
 
+  const handleMessage = () => {
+    if (ride.joinId)
+      navigation.navigate( 
+        'ChatScreen',
+        { 'joinId': ride.joinId }
+      )
+  }
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -74,7 +82,9 @@ function ArrivalCard ({ride} : { ride: Match }) {
           padding: 10
         }}> 
           <View style={{ flex: 1 }}>
-            <Button>傳訊息給駕駛</Button>
+            <Button
+              onPress={handleMessage}
+            >傳訊息給駕駛</Button>
           </View>
           <View style={{ flex: 1 }}>
             <Button onPress={handleConfirm}>確認上車</Button>
