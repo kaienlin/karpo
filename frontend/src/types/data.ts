@@ -9,7 +9,6 @@ export interface User {
   phoneNumber: string
   rating: number
   avatar: string
-  
 }
 
 export interface UserProfile {
@@ -19,9 +18,7 @@ export interface UserProfile {
   createdAt: string
   numRequests: number
   numRides: number
-  
 }
-
 
 export interface UserEditable
   extends Partial<Pick<User, 'name' | 'email' | 'phoneNumber' | 'avatar'>> {}
@@ -109,7 +106,7 @@ export interface Match {
   driverDestination: Waypoint
   numAvailableSeat: number
   otherPassengers: string[]
-  
+
   driverInfo: User
   fare: number
   driverRoute: {
@@ -146,7 +143,6 @@ export interface JoinDetailed extends Join {
   passengerInfo: User
 }
 
-
 export interface RideStatus {
   driverPosition: {
     latitude: number
@@ -154,11 +150,11 @@ export interface RideStatus {
   }
   phase: number
 }
-=======
+
 // Comments
 export interface Comments {
-  userId: string,
-  rate: number,
+  userId: string
+  rate: number
   comment: string
 }
 

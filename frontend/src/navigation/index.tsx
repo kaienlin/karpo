@@ -5,11 +5,9 @@ import {
   createNativeStackNavigator,
   type NativeStackScreenProps
 } from '@react-navigation/native-stack'
-import { skipToken } from '@reduxjs/toolkit/query'
 import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 import * as SecureStore from 'expo-secure-store'
 
-import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import SignInScreen from '~/screens/SignIn'
 import SignUpScreen from '~/screens/SignUp'
 import WelcomeScreen from '~/screens/Welcome'
@@ -46,10 +44,6 @@ export default function AppNavigator() {
   const state = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
 
-  const { data: activeItems, isLoading } = useGetCurrentActivityQuery(
-    state.accessToken ? undefined : skipToken
-  )
-
   useEffect(() => {
     if (state.accessToken) {
       return
@@ -65,20 +59,9 @@ export default function AppNavigator() {
     })()
   }, [])
 
-  let initialRouteName = 'WelcomeScreen' as keyof AuthStackParamList | keyof MainStackParamList
-  if (activeItems?.driverState) {
-    initialRouteName = 'DriverStack'
-  } else if (activeItems?.passengerState) {
-    initialRouteName = 'PassengerStack'
-  }
-
-  if (isLoading) {
-    return null // TODO: return a splash screen for smoother transition
-  }
-
   return (
     <NavigationContainer theme={CustomTheme}>
-      <Stack.Navigator initialRouteName={initialRouteName}>
+      <Stack.Navigator>
         {!state.accessToken ? (
           <>
             <Stack.Group

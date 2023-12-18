@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
-import { StackActions } from '@react-navigation/native'
 import { skipToken } from '@reduxjs/toolkit/query'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
@@ -15,7 +14,7 @@ import {
   useRespondJoinMutation,
   useRespondJoinsMutation
 } from '~/redux/api/driver'
-import { useGetCurrentActivityQuery } from '~/redux/api/users'
+import { useCancelEventMutation, useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
@@ -48,6 +47,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
 
   // const [respondJoin] = useRespondJoinMutation()
   const [respondJoins] = useRespondJoinsMutation()
+  const [cancelRide] = useCancelEventMutation()
 
   const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
   const selectedJoins = pendingJoins
@@ -111,10 +111,9 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           snapPoints={['33%', '33%']}
           title="是否要取消本次行程？"
           message="取消行程後，您的乘客們會馬上收到通知"
-          onPressConfirm={() => {
-            navigation.replace('BottomTab', {
-              screen: 'HomeScreen'
-            })
+          onPressConfirm={async () => {
+            await cancelRide()
+            navigation.goBack()
           }}
           confirmBtnText="取消行程"
           cancelBtnText="留在此頁"
