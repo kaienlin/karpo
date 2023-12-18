@@ -6,15 +6,9 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
 import TopNavBar from '~/components/nav/TopNavBar'
-import {
-  selectDriverState,
-  selectRideRoute,
-  useGetJoinsQuery,
-  useGetRideQuery,
-  useRespondJoinMutation,
-  useRespondJoinsMutation
-} from '~/redux/api/driver'
-import { useCancelEventMutation, useGetCurrentActivityQuery } from '~/redux/api/users'
+import { useDriverState } from '~/hooks/useDriverState'
+import { useGetJoinsQuery, useRespondJoinsMutation } from '~/redux/api/driver'
+import { useCancelEventMutation } from '~/redux/api/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
@@ -23,12 +17,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const bottomSheetRef = useRef<BottomSheet>(null)
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: result => ({ ...result, ...selectDriverState(result) })
-  })
-  const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: result => ({ ...result, rideRoute: selectRideRoute(result) })
-  })
+  const { rideId, rideRoute } = useDriverState()
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
     pollingInterval: 3000,
     selectFromResult: ({ data }) => ({ pendingJoins: data?.joins })
@@ -45,7 +34,6 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     })
   })
 
-  // const [respondJoin] = useRespondJoinMutation()
   const [respondJoins] = useRespondJoinsMutation()
   const [cancelRide] = useCancelEventMutation()
 

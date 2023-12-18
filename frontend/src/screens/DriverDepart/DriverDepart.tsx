@@ -9,6 +9,7 @@ import { Icon, StyleService, useStyleSheet } from '@ui-kitten/components'
 import { Avatar } from '~/components/Avatar'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
+import { useDriverState } from '~/hooks/useDriverState'
 import {
   selectAcceptedPassengers,
   selectDriverState,
@@ -18,8 +19,8 @@ import {
   useGetScheduleQuery,
   useUpdateStatusMutation
 } from '~/redux/api/driver'
-import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { useGetRideStatusQuery } from '~/redux/api/passenger'
+import { useGetCurrentActivityQuery } from '~/redux/api/users'
 import { type DriverDepartScreenProps } from '~/types/screens'
 import { makePhoneCall } from '~/utils/device'
 
@@ -117,22 +118,17 @@ const PhaseInfoSection = ({
 export default function DriverDepartScreen({ navigation }: DriverDepartScreenProps) {
   const styles = useStyleSheet(themedStyles)
   const [isLoading, setIsLoading] = useState(false)
-
   const { location: currentLocation } = useCurrentLocation()
-
-  const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: result => ({ ...result, ...selectDriverState(result) })
-  })
-  const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: result => ({ ...result, rideRoute: selectRideRoute(result) })
-  })
-  const { ridePhase } = useGetRideStatusQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data, ...rest }) => ({ ridePhase: data?.phase, ...rest })
-  })
-  const { schedule } = useGetScheduleQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data, ...rest }) => ({ schedule: data?.schedule, ...rest })
-  })
+  const { rideId, rideRoute, rideSchedule, ridePhase } = useDriverState()
   const [updateStatus] = useUpdateStatusMutation()
+
+  useEffect(() => {
+    if (rideSchedule && ridePhase === rideSchedule.length) {
+      navigation.navigate('RideCompleteScreen', {
+        userIds: [...new Set(rideSchedule.map(({ passengerId }) => passengerId))]
+      })
+    }
+  }, [ridePhase])
 
   const onSwipeProceed = async () => {
     setIsLoading(true)
@@ -145,18 +141,10 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
     }, 500)
   }
 
-  useEffect(() => {
-    if (schedule && ridePhase === schedule.length) {
-      navigation.navigate('RideCompleteScreen', {
-        userIds: [...new Set(schedule.map(({ passengerId }) => passengerId))]
-      })
-    }
-  }, [ridePhase])
-
   let content
   if (ridePhase < 0) {
     content = <ReadyInfoSection rideId={rideId} isLoading={isLoading} onProceed={onSwipeProceed} />
-  } else if (ridePhase < schedule?.length) {
+  } else if (ridePhase < rideSchedule?.length) {
     content = <PhaseInfoSection rideId={rideId} isLoading={isLoading} onProceed={onSwipeProceed} />
   }
 
@@ -171,11 +159,11 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
         {ridePhase >= 0 && (
           <Marker
             coordinate={{
-              latitude: schedule?.[ridePhase]?.location.latitude,
-              longitude: schedule?.[ridePhase]?.location.longitude
+              latitude: rideSchedule?.[ridePhase]?.location.latitude,
+              longitude: rideSchedule?.[ridePhase]?.location.longitude
             }}
           >
-            <Avatar base64Uri={schedule?.[ridePhase]?.passengerInfo?.avatar} size="mini" />
+            <Avatar base64Uri={rideSchedule?.[ridePhase]?.passengerInfo?.avatar} size="mini" />
           </Marker>
         )}
       </MapViewWithRoute>
