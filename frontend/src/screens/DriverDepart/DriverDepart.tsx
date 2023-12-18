@@ -19,7 +19,7 @@ import {
   useUpdateStatusMutation
 } from '~/redux/api/driver'
 import { useGetCurrentActivityQuery } from '~/redux/api/users'
-import { useGetRideStatusQuery } from '~/redux/passenger'
+import { useGetRideStatusQuery } from '~/redux/api/passenger'
 import { type DriverDepartScreenProps } from '~/types/screens'
 import { makePhoneCall } from '~/utils/device'
 

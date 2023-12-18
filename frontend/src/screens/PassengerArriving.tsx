@@ -38,7 +38,7 @@ function ArrivalCard ({ride} : { ride: Match }) {
     if (ride.joinId)
       navigation.navigate( 
         'ChatScreen',
-        { 'joinId': ride.joinId }
+        { 'joinId': ride.joinId, 'user1Id': ride.driverInfo.id }
       )
   }
 

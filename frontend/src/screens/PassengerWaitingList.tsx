@@ -6,7 +6,7 @@ import { InfoCard } from '~/components/InfoCard'
 import { PassengerStackParamList } from '~/types/navigation'
 import { Spinner, Text, Button, Card, Modal } from '@ui-kitten/components'
 import { Match } from '~/types/data'
-import { useCancelJoinRequestMutation, useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
+import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { useState } from 'react'
 import { set } from 'react-hook-form'
 

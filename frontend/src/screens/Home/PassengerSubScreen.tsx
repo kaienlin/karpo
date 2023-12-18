@@ -72,10 +72,10 @@ export function PassengerSubScreen() {
   })
 
   useEffect(() => {
-    if (passengerState?.requestId) {
+    if (passengerState) {
       navigation.navigate('PassengerStack', {
         screen: 'SelectRideScreen',
-        params: { requestId: passengerState?.requestId }
+        params: { requestId: passengerState.requestId }
       })
     }
   }, [passengerState])
@@ -186,7 +186,7 @@ export function PassengerSubScreen() {
               {...ride} 
               key={`${ride.label}-${index}`}
               onPress={() => reset({
-                time: ride.time,
+                time: ride.departureTime,
                 numPassengers: ride.numSeats,
                 waypoints: [ride.origin, ride.destination]
               })}

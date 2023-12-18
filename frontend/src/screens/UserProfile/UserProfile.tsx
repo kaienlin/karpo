@@ -148,9 +148,9 @@ const UserProfileSkeleton = () => {
 }
 
 export default function DriverInfo({ navigation, route }: UserProfileScreenProps) {
-  // const { role, userId } = route?.params
-  const role = 'driver'
-  const userId = '54321'
+  const { role, userId } = route?.params
+  // const role = 'driver'
+  // const userId = '54321'
 
   const screenTitle = role === 'driver' ? '駕駛資訊' : '乘客資訊'
   const { data: user, isSuccess } = useGetUserProfileQuery(userId)
