@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useForm } from 'react-hook-form'
 import { Marker } from 'react-native-maps'
@@ -6,13 +7,14 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
 import { Button, Text } from '@ui-kitten/components'
 
+import savedRides from '~/assets/templates/savedRides.json'
 import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import TopNavBar from '~/components/nav/TopNavBar'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
 import { useCreateRideMutation } from '~/redux/api/driver'
 import { useGetRouteQuery } from '~/redux/api/maps'
-import { useGetSavedRidesQuery } from '~/redux/api/users'
+import { transformSavedRide } from '~/redux/api/users'
 import { type DriverPlanRideScreenProps } from '~/types/screens'
 import { isValidWaypoint, isValidWaypoints } from '~/utils/maps'
 
@@ -30,27 +32,41 @@ const defaultValues: RidePlan = {
   waypoints: [emptyWaypoint, emptyWaypoint]
 }
 
-export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
-  const { savedRideIndex } = route?.params
-  const { location: currentLocation, isLoading: isCurrentLocationLoading } = useCurrentLocation()
-  const { data: savedRide } = useGetSavedRidesQuery(savedRideIndex === -1 ? skipToken : undefined, {
-    selectFromResult: ({ data, ...rest }) => {
-      const ride = data?.savedRides[savedRideIndex]
-      if (!ride) return { data, ...rest }
+const RouteMarkers = ({
+  waypoints,
+  updatedWaypointIndex
+}: {
+  waypoints: Waypoint[]
+  updatedWaypointIndex?: number
+}) => {
+  const ref = useRef<Marker[]>([])
 
-      const intermediates = ride.intermediates ?? []
-      return {
-        data: {
-          time: new Date(ride.time),
-          numSeats: ride.numSeats,
-          waypoints: [ride.origin, ...intermediates, ride.destination]
-        }
-      }
-    }
-  })
+  useEffect(() => {
+    ref.current = ref.current.slice(0, waypoints.length)
+  }, [waypoints])
+
+  if (updatedWaypointIndex) {
+    ref.current[updatedWaypointIndex]?.redraw()
+  }
+
+  return waypoints.map(
+    (waypoint, index) =>
+      isValidWaypoint(waypoint) && (
+        <Marker key={index} ref={el => (ref.current[index] = el)} coordinate={waypoint}>
+          {index === 0 ? <RouteMarker.Radio /> : <RouteMarker.Box label={`${index}`} />}
+        </Marker>
+      )
+  )
+}
+
+export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRideScreenProps) {
+  const { savedRideIndex, updatedWaypoint } = route?.params
+  const { location: currentLocation, isLoading: isCurrentLocationLoading } = useCurrentLocation()
+
+  const savedRide = savedRideIndex >= 0 ? transformSavedRide(savedRides[savedRideIndex]) : null
 
   const { control, watch, handleSubmit } = useForm<RidePlan>({
-    defaultValues: (savedRide as RidePlan) ?? defaultValues
+    defaultValues: savedRide ?? defaultValues
   })
 
   const waypoints = watch('waypoints')
@@ -77,7 +93,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
         intermediates: data.waypoints.slice(1, data.waypoints.length - 1),
         route: {
           // note: backend uses [longitude, latitude]
-          steps: steps.map((step) => step.map(([lat, lng]) => [lng, lat])),
+          steps: steps.map(step => step.map(([lat, lng]) => [lng, lat])),
           durations
         }
       })
@@ -98,14 +114,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
             fitToRouteButtonPosition={{ left: '86%', bottom: '11%' }}
             initialRegion={{ ...currentLocation, latitudeDelta: 0.005, longitudeDelta: 0.002 }}
           >
-            {waypoints.map(
-              (waypoint, index) =>
-                isValidWaypoint(waypoint) && (
-                  <Marker key={index} coordinate={waypoint}>
-                    {index === 0 ? <RouteMarker.Radio /> : <RouteMarker.Box label={`${index}`} />}
-                  </Marker>
-                )
-            )}
+            <RouteMarkers waypoints={waypoints} updatedWaypointIndex={updatedWaypoint?.index} />
           </MapViewWithRoute>
         )}
         <View style={styles.submitButtonContainer}>

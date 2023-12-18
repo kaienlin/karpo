@@ -5,8 +5,8 @@ import { decodeRoute, type RouteDecoded } from '~/utils/maps'
 
 import { apiSlice } from './index'
 
-const mapsSlice = apiSlice.injectEndpoints({
-  endpoints: (builder) => ({
+export const mapsSlice = apiSlice.injectEndpoints({
+  endpoints: builder => ({
     getRoute: builder.query<RouteDecoded, Waypoint[]>({
       async queryFn(arg) {
         const waypoints = arg
@@ -30,6 +30,12 @@ const mapsSlice = apiSlice.injectEndpoints({
         }
 
         return { data: null }
+      }
+    }),
+    getPlaceDescription: builder.query<string, LatLng>({
+      queryFn: async arg => {
+        const description = await MapsAPI.getPlaceTitle(arg)
+        return { data: description }
       }
     })
   })

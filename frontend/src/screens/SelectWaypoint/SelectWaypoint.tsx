@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
-import { set } from 'react-hook-form'
 import MapView, { type Details, type Region } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
@@ -37,11 +36,11 @@ function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
     <ListItem
       {...props}
       style={{ paddingHorizontal: 20, height: 55 }}
-      title={(evaProps) => <Text style={[evaProps?.style, { fontSize: 14 }]}>{title}</Text>}
+      title={evaProps => <Text style={[evaProps?.style, { fontSize: 14 }]}>{title}</Text>}
       description={
         address.length === 0
           ? undefined
-          : (evaProps) => (
+          : evaProps => (
               <Text style={[evaProps?.style, { fontSize: 13, marginTop: 3 }]}>{address}</Text>
             )
       }
@@ -52,7 +51,7 @@ function AutocompleteItem({ title, address, ...props }: AutocompleteItemProps) {
 
 export default function SelectWaypoint({ navigation, route }: SelectWaypointScreenProps) {
   const { waypointIndex, waypoint: defaultCenter } = route.params
-  const routes = useNavigationState((state) => state.routes)
+  const routes = useNavigationState(state => state.routes)
 
   const inputRef = useRef<Input>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
@@ -100,7 +99,7 @@ export default function SelectWaypoint({ navigation, route }: SelectWaypointScre
 
   const confirmWaypoint = (waypoint: Waypoint) => {
     const prevScreen = routes[routes.length - 2].name
-    
+
     // TODO: this is just workaround
     if (prevScreen === 'BottomTab') {
       navigation.navigate('BottomTab', {
@@ -195,7 +194,7 @@ export default function SelectWaypoint({ navigation, route }: SelectWaypointScre
         index={1}
         topInset={30}
         snapPoints={['20%', '90%']}
-        onChange={(index) => {
+        onChange={index => {
           if (index === 1) {
             inputRef.current?.focus()
           } else {

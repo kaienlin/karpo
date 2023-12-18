@@ -6,17 +6,16 @@ export function Avatar({
   size = 'small'
 }: {
   base64Uri: string
-  size?: 'small' | 'large'
+  size?: 'mini' | 'small' | 'large'
 }) {
-  return (
-    <Image
-      source={{ uri: `data:image/png;base64,${base64Uri}` }}
-      style={size === 'small' ? styles.small : styles.large}
-    />
-  )
+  return <Image source={{ uri: `data:image/png;base64,${base64Uri}` }} style={styles[size]} />
 }
 
 const styles = StyleSheet.create({
+  mini: {
+    width: 35,
+    height: 35
+  },
   small: {
     width: 50,
     height: 50

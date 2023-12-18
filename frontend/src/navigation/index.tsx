@@ -1,12 +1,38 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native'
+import {
+  createNativeStackNavigator,
+  type NativeStackScreenProps
+} from '@react-navigation/native-stack'
+import { skipToken } from '@reduxjs/toolkit/query'
+import { Icon, TopNavigation, TopNavigationAction, type IconProps } from '@ui-kitten/components'
 import * as SecureStore from 'expo-secure-store'
+
+import { useGetCurrentActivityQuery } from '~/redux/api/users'
+import SignInScreen from '~/screens/SignIn'
+import SignUpScreen from '~/screens/SignUp'
+import WelcomeScreen from '~/screens/Welcome'
+import type { AuthStackParamList, MainStackParamList } from '~/types/navigation'
 
 import { restoreToken } from '../redux/auth'
 import { type RootState } from '../redux/store'
-import AuthStack from './AuthStack'
-import MainStack from './MainStack'
+import AccountStack from './AccountStack'
+import BottomTab from './BottomTab'
+import { commonScreens } from './commonScreens'
+import DriverStack from './DriverStack'
+import PassengerStack from './PassengerStack'
+
+const BackIcon = (props: IconProps) => <Icon {...props} name="arrow-back" />
+const TopHeader = ({ navigation }: NativeStackScreenProps<AuthStackParamList>) => {
+  return (
+    <TopNavigation
+      accessoryLeft={() => <TopNavigationAction icon={BackIcon} onPress={navigation.goBack} />}
+    />
+  )
+}
+
+const Stack = createNativeStackNavigator<AuthStackParamList & MainStackParamList>()
 
 const CustomTheme = {
   ...DefaultTheme,
@@ -19,6 +45,10 @@ const CustomTheme = {
 export default function AppNavigator() {
   const state = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
+
+  const { data: activeItems, isLoading } = useGetCurrentActivityQuery(
+    state.accessToken ? undefined : skipToken
+  )
 
   useEffect(() => {
     if (state.accessToken) {
@@ -35,9 +65,49 @@ export default function AppNavigator() {
     })()
   }, [])
 
+  let initialRouteName = 'WelcomeScreen' as keyof AuthStackParamList | keyof MainStackParamList
+  if (activeItems?.driverState) {
+    initialRouteName = 'DriverStack'
+  } else if (activeItems?.passengerState) {
+    initialRouteName = 'PassengerStack'
+  }
+
+  if (isLoading) {
+    return null // TODO: return a splash screen for smoother transition
+  }
+
   return (
     <NavigationContainer theme={CustomTheme}>
-      {!state.accessToken ? <AuthStack /> : <MainStack />}
+      <Stack.Navigator initialRouteName={initialRouteName}>
+        {!state.accessToken ? (
+          <>
+            <Stack.Group
+              screenOptions={({ navigation, route }) => ({
+                headerLeft: () => <TopHeader navigation={navigation} route={route} />,
+                headerShadowVisible: false
+              })}
+            >
+              <Stack.Screen
+                name="WelcomeScreen"
+                component={WelcomeScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="SignInScreen" component={SignInScreen} />
+              <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
+            </Stack.Group>
+          </>
+        ) : (
+          <>
+            <Stack.Group screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="BottomTab" component={BottomTab} />
+              <Stack.Screen name="DriverStack" component={DriverStack} />
+              <Stack.Screen name="PassengerStack" component={PassengerStack} />
+              <Stack.Screen name="AccountStack" component={AccountStack} />
+              {commonScreens(Stack)}
+            </Stack.Group>
+          </>
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   )
 }

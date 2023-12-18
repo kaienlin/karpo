@@ -1,9 +1,7 @@
 import { Pressable, TouchableOpacity, View } from 'react-native'
-import Animated from 'react-native-reanimated'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
-import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
 
 import { Avatar } from '~/components/Avatar'
@@ -68,7 +66,7 @@ export const PassengerAvatarList = ({
     )
   }
   return (
-    <View style={{ justifyContent: 'flex-end', marginBottom: 15 }}>
+    <View style={{ marginBottom: 15 }}>
       <Text category="label" style={{ paddingHorizontal: 20 }}>
         {title}
       </Text>
@@ -116,16 +114,14 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const { passengerInfo, ...join } = item
     return (
-      <Animated.View>
-        <PassengerInfoCard
-          data={{ passengerInfo, ...join }}
-          onViewProfile={handleViewProfile(join.passengerId)}
-          onChat={handleChat(passengerInfo?.id)}
-          onCall={handleCall(passengerInfo?.phoneNumber)}
-          onReject={onReject(join.joinId)}
-          onSelect={onSelect(join.joinId)}
-        />
-      </Animated.View>
+      <PassengerInfoCard
+        data={{ passengerInfo, ...join }}
+        onViewProfile={handleViewProfile(join.passengerId)}
+        onChat={handleChat(passengerInfo?.id)}
+        onCall={handleCall(passengerInfo?.phoneNumber)}
+        onReject={onReject(join.joinId)}
+        onSelect={onSelect(join.joinId)}
+      />
     )
   }
 

@@ -79,7 +79,7 @@ export default function DateTimePicker({
   const minimumDate = round2interval(new Date(), 5)
 
   useEffect(() => {
-    setDate(roundedDate)
+    setDate(roundedDate >= minimumDate ? roundedDate : minimumDate)
   }, [])
 
   const onChange = (event: RNDateTimePickerEvent, selectedDate: Date | undefined) => {
