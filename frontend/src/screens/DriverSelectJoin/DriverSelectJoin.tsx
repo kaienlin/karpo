@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
+import { StackActions } from '@react-navigation/native'
 import { skipToken } from '@reduxjs/toolkit/query'
 
 import MapViewWithRoute from '~/components/MapViewWithRoute'
@@ -110,7 +111,11 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           snapPoints={['33%', '33%']}
           title="是否要取消本次行程？"
           message="取消行程後，您的乘客們會馬上收到通知"
-          onPressConfirm={navigation.goBack}
+          onPressConfirm={() => {
+            navigation.replace('BottomTab', {
+              screen: 'HomeScreen'
+            })
+          }}
           confirmBtnText="取消行程"
           cancelBtnText="留在此頁"
         />
