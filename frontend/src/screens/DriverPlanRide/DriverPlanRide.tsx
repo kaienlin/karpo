@@ -63,7 +63,7 @@ export default function DriverPlanRideScreen({ navigation, route }: DriverPlanRi
   const { savedRideIndex, updatedWaypoint } = route?.params
   const { location: currentLocation, isLoading: isCurrentLocationLoading } = useCurrentLocation()
 
-  const savedRide = savedRideIndex >= 0 && transformSavedRide(savedRides[savedRideIndex])
+  const savedRide = savedRideIndex >= 0 ? transformSavedRide(savedRides[savedRideIndex]) : null
 
   const { control, watch, handleSubmit } = useForm<RidePlan>({
     defaultValues: savedRide ?? defaultValues
