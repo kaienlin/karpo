@@ -8,7 +8,8 @@ type AuthStackParamList = {
 
 type CommonScreensParamList = {
   UserProfileScreen: { role: 'driver' | 'passenger'; userId: string }
-  ChatScreen: { rideId: string }
+  ChatScreen: { joinId: string; user1Id: string }
+  RateScreen: { userIds: []}
   SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   RideCompleteScreen: { userIds: string[] }
 }
