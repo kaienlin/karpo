@@ -2,6 +2,7 @@ import { View } from 'react-native'
 import { Card, Icon, Text, useTheme } from '@ui-kitten/components'
 
 import { displayTime } from '~/utils/format'
+import { SavedRide } from '~/types/data'
 
 export function SavedRideCard({
   label,
@@ -27,7 +28,7 @@ export function SavedRideCard({
             >
               <Text style={{ color: theme['color-basic-100'], fontWeight: 'bold' }}>{label}</Text>
             </View>
-            <Text style={{ fontSize: 18 }}>{displayTime(time)}</Text>
+            <Text style={{ fontSize: 18 }}>{displayTime(time.toString())}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ width: 130 }}>{origin.description}</Text>

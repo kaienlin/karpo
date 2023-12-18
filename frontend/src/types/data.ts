@@ -46,7 +46,8 @@ export interface PassengerActivity extends Required<Pick<ActivityItems, 'passeng
 
 // Drivers
 export interface Ride {
-  departureTime: Date
+  // departureTime: Date
+  time: Date
   origin: Waypoint
   destination: Waypoint
   intermediates?: Waypoint[]
@@ -98,6 +99,8 @@ export interface Match {
   driverDestination: Waypoint
   numAvailableSeat: number
   otherPassengers: string[]
+  
+  driverInfo: User
   fare: number
   driverRoute: {
     route: LatLng[]
@@ -133,6 +136,15 @@ export interface JoinDetailed extends Join {
   passengerInfo: User
 }
 
+
+export interface RideStatus {
+  driverPosition: {
+    latitude: number
+    longitude: number
+  }
+  phase: number
+}
+=======
 // Comments
 export interface Comments {
   userId: string,
@@ -146,4 +158,3 @@ export interface Message {
   content: string
   time: Date
 }
-

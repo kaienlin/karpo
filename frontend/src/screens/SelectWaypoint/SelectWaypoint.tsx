@@ -100,7 +100,7 @@ export default function SelectWaypoint({ navigation, route }: SelectWaypointScre
 
   const confirmWaypoint = (waypoint: Waypoint) => {
     const prevScreen = routes[routes.length - 2].name
-
+    
     // TODO: this is just workaround
     if (prevScreen === 'BottomTab') {
       navigation.navigate('BottomTab', {
