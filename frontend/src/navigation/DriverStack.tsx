@@ -3,7 +3,7 @@ import { skipToken } from '@reduxjs/toolkit/query'
 
 import { selectDriverState } from '~/redux/api/driver'
 import { useGetCurrentActivityQuery } from '~/redux/api/users'
-import { useGetRideStatusQuery } from '~/redux/passenger'
+import { useGetRideStatusQuery } from '~/redux/api/passenger'
 import DriverDepart from '~/screens/DriverDepart'
 import DriverPlanRide from '~/screens/DriverPlanRide'
 import DriverSelectJoinScreen from '~/screens/DriverSelectJoin'

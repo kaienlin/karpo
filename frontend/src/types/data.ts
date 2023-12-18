@@ -154,7 +154,7 @@ export interface RideStatus {
   }
   phase: number
 }
-=======
+
 // Comments
 export interface Comments {
   userId: string,

@@ -18,11 +18,11 @@ export const displayDatetime = (date: Date | string, is24Hour: boolean = false) 
 }
 
 export const displayProximity = (proximity: number) => {
-  if (proximity > 0.8) {
+  if (proximity < 5000) {
     return `超級順路`
-  } else if (proximity > 0.6) {
+  } else if (proximity < 20000) {
     return `挺順路`
-  } else if (proximity > 0.4) {
+  } else if (proximity < 100000) {
     return `普通`
   } else {
     return `不太順路`

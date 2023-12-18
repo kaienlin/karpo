@@ -43,16 +43,20 @@ function RideStatus ({
       flexDirection: 'row', 
       justifyContent: 'flex-start',
     }}>
-      <View style={{ flexDirection: 'row' }}>
-        <View style={{ justifyContent: 'center', paddingRight: 4 }}>
-          <Icon name='star' style={{ width: 16, height: 16 }} fill={'#F0C414'} />
-        </View>
-        <Text style={ styles.lightText }>{rating}</Text>
-      </View>
-      
-      <View style={{ paddingLeft: 10, paddingRight: 10 }}>
-        <Text style={ styles.lightText }>|</Text>
-      </View>
+      {rating && (
+        <>
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ justifyContent: 'center', paddingRight: 4 }}>
+              <Icon name='star' style={{ width: 16, height: 16 }} fill={'#F0C414'} />
+            </View>
+            <Text style={ styles.lightText }>{rating}</Text>
+          </View>
+          
+          <View style={{ paddingLeft: 10, paddingRight: 10 }}>
+            <Text style={ styles.lightText }>|</Text>
+          </View>
+        </>
+      )}
       
       <Text style={ styles.lightText }>{ numAvailableSeat } 個空位</Text>
       
@@ -100,9 +104,9 @@ export function Header (props: HeaderProps) {
           }} 
           style={{ padding: 10 }}
         >
-          <Image 
-            source={{ uri: props.avatar }} 
-            style={{ width: 56, height: 56, borderRadius: 28 }} 
+          <Avatar 
+            source={{ uri: `data:image/png;base64,${props.avatar}` }} 
+            style={{ width: 56, height: 56 }} 
           />
         </View>  
       </TouchableOpacity>      

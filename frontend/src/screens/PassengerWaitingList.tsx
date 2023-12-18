@@ -6,7 +6,7 @@ import { InfoCard } from '~/components/InfoCard'
 import { PassengerStackParamList } from '~/types/navigation'
 import { Spinner, Text, Button, Card, Modal } from '@ui-kitten/components'
 import { Match } from '~/types/data'
-import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/passenger'
+import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { useState } from 'react'
 import { set } from 'react-hook-form'
 
@@ -21,15 +21,20 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
   const { pendingMatches, acceptedMatches } = useGetMatchesQuery(requestId, {
     selectFromResult: ({data}) => ({
       pendingMatches: data?.matches?.filter(
-        (match: Match) => match.status === 'pending'
+        (match: Match) => match.status === 'pending' || match.status === 'accepted'
       ) ?? emptyArray,
       acceptedMatches: data?.matches?.filter(
-        (match: Match) => match.status === 'pending' // should be accepted here
+        (match: Match) => match.status === 'accepted'
       ) ?? emptyArray
     })
   })
 
-  const [visible, setVisible] = useState(acceptedMatches.length !== 0)
+  // if (pendingMatches.length !== 0) {
+  //   console.log('rideId:', pendingMatches[0].rideId)
+  //   console.log('joinId:', pendingMatches[0].joinId)
+  // }
+
+  const [visible, setVisible] = useState(true)
   const handleConfirm = () => {
     setVisible(false)
     navigation.navigate(
@@ -48,7 +53,7 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
   return (
     <>
       <Modal
-        visible={visible}
+        visible={visible && acceptedMatches.length !== 0}
         backdropStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       >
         <Card disabled={true}>
@@ -67,8 +72,12 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
         destination={request.destination}
       />
       {pendingMatches.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Text>還沒有預約的行程</Text>
+        <View style={{ 
+          flex: 1, 
+          justifyContent: 'center', 
+          alignItems: 'center',
+        }}>
+          <Text>目前還沒有預約的行程喔</Text>
         </View>
       ) : (
         <FlatList

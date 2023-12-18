@@ -12,7 +12,7 @@ import { LocationIcon } from "./PassengerRideInfo"
 import { Match } from "~/types/data"
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useMemo, useRef } from "react"
-import { useGetRideStatusQuery } from "~/redux/passenger"
+import { useGetRideStatusQuery } from "~/redux/api/passenger"
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useNavigation } from "@react-navigation/native"
 
@@ -32,6 +32,14 @@ function ArrivalCard ({ride} : { ride: Match }) {
       'RideCompleteScreen',
       { userIds: userIds }
     )
+  }
+
+  const handleMessage = () => {
+    if (ride.joinId)
+      navigation.navigate( 
+        'ChatScreen',
+        { 'joinId': ride.joinId, 'user1Id': ride.driverInfo.id }
+      )
   }
 
   return (
@@ -74,7 +82,9 @@ function ArrivalCard ({ride} : { ride: Match }) {
           padding: 10
         }}> 
           <View style={{ flex: 1 }}>
-            <Button>傳訊息給駕駛</Button>
+            <Button
+              onPress={handleMessage}
+            >傳訊息給駕駛</Button>
           </View>
           <View style={{ flex: 1 }}>
             <Button onPress={handleConfirm}>確認上車</Button>

@@ -1,6 +1,6 @@
 import { Match, RideStatus } from '~/types/data'
 
-import { apiSlice } from './api'
+import { apiSlice } from './index'
 
 export const passengerSlice = apiSlice
   .enhanceEndpoints({ addTagTypes: ['Joins', 'RidePhase'] })
@@ -65,6 +65,6 @@ export const {
   useCreateRequestMutation,
   useGetRequestQuery,
   useGetMatchesQuery,
-  useCreateJoinRequestMutation,
-  useGetRideStatusQuery
+  useGetRideStatusQuery,
+  useCreateJoinRequestMutation
 } = passengerSlice

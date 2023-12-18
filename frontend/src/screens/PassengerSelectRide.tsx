@@ -1,13 +1,10 @@
-import { useMemo, useState } from 'react'
 import { FlatList, View } from 'react-native'
 import { type NativeStackScreenProps } from '@react-navigation/native-stack'
 
 import { InfoCard } from '~/components/InfoCard'
 import { QueryBlock } from '~/components/QueryBlock'
-import { HeaderProps } from '~/components/CardHeader'
-import { shallowEqual, useSelector } from 'react-redux'
 import { Button, Spinner, Text } from '@ui-kitten/components'
-import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/passenger'
+import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { Match } from '~/types/data'
 import { PassengerStackParamList } from '~/types/navigation'
 
@@ -17,15 +14,15 @@ const emptyArray: Array<Match> = []
 export default function SelectRide({ route, navigation }: SelectRideScreenProps) {
   const { requestId } = route.params
   const requestRes = useGetRequestQuery(requestId)
-  const matchRes = useGetMatchesQuery(requestId)
 
   // https://redux-toolkit.js.org/rtk-query/usage/queries#selecting-data-from-a-query-result
-  const { unaskedMatches } = useGetMatchesQuery(requestId, {
-    pollingInterval: 20000,
-    selectFromResult: ({data}) => ({
+  const matchRes = useGetMatchesQuery(requestId, {
+    pollingInterval: 5000,
+    selectFromResult: ({data, ...rest}) => ({
       unaskedMatches: data?.matches?.filter(
         (match: Match) => match.status === 'unasked'
-      ) ?? emptyArray
+      ) ?? emptyArray,
+      ...rest
     })
   })
 
@@ -45,25 +42,37 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
           origin={request.origin}
           destination={request.destination}
         />
-        <FlatList
-          data={unaskedMatches}
-          keyExtractor={item => item.rideId}
-          renderItem={({ item }) => {
-            return (
-              <InfoCard
-                {...item}
-                pickUpTime={new Date(item.pickUpTime)}
-                dropOffTime={new Date(item.dropOffTime)}
-                onPress={() => {
-                  navigation.push('RideInfoScreen', {
-                    requestId: requestId,
-                    match: item
-                  })
-                }}
-              />
-            )
-          }}
-        />
+        {matchRes.unaskedMatches === 0 ? (
+          <View style={{ 
+            flex: 1, 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            gap: 10
+          }}>
+            <Text>目前還沒有適當的媒合喔</Text>
+            <Text>待會再試試看吧！</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={matchRes.unaskedMatches}
+            keyExtractor={item => item.rideId}
+            renderItem={({ item }) => {
+              return (
+                <InfoCard
+                  {...item}
+                  pickUpTime={new Date(item.pickUpTime)}
+                  dropOffTime={new Date(item.dropOffTime)}
+                  onPress={() => {
+                    navigation.push('RideInfoScreen', {
+                      requestId: requestId,
+                      match: item
+                    })
+                  }}
+                />
+              )
+            }}
+          />
+        )}
       </>
     )
   }
