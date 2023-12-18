@@ -10,45 +10,27 @@ import { Avatar } from '~/components/Avatar'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { useCurrentLocation } from '~/hooks/useCurrentLocation'
 import { useDriverState } from '~/hooks/useDriverState'
-import {
-  selectAcceptedPassengers,
-  selectDriverState,
-  selectRideRoute,
-  useGetJoinsQuery,
-  useGetRideQuery,
-  useGetScheduleQuery,
-  useUpdateStatusMutation
-} from '~/redux/api/driver'
-import { useGetRideStatusQuery } from '~/redux/api/passenger'
-import { useGetCurrentActivityQuery } from '~/redux/api/users'
+import { useGetScheduleQuery, useUpdateStatusMutation } from '~/redux/api/driver'
 import { type DriverDepartScreenProps } from '~/types/screens'
 import { makePhoneCall } from '~/utils/device'
 
 import { AddonBar, ReadyCard, StageCard } from './DepartCards'
 
 const ReadyInfoSection = ({
-  rideId,
   isLoading,
   onProceed
 }: {
-  rideId: string
   isLoading: boolean
   onProceed: () => void
 }) => {
   const navigation = useNavigation()
-  const { ride } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data, ...rest }) => ({ ride: data?.ride, ...rest })
-  })
-  const { numAvailableSeat, passengers } = useGetJoinsQuery(
-    !rideId ? skipToken : { rideId, status: 'accepted' },
-    { selectFromResult: result => ({ ...result, ...selectAcceptedPassengers(result) }) }
-  )
+  const { ride, passengers, numAvailableSeat } = useDriverState()
 
   const onPressContinueAccept = () => {
     navigation.goBack()
   }
-  const onPressChat = (joinId: string) => {
-    navigation.navigate('ChatScreen', { joinId })
+  const onPressChat = (joinId: string, userId: string) => {
+    navigation.navigate('ChatScreen', { joinId, user1Id: userId })
   }
 
   return (
@@ -76,28 +58,21 @@ const ReadyInfoSection = ({
 }
 
 const PhaseInfoSection = ({
-  rideId,
   isLoading,
   onProceed
 }: {
-  rideId: string
   isLoading: boolean
   onProceed: () => void
 }) => {
   const navigation = useNavigation()
-  const { ridePhase } = useGetRideStatusQuery(rideId ?? skipToken, {
-    selectFromResult: ({ data, ...rest }) => ({ ridePhase: data?.phase, ...rest })
-  })
-  const { passengers } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'accepted' }, {
-    selectFromResult: result => ({ ...result, ...selectAcceptedPassengers(result) })
-  })
+  const { rideId, ridePhase, passengers } = useDriverState()
   const { schedule } = useGetScheduleQuery(rideId ?? skipToken, {
     selectFromResult: ({ data, ...rest }) => ({ schedule: data?.schedule?.[ridePhase], ...rest })
   })
   const passenger = passengers?.find(passenger => passenger.id === schedule?.passengerId)
 
-  const onPressChat = (joinId: string) => {
-    navigation.navigate('ChatScreen', { joinId })
+  const onPressChat = (joinId: string, userId: string) => {
+    navigation.navigate('ChatScreen', { joinId, user1Id: userId })
   }
 
   return (
@@ -122,6 +97,9 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const { rideId, rideRoute, rideSchedule, ridePhase } = useDriverState()
   const [updateStatus] = useUpdateStatusMutation()
 
+  const ridePhaseInfo =
+    !rideSchedule || !ridePhase || ridePhase < 0 ? undefined : rideSchedule[ridePhase]
+
   useEffect(() => {
     if (rideSchedule && ridePhase === rideSchedule.length) {
       navigation.navigate('RideCompleteScreen', {
@@ -135,7 +113,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
     if (!rideId || !currentLocation) {
       return
     }
-    await updateStatus({ rideId, position: currentLocation, phase: ridePhase + 1 })
+    await updateStatus({ rideId, position: currentLocation, phase: Math.max(0, ridePhase + 1) })
     setTimeout(() => {
       setIsLoading(false)
     }, 500)
@@ -143,9 +121,9 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
 
   let content
   if (ridePhase < 0) {
-    content = <ReadyInfoSection rideId={rideId} isLoading={isLoading} onProceed={onSwipeProceed} />
+    content = <ReadyInfoSection isLoading={isLoading} onProceed={onSwipeProceed} />
   } else if (ridePhase < rideSchedule?.length) {
-    content = <PhaseInfoSection rideId={rideId} isLoading={isLoading} onProceed={onSwipeProceed} />
+    content = <PhaseInfoSection isLoading={isLoading} onProceed={onSwipeProceed} />
   }
 
   return (
@@ -156,14 +134,14 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
         </TouchableOpacity>
       </View>
       <MapViewWithRoute route={rideRoute} edgePadding={{ bottom: ridePhase === -1 ? 550 : 300 }}>
-        {ridePhase >= 0 && (
+        {ridePhaseInfo && (
           <Marker
             coordinate={{
-              latitude: rideSchedule?.[ridePhase]?.location.latitude,
-              longitude: rideSchedule?.[ridePhase]?.location.longitude
+              latitude: ridePhaseInfo.location.latitude,
+              longitude: ridePhaseInfo.location.longitude
             }}
           >
-            <Avatar base64Uri={rideSchedule?.[ridePhase]?.passengerInfo?.avatar} size="mini" />
+            <Avatar base64Uri={ridePhaseInfo.passengerInfo.avatar} size="mini" />
           </Marker>
         )}
       </MapViewWithRoute>

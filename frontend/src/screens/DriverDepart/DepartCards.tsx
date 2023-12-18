@@ -25,7 +25,7 @@ const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 interface PassengerItemProps extends User {
   numPassengers: number
   onViewProfile?: (userId: string) => void
-  onChat?: (userId: string) => void
+  onChat?: (joinId: string, userId: string) => void
   onCall?: (phoneNumber: string) => void
 }
 
@@ -37,7 +37,7 @@ interface AddonBarProps {
 }
 
 interface PassengerContactAction {
-  handleChat?: (userId: string) => void
+  handleChat?: (joinId: string, userId: string) => void
   handleCall?: (phoneNumber: string) => void
 }
 
@@ -53,7 +53,7 @@ interface ReadyCardProps extends PassengerContactAction {
 
 interface StageCardProps extends PassengerContactAction {
   location: string
-  status: 'pick_up' | 'dropoff'
+  status: 'pick_up' | 'drop_off'
   passenger: Array<User & { numPassengers: number }>
   isLoading: boolean
   onComplete: () => void

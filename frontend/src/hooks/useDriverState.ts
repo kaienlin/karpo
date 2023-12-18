@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query'
 
 import {
+  selectAcceptedPassengers,
   selectDriverState,
   selectRideRoute,
+  useGetJoinsQuery,
   useGetRideQuery,
   useGetScheduleQuery
 } from '~/redux/api/driver'
@@ -14,6 +15,9 @@ export const useDriverState = () => {
   const { rideId } = useGetCurrentActivityQuery(undefined, {
     selectFromResult: result => ({ ...result, ...selectDriverState(result) })
   })
+  const { ride } = useGetRideQuery(rideId ?? skipToken, {
+    selectFromResult: ({ data, ...rest }) => ({ ride: data?.ride, ...rest })
+  })
   const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
     selectFromResult: result => ({ ...result, rideRoute: selectRideRoute(result) })
   })
@@ -23,6 +27,10 @@ export const useDriverState = () => {
   const { rideSchedule } = useGetScheduleQuery(rideId ?? skipToken, {
     selectFromResult: ({ data, ...rest }) => ({ rideSchedule: data?.schedule, ...rest })
   })
+  const { numAvailableSeat, passengers } = useGetJoinsQuery(
+    !rideId ? skipToken : { rideId, status: 'accepted' },
+    { selectFromResult: result => ({ ...result, ...selectAcceptedPassengers(result) }) }
+  )
 
-  return { rideId, rideRoute, ridePhase, rideSchedule }
+  return { rideId, ride, rideRoute, ridePhase, rideSchedule, numAvailableSeat, passengers }
 }
