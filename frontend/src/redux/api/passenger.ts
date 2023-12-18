@@ -51,7 +51,7 @@ export const passengerSlice = apiSlice
           }
         }
       }),
-      getRideStatus: builder.query({
+      getRideStatus: builder.query<RideStatus, string>({
         providesTags: ['RidePhase'],
         query: rideId => ({
           url: `/rides/${rideId}/status`,
