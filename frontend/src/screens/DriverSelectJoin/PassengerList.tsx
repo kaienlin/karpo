@@ -7,7 +7,7 @@ import * as Linking from 'expo-linking'
 import { Avatar } from '~/components/Avatar'
 import type { JoinDetailed } from '~/types/data'
 
-import { PassengerInfoCard } from './PassengerInfoCard'
+import { PassengerInfoCard, PassengerInfoCardSkeleton } from './PassengerInfoCard'
 
 interface PassengerAvatarListProps {
   data: JoinDetailed[]
@@ -133,7 +133,10 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
 
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const { passengerInfo, ...join } = item
-    return (
+    // TODO: should use a better condition
+    return join.pickUpLocation.description === '' ? (
+      <PassengerInfoCardSkeleton />
+    ) : (
       <PassengerInfoCard
         data={{ passengerInfo, ...join }}
         onViewProfile={handleViewProfile(join.passengerId)}

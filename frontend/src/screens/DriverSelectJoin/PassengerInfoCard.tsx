@@ -1,6 +1,8 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
 import { Button, Divider, Icon, Text, type IconProps } from '@ui-kitten/components'
+import { MotiView } from 'moti'
+import { Skeleton } from 'moti/skeleton'
 
 import { Avatar } from '~/components/Avatar'
 import type { JoinDetailed } from '~/types/data'
@@ -165,6 +167,61 @@ function PassengerInfoCardFooter({ onReject, onSelect }: PassengerInfoCardFooter
         <Text>選取</Text>
       </Button>
     </View>
+  )
+}
+
+export function PassengerInfoCardSkeleton() {
+  const colorMode = 'light'
+  const header = (
+    <View style={{ flexDirection: 'row' }}>
+      <View style={{ padding: 10, paddingLeft: 0 }}>
+        <Skeleton colorMode={colorMode} height={50} width={50} radius="round" />
+      </View>
+      <View style={{ flex: 1, justifyContent: 'space-around', paddingVertical: 8 }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Skeleton colorMode={colorMode} height={23} width={130} />
+          </View>
+          <Skeleton colorMode={colorMode} height={23} width={50} />
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Skeleton colorMode={colorMode} height={15} width={200} />
+          </View>
+        </View>
+      </View>
+    </View>
+  )
+  const body = (
+    <View style={{ justifyContent: 'space-between', paddingVertical: 15, gap: 10 }}>
+      <Skeleton colorMode={colorMode} height={18} width={170} />
+      <Skeleton colorMode={colorMode} height={18} width={220} />
+    </View>
+  )
+  const footer = (
+    <View style={{ paddingBottom: 10 }}>
+      <Skeleton colorMode={colorMode} height={30} width={330} radius="round" />
+    </View>
+  )
+
+  return (
+    <MotiView>
+      <Shadow
+        stretch={true}
+        startColor="#00000010"
+        containerStyle={{
+          marginHorizontal: 10
+        }}
+      >
+        <View style={{ borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 }}>
+          {header}
+          {body}
+          {footer}
+        </View>
+      </Shadow>
+    </MotiView>
   )
 }
 
