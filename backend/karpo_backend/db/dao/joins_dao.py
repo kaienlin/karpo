@@ -87,16 +87,17 @@ class JoinsDAO:
                 .where(JoinsModel.request_id == request_id)
             )
             await self.session.execute(
-                update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
+                update(JoinsModel)
+                .where((JoinsModel.id == join_id) & (JoinsModel.status == "pending"))
+                .values(status=status)
             )
             await self.session.execute(
                 update(JoinsModel)
                 .where(
-                    (JoinsModel.id != join_id) & (JoinsModel.request_id == request_id)
+                    (JoinsModel.status == "pending") & (JoinsModel.request_id == request_id)
                 )
                 .values(status="canceled")
             )
-            await self.session.commit()
         else:
             await self.session.execute(
                 update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
