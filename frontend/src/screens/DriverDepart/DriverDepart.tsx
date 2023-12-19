@@ -12,7 +12,6 @@ import { useCurrentLocation } from '~/hooks/useCurrentLocation'
 import { useDriverState } from '~/hooks/useDriverState'
 import { useGetScheduleQuery, useUpdateStatusMutation } from '~/redux/api/driver'
 import { type DriverDepartScreenProps } from '~/types/screens'
-import { makePhoneCall } from '~/utils/device'
 
 import { AddonBar, ReadyCard, StageCard } from './DepartCards'
 
@@ -26,13 +25,6 @@ const ReadyInfoSection = ({
   const navigation = useNavigation()
   const { ride, passengers, numAvailableSeat } = useDriverState()
 
-  const onPressContinueAccept = () => {
-    navigation.goBack()
-  }
-  const onPressChat = (joinId: string, userId: string) => {
-    navigation.navigate('ChatScreen', { joinId, user1Id: userId })
-  }
-
   return (
     <Animated.View entering={SlideInDown.duration(500).easing(Easing.out(Easing.exp))}>
       <AddonBar
@@ -43,7 +35,7 @@ const ReadyInfoSection = ({
         }
         buttonText="繼續接單"
         buttonDisabled={numAvailableSeat <= 0}
-        buttonOnPress={onPressContinueAccept}
+        buttonOnPress={navigation.goBack}
       />
       <ReadyCard
         time={ride?.departureTime}
@@ -52,8 +44,6 @@ const ReadyInfoSection = ({
         passengers={passengers}
         isLoading={isLoading}
         onDepart={onProceed}
-        handleChat={onPressChat}
-        handleCall={makePhoneCall}
       />
     </Animated.View>
   )
@@ -66,16 +56,11 @@ const PhaseInfoSection = ({
   isLoading: boolean
   onProceed: () => void
 }) => {
-  const navigation = useNavigation()
   const { rideId, ridePhase, passengers } = useDriverState()
   const { schedule } = useGetScheduleQuery(rideId ?? skipToken, {
     selectFromResult: ({ data, ...rest }) => ({ schedule: data?.schedule?.[ridePhase], ...rest })
   })
   const passenger = passengers?.find(passenger => passenger.id === schedule?.passengerId)
-
-  const onPressChat = (joinId: string, userId: string) => {
-    navigation.navigate('ChatScreen', { joinId, user1Id: userId })
-  }
 
   return (
     <Animated.View entering={SlideInDown.duration(500).easing(Easing.out(Easing.exp))}>
@@ -85,8 +70,6 @@ const PhaseInfoSection = ({
         passenger={passenger}
         isLoading={isLoading}
         onComplete={onProceed}
-        handleChat={onPressChat}
-        handleCall={makePhoneCall}
       />
     </Animated.View>
   )

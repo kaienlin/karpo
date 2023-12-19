@@ -2,9 +2,9 @@ import { Pressable, TouchableOpacity, View } from 'react-native'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
-import * as Linking from 'expo-linking'
 
 import { Avatar } from '~/components/Avatar'
+import { useContact } from '~/hooks/useContact'
 import type { JoinDetailed } from '~/types/data'
 
 import { PassengerInfoCard, PassengerInfoCardSkeleton } from './PassengerInfoCard'
@@ -32,11 +32,7 @@ export const PassengerAvatarList = ({
   onConfirm
 }: PassengerAvatarListProps) => {
   const theme = useTheme()
-  const navigation = useNavigation()
-
-  const handleViewProfile = (userId: string) => () => {
-    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
-  }
+  const { viewProfile } = useContact()
 
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const {
@@ -59,7 +55,12 @@ export const PassengerAvatarList = ({
               )}
             </Pressable>
           )}
-          <TouchableOpacity activeOpacity={0.8} onPress={handleViewProfile(passengerId)}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              viewProfile(passengerId)
+            }}
+          >
             <Avatar base64Uri={avatar} size="small" />
           </TouchableOpacity>
         </View>
@@ -115,21 +116,7 @@ export const PassengerAvatarList = ({
 
 export const PassengerCardList = ({ data, title, onReject, onSelect }: PassengerCardListProps) => {
   const theme = useTheme()
-  const navigation = useNavigation()
-
-  const handleViewProfile = (userId: string) => () => {
-    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
-  }
-
-  const handleChat = (joinId: string, userId: string) => () => {
-    navigation.navigate('ChatScreen', { joinId, user1Id: userId })
-  }
-
-  const handleCall = (phone: string) => async () => {
-    try {
-      await Linking.openURL(`tel:${phone}`)
-    } catch (error) {}
-  }
+  const { viewProfile, chat, call } = useContact()
 
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const { passengerInfo, ...join } = item
@@ -139,9 +126,15 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
     ) : (
       <PassengerInfoCard
         data={{ passengerInfo, ...join }}
-        onViewProfile={handleViewProfile(join.passengerId)}
-        onChat={handleChat(join.joinId, join.passengerId)}
-        onCall={handleCall(passengerInfo?.phoneNumber)}
+        onViewProfile={() => {
+          viewProfile(join.passengerId)
+        }}
+        onChat={() => {
+          chat(join.joinId, join.passengerId)
+        }}
+        onCall={() => {
+          call(passengerInfo?.phoneNumber)
+        }}
         onReject={onReject(join.joinId)}
         onSelect={onSelect(join.joinId)}
       />
