@@ -229,6 +229,7 @@ export const selectAcceptedPassengers = createSelector(
     ...data,
     passengers: data?.joins.map(join => ({
       ...join.passengerInfo,
+      joinId: join.joinId,
       numPassengers: join.numPassengers
     }))
   })

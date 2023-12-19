@@ -121,8 +121,8 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
     navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
   }
 
-  const handleChat = (userId: string) => () => {
-    // throw new Error('Not implemented')
+  const handleChat = (joinId: string, userId: string) => () => {
+    navigation.navigate('ChatScreen', { joinId, user1Id: userId })
   }
 
   const handleCall = (phone: string) => async () => {
@@ -140,7 +140,7 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
       <PassengerInfoCard
         data={{ passengerInfo, ...join }}
         onViewProfile={handleViewProfile(join.passengerId)}
-        onChat={handleChat(passengerInfo?.id)}
+        onChat={handleChat(join.joinId, join.passengerId)}
         onCall={handleCall(passengerInfo?.phoneNumber)}
         onReject={onReject(join.joinId)}
         onSelect={onSelect(join.joinId)}

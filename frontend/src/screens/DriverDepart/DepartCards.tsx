@@ -12,7 +12,6 @@ import {
   useTheme,
   type IconProps
 } from '@ui-kitten/components'
-import { Image } from 'expo-image'
 
 import { Avatar } from '~/components/Avatar'
 import SwipeButton from '~/components/SwipeButton'
@@ -24,9 +23,9 @@ const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 
 interface PassengerItemProps extends User {
   numPassengers: number
-  onViewProfile?: (userId: string) => void
-  onChat?: (joinId: string, userId: string) => void
-  onCall?: (phoneNumber: string) => void
+  onViewProfile?: () => void
+  onChat?: () => void
+  onCall?: () => void
 }
 
 interface AddonBarProps {
@@ -60,19 +59,17 @@ interface StageCardProps extends PassengerContactAction {
 }
 
 const PassengerItem = ({
-  id,
   avatar,
   name,
   rating,
-  phoneNumber,
   numPassengers,
-  onViewProfile = () => () => {},
-  onChat = () => () => {},
-  onCall = () => () => {}
+  onViewProfile = () => {},
+  onChat = () => {},
+  onCall = () => {}
 }: PassengerItemProps) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
-      <TouchableOpacity onPress={onViewProfile(id)} activeOpacity={0.8}>
+      <TouchableOpacity onPress={onViewProfile} activeOpacity={0.8}>
         <Avatar base64Uri={avatar} size="small" />
       </TouchableOpacity>
       <View
@@ -107,17 +104,13 @@ const PassengerItem = ({
         </View>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Button
-            onPress={() => {
-              onChat(id)
-            }}
+            onPress={onChat}
             accessoryLeft={ChatIcon}
             style={{ borderRadius: 100, width: 40, height: 40 }}
             status="basic"
           />
           <Button
-            onPress={() => {
-              onCall(phoneNumber)
-            }}
+            onPress={onCall}
             accessoryLeft={PhoneIcon}
             style={{ borderRadius: 100, width: 40, height: 40 }}
             status="basic"
@@ -160,7 +153,7 @@ export function ReadyCard({
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
   const navigation = useNavigation()
-  const handleViewProfile = (userId: string) => () => {
+  const handleViewProfile = (userId: string) => {
     navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
   }
 
@@ -198,9 +191,15 @@ export function ReadyCard({
           renderItem={({ item }) => (
             <PassengerItem
               {...item}
-              onViewProfile={handleViewProfile}
-              onChat={handleChat}
-              onCall={handleCall}
+              onViewProfile={() => {
+                handleViewProfile(item.id)
+              }}
+              onChat={() => {
+                handleChat(item.joinId, item.id)
+              }}
+              onCall={() => {
+                handleCall(item.phoneNumber)
+              }}
             />
           )}
           keyExtractor={(item, index) => `${item.name}-${index}`}
@@ -231,7 +230,7 @@ export function StageCard({
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
   const navigation = useNavigation()
-  const handleViewProfile = (userId: string) => () => {
+  const handleViewProfile = (userId: string) => {
     navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
   }
 
@@ -256,9 +255,15 @@ export function StageCard({
         <View style={{ paddingVertical: 15, paddingHorizontal: 25 }}>
           <PassengerItem
             {...passenger}
-            onViewProfile={handleViewProfile}
-            onChat={handleChat}
-            onCall={handleCall}
+            onViewProfile={() => {
+              handleViewProfile(passenger.id)
+            }}
+            onChat={() => {
+              handleChat(passenger.joinId, passenger.id)
+            }}
+            onCall={() => {
+              handleCall(passenger.phoneNumber)
+            }}
           />
         </View>
 
