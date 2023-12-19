@@ -535,6 +535,7 @@ async def get_ride_id_joins(
                 passenger_drop_off_distance=join_model.drop_off_distance,
                 num_passengers=join_model.num_passengers,
                 fare=join_model.fare,
+                proximity=join_model.proximity,
             )
         )
 
@@ -598,7 +599,9 @@ async def put_ride_id_joins_join_id_status(
         raise HTTPException(
             status_code=403, detail="Ride id doesn't match the ride id in join"
         )
-    
+    if join.status in ["canceled", "rejected"]:
+        raise HTTPException(status_code=404, detail=f"Join has been {join.status}")
+
     if req.action in ["cancel"]:
         if join.request_user_id != user.id:
             raise HTTPException(status_code=403, detail="Permission denied")

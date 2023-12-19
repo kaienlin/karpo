@@ -65,6 +65,7 @@ class JoinDTO(BaseModel):
     passenger_drop_off_distance: float
     num_passengers: PositiveInt
     fare: int
+    proximity: int
 
 
 class GetRideMessagesResponse(BaseModel):
