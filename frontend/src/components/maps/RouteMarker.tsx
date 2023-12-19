@@ -50,4 +50,30 @@ export const Box = ({ label, size = 15 }: { label: string; size?: number }) => {
   )
 }
 
-export default { Radio, Box }
+export const DoubleBox = ({ size = 15 }: { size?: number }) => {
+  const outerRadius = Math.ceil(size / 2)
+
+  const innerDiameter = outerRadius - 2
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#484848'
+      }}
+    >
+      <View
+        style={{
+          width: innerDiameter,
+          height: innerDiameter,
+          backgroundColor: 'white'
+        }}
+      />
+    </View>
+  )
+}
+
+export default { Radio, Box, DoubleBox }

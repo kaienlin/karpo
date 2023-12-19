@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
+import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
 import { skipToken } from '@reduxjs/toolkit/query'
 
+import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
 import TopNavBar from '~/components/nav/TopNavBar'
@@ -17,7 +19,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const bottomSheetRef = useRef<BottomSheet>(null)
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const { rideId, rideRoute } = useDriverState()
+  const { rideId, rideRoute, rideSchedule } = useDriverState()
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
     pollingInterval: 3000,
     selectFromResult: ({ data }) => ({ pendingJoins: data?.joins })
@@ -108,38 +110,18 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
         />
 
         <MapViewWithRoute route={rideRoute} edgePadding={{ bottom: 170 }}>
-          {/* {pendingJoins?.map(({ passengerInfo, ...join }) => (
-          <React.Fragment key={join.passengerId}>
+          {rideSchedule?.map(({ joinId, status, location, passengerInfo }) => (
             <Marker
-              key={`${join.passengerId}-pickUp`}
+              key={`${joinId}-${status}`}
               coordinate={{
-                latitude: join.pickUpLocation.latitude,
-                longitude: join.pickUpLocation.longitude
+                latitude: location.latitude,
+                longitude: location.longitude
               }}
+              description={`${passengerInfo.name} 的 ${status === 'pick_up' ? '上車' : '下車'}地點`}
             >
-              <Shadow>
-                <Image
-                  source={{ uri: passengerInfo.avatar }}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              </Shadow>
+              {status === 'pick_up' ? <RouteMarker.Radio /> : <RouteMarker.DoubleBox />}
             </Marker>
-            <Marker
-              key={`${join.passengerId}-dropOff`}
-              coordinate={{
-                latitude: join.dropOffLocation.latitude,
-                longitude: join.dropOffLocation.longitude
-              }}
-            >
-              <Shadow>
-                <Image
-                  source={{ uri: passengerInfo.avatar }}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              </Shadow>
-            </Marker>
-          </React.Fragment>
-        ))} */}
+          ))}
         </MapViewWithRoute>
 
         <BottomSheet
