@@ -3,6 +3,7 @@ import uuid
 from typing import List, Literal, Optional
 
 from fastapi import Depends
+from loguru import logger
 from shapely import LineString, Point, within, wkb
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,13 +74,33 @@ class JoinsDAO:
         return result_instance
 
     async def put_joins_model_status_by_id(
-        self, join_id: uuid.UUID, action: Literal["accept", "reject", "cancel"]
+        self,
+        join_id: uuid.UUID,
+        request_id: uuid.UUID,
+        action: Literal["accept", "reject", "cancel"],
     ) -> None:
         status = f"{action}ed"
-        await self.session.execute(
-            update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
-        )
-        await self.session.flush()
+        if action == "accept":
+            await self.session.execute(
+                select(JoinsModel)
+                .with_for_update()
+                .where(JoinsModel.request_id == request_id)
+            )
+            await self.session.execute(
+                update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
+            )
+            await self.session.execute(
+                update(JoinsModel)
+                .where(
+                    (JoinsModel.id != join_id) & (JoinsModel.request_id == request_id)
+                )
+                .values(status="canceled")
+            )
+            await self.session.commit()
+        else:
+            await self.session.execute(
+                update(JoinsModel).where(JoinsModel.id == join_id).values(status=status)
+            )
 
     async def delete_all_by_user_id(
         self,
@@ -98,7 +119,6 @@ class JoinsDAO:
         await self.session.execute(
             update(JoinsModel).where(JoinsModel.id == join_id).values(progress=progress)
         )
-        await self.session.flush()
 
     async def get_accepted_joins_model_by_ride_id(
         self,

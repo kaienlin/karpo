@@ -1,6 +1,7 @@
+import contextlib
 import datetime
 import uuid
-import contextlib
+from itertools import permutations
 from typing import Any, Dict, List, Tuple
 
 import httpx
@@ -12,15 +13,13 @@ from pydantic import ValidationError
 from shapely import LineString, Point, wkb, wkt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from itertools import permutations
-from karpo_backend.db.models.users import User, get_user_db
 from karpo_backend.db.dao.joins_dao import JoinsDAO
 from karpo_backend.db.dao.rides_dao import RidesDAO
+from karpo_backend.db.models.users import User, get_user_db
 from karpo_backend.tests.test_join import (
     post_matched_ride_requests_joins_and_get_ids,
     test_post_joins_and_do_action,
 )
-from karpo_backend.web.api.users.schema import UserInfoForOthersDTO
 from karpo_backend.web.api.requests.schema import PostRequestsResponse
 from karpo_backend.web.api.rides.schema import (
     GetRideIdResponse,
@@ -31,6 +30,7 @@ from karpo_backend.web.api.rides.schema import (
     PostRideIdJoinsResponse,
     PostRidesResponse,
 )
+from karpo_backend.web.api.users.schema import UserInfoForOthersDTO
 
 
 async def post_ride_and_get_ride_id(
@@ -64,9 +64,7 @@ async def get_client_user_id(
     return user_id
 
 
-def make_not_exist_uuid(
-    uuid: uuid.UUID
-) -> uuid.UUID:
+def make_not_exist_uuid(uuid: uuid.UUID) -> uuid.UUID:
     """make a uuid that does not exist"""
     return str(uuid)[:-1] + "0" if str(uuid)[-1] == "e" else str(uuid)[:-1] + "e"
 
@@ -786,7 +784,7 @@ async def test_post_and_get_chatroom_messages(
         [1, 2, 5],
         [1],
         [1, 2, 5, 4, 4, 3, 5, 2],
-        [1, 2, 5, 4, 4, 3, 5, 2, 3, 5, 1,2 ,5, 4, 3, 4, 2, 3],
+        [1, 2, 5, 4, 4, 3, 5, 2, 3, 5, 1, 2, 5, 4, 3, 4, 2, 3],
     ],
 )
 async def test_update_rating(
@@ -820,7 +818,7 @@ async def test_update_rating(
     # test different permutations
     get_user_db_context = contextlib.asynccontextmanager(get_user_db)
     async with get_user_db_context(dbsession) as user_db:
-        user_pairs = list(permutations(user_list, 2)) 
+        user_pairs = list(permutations(user_list, 2))
         for i, ((user_id_1, client_1), (user_id_2, client_2)) in enumerate(user_pairs):
             # user 1 get origin rating
             user: User = await user_db.get(user_id_1)
@@ -832,7 +830,7 @@ async def test_update_rating(
                 "post_comments",
                 ride_id=ride_id,
             )
-            post_rating = ratings[i%len(ratings)]
+            post_rating = ratings[i % len(ratings)]
             post_rating_req_body = {
                 "user_id": user_id_1,
                 "rate": post_rating,
@@ -846,7 +844,7 @@ async def test_update_rating(
 
             # user 1 check new rating
             get_user_profile_url = fastapi_app.url_path_for(
-                "get_user_id_profile", 
+                "get_user_id_profile",
                 user_id=user_id_1,
             )
             resp = await client_1.get(
@@ -859,7 +857,9 @@ async def test_update_rating(
             except ValidationError:
                 pytest.fail("invalid response")
             new_rating = resp_obj.rating
-            assert new_rating == (origin_rating + post_rating) / (origin_rating_count + 1)
+            assert new_rating == (origin_rating + post_rating) / (
+                origin_rating_count + 1
+            )
 
 
 @pytest.mark.anyio
@@ -888,7 +888,6 @@ async def test_update_rating_errors(
     user_id_0 = await get_client_user_id(client_test0)
     user_id_1 = await get_client_user_id(client_test1)
 
-
     # test user cannot rate themselve 400 error
     post_rating_url = fastapi_app.url_path_for(
         "post_comments",
@@ -904,7 +903,9 @@ async def test_update_rating_errors(
         url=post_rating_url,
         json=post_rating_req_body,
     )
-    assert resp.status_code == status.HTTP_400_BAD_REQUEST, "Users cannot rate themselves."
+    assert (
+        resp.status_code == status.HTTP_400_BAD_REQUEST
+    ), "Users cannot rate themselves."
 
     # test other user not in this ride 403 error
     post_rating_url = fastapi_app.url_path_for(
@@ -922,7 +923,6 @@ async def test_update_rating_errors(
         json=post_rating_req_body,
     )
     assert resp.status_code == status.HTTP_403_FORBIDDEN, "this user not in this ride."
-    
 
     # test no such ride 404 error
     post_rating_url = fastapi_app.url_path_for(
@@ -940,7 +940,6 @@ async def test_update_rating_errors(
         json=post_rating_req_body,
     )
     assert resp.status_code == status.HTTP_404_NOT_FOUND
-
 
     # test no such user 404 error
     post_rating_url = fastapi_app.url_path_for(
