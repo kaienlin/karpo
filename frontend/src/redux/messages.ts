@@ -14,7 +14,7 @@ interface postMessages {
     joinId: string
     userId: string
     content: string
-    time: Date
+    time: string
   }
 
 const messagesSlice = apiSlice.injectEndpoints({
@@ -23,18 +23,18 @@ const messagesSlice = apiSlice.injectEndpoints({
       query: ({joinId, userId, content, time}) => ({
         url: `/rides/${joinId}/messages`,
         method: 'POST',
-        body: {
+        body: {"chat_record":{
           userId,
           content,
           time
-        },
+        }},
       })
     }),
 
     getMessage: builder.query({
       async queryFn(arg, api, extraOptions, baseQuery) {
-        const { joinId } = arg
-        const chatResult = await baseQuery(`/rides/${joinId}/messages`)
+        const { joinId, fromTime } = arg
+        const chatResult = await baseQuery(`/rides/${joinId}/messages?from_time=${fromTime}`)
         if (chatResult.error) return { error: chatResult.error }
 
         const { chatRecords } = chatResult.data as GetMessagesResponse<Message>
@@ -43,6 +43,13 @@ const messagesSlice = apiSlice.injectEndpoints({
       }
 
     }),
+
+    // getMessage: builder.query({      
+    //   query: ({joinId, fromTime}) =>({
+    //     url: `/rides/${joinId}/messages?from_time=${fromTime}`,
+    //     method: 'GET',
+    //   })
+    // }),
 
   })
 })

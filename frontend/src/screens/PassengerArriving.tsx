@@ -30,7 +30,7 @@ function ArrivalCard ({ride} : { ride: Match }) {
     const userIds = ride.otherPassengers.concat([ride.driverInfo.id])
     navigation.navigate(
       'RideCompleteScreen',
-      { userIds: userIds }
+      { userIds: userIds, rideId: ride.rideId }
     )
   }
 
@@ -87,7 +87,7 @@ function ArrivalCard ({ride} : { ride: Match }) {
             >傳訊息給駕駛</Button>
           </View>
           <View style={{ flex: 1 }}>
-            <Button onPress={handleConfirm}>確認上車</Button>
+            <Button onPress={handleConfirm}>確認完成行程</Button>
           </View>
         </View>
       </View>

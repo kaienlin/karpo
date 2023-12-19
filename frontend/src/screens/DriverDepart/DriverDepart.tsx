@@ -103,9 +103,10 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
     !rideSchedule || !ridePhase || ridePhase < 0 ? undefined : rideSchedule[ridePhase]
 
   useEffect(() => {
-    if (rideSchedule && ridePhase === rideSchedule.length) {
+    if (rideSchedule && ridePhase === rideSchedule.length && rideId) {
       navigation.navigate('RideCompleteScreen', {
-        userIds: [...new Set(rideSchedule.map(({ passengerId }) => passengerId))]
+        userIds: [...new Set(rideSchedule.map(({ passengerId }) => passengerId))],
+        rideId: rideId
       })
     }
   }, [ridePhase])

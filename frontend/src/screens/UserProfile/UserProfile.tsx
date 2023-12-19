@@ -105,7 +105,7 @@ function UserProfileCard({ user }: { user: UserProfile}) {
           <Text style={styles.lightText}>共乘</Text>
         </View>
         <View style={styles.carpoolInfo}>
-          <Text style={styles.yellowBoldText}>{rating}</Text>
+          <Text style={styles.yellowBoldText}>{rating ? rating.toFixed(1) : '5.0'}</Text>
           <Text style={styles.lightText}>評分</Text>
         </View>
         <View style={styles.carpoolInfo}>
@@ -154,9 +154,9 @@ export default function DriverInfo({ navigation, route }: UserProfileScreenProps
 
   const screenTitle = role === 'driver' ? '駕駛資訊' : '乘客資訊'
   const { data: user, isSuccess } = useGetUserProfileQuery(userId)
-  console.log(useGetUserProfileQuery(userId))
-  console.log(user)
-  console.log(isSuccess)
+  // console.log(useGetUserProfileQuery(userId))
+  // console.log(user)
+  // console.log(isSuccess)
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

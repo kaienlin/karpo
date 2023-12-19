@@ -96,7 +96,7 @@ const PassengerItem = ({
               }}
             >
               <Icon style={{ width: 15, height: 15 }} name="star" fill={'#F0C414'} />
-              <Text category="c1">{rating?.toFixed(1)}</Text>
+              <Text category="c1">{rating ? rating.toFixed(1) : '5.0'}</Text>
             </View>
             <Text category="c1">|</Text>
             <Text category="c1">{`${numPassengers} 人`}</Text>

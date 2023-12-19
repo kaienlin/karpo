@@ -18,11 +18,11 @@ import type { MainStackParamList } from '~/types/navigation'
 type RateScreenProps = NativeStackScreenProps<MainStackParamList, 'RateScreen'>
 
 export default function RateScreen({ navigation, route }: RateScreenProps) {
-  const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
-  })
+  // const { rideId } = useGetCurrentActivityQuery(undefined, {
+  //   selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
+  // })
 
-  const { userIds } = route.params
+  const { userIds, rideId } = route.params
 
   // const userIds  = [
   //   '94bd2c03-54b4-469a-9af4-df34e29bfd69',

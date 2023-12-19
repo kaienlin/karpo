@@ -42,7 +42,7 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
           origin={request.origin}
           destination={request.destination}
         />
-        {matchRes.unaskedMatches === 0 ? (
+        {matchRes.unaskedMatches.length === 0 ? (
           <View style={{ 
             flex: 1, 
             justifyContent: 'center', 
