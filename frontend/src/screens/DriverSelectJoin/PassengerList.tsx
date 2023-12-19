@@ -12,6 +12,7 @@ import { PassengerInfoCard } from './PassengerInfoCard'
 interface PassengerAvatarListProps {
   data: JoinDetailed[]
   title: string
+  isConfirmDisabled?: boolean
   onDeselect: (id: string) => () => void
   onConfirm: () => void
 }
@@ -26,6 +27,7 @@ interface PassengerCardListProps {
 export const PassengerAvatarList = ({
   data,
   title,
+  isConfirmDisabled = false,
   onDeselect,
   onConfirm
 }: PassengerAvatarListProps) => {
@@ -85,9 +87,27 @@ export const PassengerAvatarList = ({
           ItemSeparatorComponent={() => <View style={{ width: 15 }} />}
           renderItem={renderItem}
         />
-        <Button onPress={onConfirm} size="small" style={{ borderRadius: 100 }}>
-          <Text>確認同行</Text>
-        </Button>
+        <View>
+          <Button
+            onPress={onConfirm}
+            size="small"
+            style={{ borderRadius: 100 }}
+            disabled={isConfirmDisabled}
+            appearance={isConfirmDisabled ? 'ghost' : 'filled'}
+          >
+            <Text>確認同行</Text>
+          </Button>
+          <View style={{ position: 'absolute', top: '50%' }}>
+            {isConfirmDisabled && (
+              <Text
+                category="label"
+                style={{ color: theme['color-danger-default'], textAlign: 'center' }}
+              >
+                已選擇人數超出座位限制
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
     </View>
   )

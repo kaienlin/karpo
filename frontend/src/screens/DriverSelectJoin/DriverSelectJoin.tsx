@@ -44,6 +44,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     ?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
     ?.map(item => ({ ...item, status: 'pending' }))
   const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
+  const numSelectedPassengers = selectedJoins?.reduce((sum, curr) => sum + curr.numPassengers, 0)
 
   let screenTitle = ''
   if (!isAcceptedJoinsSuccess) {
@@ -59,7 +60,8 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
 
   const onPressConfirm = async () => {
     if (!rideId) return
-    if (selectedJoinIds.length > numAvailableSeat) {
+
+    if (numSelectedPassengers > numAvailableSeat) {
       // TODO: show error message
       return
     }
@@ -134,6 +136,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
             <PassengerAvatarList
               title="已選擇的乘客"
               data={[...(acceptedJoins ?? []), ...(selectedJoins ?? [])]}
+              isConfirmDisabled={numSelectedPassengers > numAvailableSeat}
               onDeselect={onPressDeselect}
               onConfirm={onPressConfirm}
             />
