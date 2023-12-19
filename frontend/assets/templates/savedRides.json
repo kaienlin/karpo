@@ -25,5 +25,32 @@
       }
     ],
     "numSeats": 4
+  },
+  {
+    "label": "上班",
+    "departureTime": "Tue Dec 19 2023 08:30:00 GMT+0800 (台北標準時間)",
+    "numSeats": 4,
+    "origin": {
+      "latitude": 25.01700306644082,
+      "longitude": 121.54514779709237,
+      "description": "長興街31號"
+    },
+    "destination": {
+      "description": "總統府",
+      "latitude": 25.0399991,
+      "longitude": 121.5119507
+    },
+    "intermediates": [
+      {
+        "description": "台北市大安運動中心",
+        "latitude": 25.020739,
+        "longitude": 121.545757
+      },
+      {
+        "description": "阜杭豆漿",
+        "latitude": 25.0442451,
+        "longitude": 121.5247397
+      }
+    ]
   }
 ]

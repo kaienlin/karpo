@@ -2,16 +2,17 @@ import { Pressable, TouchableOpacity, View } from 'react-native'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
-import * as Linking from 'expo-linking'
 
 import { Avatar } from '~/components/Avatar'
+import { useContact } from '~/hooks/useContact'
 import type { JoinDetailed } from '~/types/data'
 
-import { PassengerInfoCard } from './PassengerInfoCard'
+import { PassengerInfoCard, PassengerInfoCardSkeleton } from './PassengerInfoCard'
 
 interface PassengerAvatarListProps {
   data: JoinDetailed[]
   title: string
+  isConfirmDisabled?: boolean
   onDeselect: (id: string) => () => void
   onConfirm: () => void
 }
@@ -26,15 +27,12 @@ interface PassengerCardListProps {
 export const PassengerAvatarList = ({
   data,
   title,
+  isConfirmDisabled = false,
   onDeselect,
   onConfirm
 }: PassengerAvatarListProps) => {
   const theme = useTheme()
-  const navigation = useNavigation()
-
-  const handleViewProfile = (userId: string) => () => {
-    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
-  }
+  const { viewProfile } = useContact()
 
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const {
@@ -57,7 +55,12 @@ export const PassengerAvatarList = ({
               )}
             </Pressable>
           )}
-          <TouchableOpacity activeOpacity={0.8} onPress={handleViewProfile(passengerId)}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              viewProfile(passengerId)
+            }}
+          >
             <Avatar base64Uri={avatar} size="small" />
           </TouchableOpacity>
         </View>
@@ -85,9 +88,27 @@ export const PassengerAvatarList = ({
           ItemSeparatorComponent={() => <View style={{ width: 15 }} />}
           renderItem={renderItem}
         />
-        <Button onPress={onConfirm} size="small" style={{ borderRadius: 100 }}>
-          <Text>確認同行</Text>
-        </Button>
+        <View>
+          <Button
+            onPress={onConfirm}
+            size="small"
+            style={{ borderRadius: 100 }}
+            disabled={isConfirmDisabled}
+            appearance={isConfirmDisabled ? 'ghost' : 'filled'}
+          >
+            <Text>確認同行</Text>
+          </Button>
+          <View style={{ position: 'absolute', top: '50%' }}>
+            {isConfirmDisabled && (
+              <Text
+                category="label"
+                style={{ color: theme['color-danger-default'], textAlign: 'center' }}
+              >
+                已選擇人數超出座位限制
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
     </View>
   )
@@ -95,30 +116,25 @@ export const PassengerAvatarList = ({
 
 export const PassengerCardList = ({ data, title, onReject, onSelect }: PassengerCardListProps) => {
   const theme = useTheme()
-  const navigation = useNavigation()
-
-  const handleViewProfile = (userId: string) => () => {
-    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
-  }
-
-  const handleChat = (userId: string) => () => {
-    // throw new Error('Not implemented')
-  }
-
-  const handleCall = (phone: string) => async () => {
-    try {
-      await Linking.openURL(`tel:${phone}`)
-    } catch (error) {}
-  }
+  const { viewProfile, chat, call } = useContact()
 
   const renderItem = ({ item, index }: { item: JoinDetailed; index: number }) => {
     const { passengerInfo, ...join } = item
-    return (
+    // TODO: should use a better condition
+    return join.pickUpLocation.description === '' ? (
+      <PassengerInfoCardSkeleton />
+    ) : (
       <PassengerInfoCard
         data={{ passengerInfo, ...join }}
-        onViewProfile={handleViewProfile(join.passengerId)}
-        onChat={handleChat(passengerInfo?.id)}
-        onCall={handleCall(passengerInfo?.phoneNumber)}
+        onViewProfile={() => {
+          viewProfile(join.passengerId)
+        }}
+        onChat={() => {
+          chat(join.joinId, join.passengerId)
+        }}
+        onCall={() => {
+          call(passengerInfo?.phoneNumber)
+        }}
         onReject={onReject(join.joinId)}
         onSelect={onSelect(join.joinId)}
       />

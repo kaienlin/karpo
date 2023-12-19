@@ -1,21 +1,16 @@
 import { useRef, useState } from 'react'
+import { Marker } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BottomSheet, { BottomSheetModalProvider, type BottomSheetModal } from '@gorhom/bottom-sheet'
-import { StackActions } from '@react-navigation/native'
 import { skipToken } from '@reduxjs/toolkit/query'
 
+import RouteMarker from '~/components/maps/RouteMarker'
 import MapViewWithRoute from '~/components/MapViewWithRoute'
 import { ConfirmModal } from '~/components/modals/Confirm'
 import TopNavBar from '~/components/nav/TopNavBar'
-import {
-  selectDriverState,
-  selectRideRoute,
-  useGetJoinsQuery,
-  useGetRideQuery,
-  useRespondJoinMutation,
-  useRespondJoinsMutation
-} from '~/redux/api/driver'
-import { useGetCurrentActivityQuery } from '~/redux/api/users'
+import { useDriverState } from '~/hooks/useDriverState'
+import { useGetJoinsQuery, useRespondJoinsMutation } from '~/redux/api/driver'
+import { useCancelEventMutation } from '~/redux/api/users'
 import { type DriverSelectJoinScreenProps } from '~/types/screens'
 
 import { PassengerAvatarList, PassengerCardList } from './PassengerList'
@@ -24,12 +19,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
   const bottomSheetRef = useRef<BottomSheet>(null)
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const { rideId } = useGetCurrentActivityQuery(undefined, {
-    selectFromResult: result => ({ ...result, ...selectDriverState(result) })
-  })
-  const { rideRoute } = useGetRideQuery(rideId ?? skipToken, {
-    selectFromResult: result => ({ ...result, rideRoute: selectRideRoute(result) })
-  })
+  const { rideId, rideRoute, rideSchedule } = useDriverState()
   const { pendingJoins } = useGetJoinsQuery(!rideId ? skipToken : { rideId, status: 'pending' }, {
     pollingInterval: 3000,
     selectFromResult: ({ data }) => ({ pendingJoins: data?.joins })
@@ -46,14 +36,15 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
     })
   })
 
-  // const [respondJoin] = useRespondJoinMutation()
   const [respondJoins] = useRespondJoinsMutation()
+  const [cancelRide] = useCancelEventMutation()
 
   const [selectedJoinIds, setSelectedJoinIds] = useState<string[]>([])
   const selectedJoins = pendingJoins
     ?.filter(({ joinId }) => selectedJoinIds.includes(joinId))
     ?.map(item => ({ ...item, status: 'pending' }))
   const unselectedJoins = pendingJoins?.filter(({ joinId }) => !selectedJoinIds.includes(joinId))
+  const numSelectedPassengers = selectedJoins?.reduce((sum, curr) => sum + curr.numPassengers, 0)
 
   let screenTitle = ''
   if (!isAcceptedJoinsSuccess) {
@@ -69,7 +60,8 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
 
   const onPressConfirm = async () => {
     if (!rideId) return
-    if (selectedJoinIds.length > numAvailableSeat) {
+
+    if (numSelectedPassengers > numAvailableSeat) {
       // TODO: show error message
       return
     }
@@ -111,48 +103,27 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
           snapPoints={['33%', '33%']}
           title="是否要取消本次行程？"
           message="取消行程後，您的乘客們會馬上收到通知"
-          onPressConfirm={() => {
-            navigation.replace('BottomTab', {
-              screen: 'HomeScreen'
-            })
+          onPressConfirm={async () => {
+            await cancelRide()
+            navigation.goBack()
           }}
           confirmBtnText="取消行程"
           cancelBtnText="留在此頁"
         />
 
         <MapViewWithRoute route={rideRoute} edgePadding={{ bottom: 170 }}>
-          {/* {pendingJoins?.map(({ passengerInfo, ...join }) => (
-          <React.Fragment key={join.passengerId}>
+          {rideSchedule?.map(({ joinId, status, location, passengerInfo }) => (
             <Marker
-              key={`${join.passengerId}-pickUp`}
+              key={`${joinId}-${status}`}
               coordinate={{
-                latitude: join.pickUpLocation.latitude,
-                longitude: join.pickUpLocation.longitude
+                latitude: location.latitude,
+                longitude: location.longitude
               }}
+              description={`${passengerInfo.name} 的 ${status === 'pick_up' ? '上車' : '下車'}地點`}
             >
-              <Shadow>
-                <Image
-                  source={{ uri: passengerInfo.avatar }}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              </Shadow>
+              {status === 'pick_up' ? <RouteMarker.Radio /> : <RouteMarker.DoubleBox />}
             </Marker>
-            <Marker
-              key={`${join.passengerId}-dropOff`}
-              coordinate={{
-                latitude: join.dropOffLocation.latitude,
-                longitude: join.dropOffLocation.longitude
-              }}
-            >
-              <Shadow>
-                <Image
-                  source={{ uri: passengerInfo.avatar }}
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              </Shadow>
-            </Marker>
-          </React.Fragment>
-        ))} */}
+          ))}
         </MapViewWithRoute>
 
         <BottomSheet
@@ -165,6 +136,7 @@ export default function DriverSelectJoinScreen({ navigation }: DriverSelectJoinS
             <PassengerAvatarList
               title="已選擇的乘客"
               data={[...(acceptedJoins ?? []), ...(selectedJoins ?? [])]}
+              isConfirmDisabled={numSelectedPassengers > numAvailableSeat}
               onDeselect={onPressDeselect}
               onConfirm={onPressConfirm}
             />

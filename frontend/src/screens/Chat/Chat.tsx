@@ -15,8 +15,9 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
   const { joinId, user1Id } = route.params
   // const joinId = 'abc'
   // const user1Id = '54321'
-
-  const prevMessages  = useGetMessageQuery({ joinId }, { pollingInterval: 1000 })
+  // console.log('joinId', joinId)
+  const prevMessages = useGetMessageQuery({ joinId:joinId, fromTime:"1970-01-01T00:00:00.843Z" }, { pollingInterval: 1000 })
+  // console.log(prevMessages)
 
   const { data } = useGetMyProfileQuery()
   const user1Name = useGetUserProfileQuery(user1Id).data?.name
@@ -30,8 +31,10 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
   useEffect(() => {
     const generateMessageId = () => Math.floor(Math.random() * 1000000);
     
+    
 
     if (prevMessages.data && prevMessages.data.length !== 0) {
+      // console.log('prev', prevMessages.data)
       const prev = [...prevMessages.data];
       const sortedMessages = prev.sort(
         (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
@@ -77,14 +80,18 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
 
   // helper method that sends a message
   const handleSend = async (newMessage: IMessage[] = []) => {
-    
+    // console.log('2id',user2Id)
+    // console.log('2name', user2Name)
+
     const newMessageContent = newMessage[0]?.text || "";
+    const currentTime =  new Date()
     await createMessage({
       joinId: joinId ?? "",
       userId: user2Id,
       content: newMessageContent,
-      time: new Date()
-    });
+      time: currentTime.toISOString()
+    }).unwrap()
+
     setMessages(GiftedChat.append(messages, newMessage));
   };
 

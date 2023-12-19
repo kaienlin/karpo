@@ -1,5 +1,5 @@
 import { forwardRef, useRef, useState, type ReactNode } from 'react'
-import { View } from 'react-native'
+import { Platform, View } from 'react-native'
 import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Button, Text } from '@ui-kitten/components'
 
@@ -13,7 +13,7 @@ export const InputModal = forwardRef<BottomSheetModal, { height: string; childre
         ref={ref}
         index={1}
         snapPoints={[props.height, props.height]}
-        backdropComponent={(props) => <BottomSheetBackdrop {...props} />}
+        backdropComponent={props => <BottomSheetBackdrop {...props} />}
         handleIndicatorStyle={{ display: 'none' }}
       >
         <View
@@ -107,7 +107,7 @@ export const PassengerInputTime = ({
     <>
       {renderTriggerComponent({ onOpen, value })}
 
-      <InputModal ref={modalRef} height="35%">
+      <InputModal ref={modalRef} height={Platform.OS === 'android' ? '35%' : '55%'}>
         <Text category="h5">{title}</Text>
         <DateTimePicker date={tempValue} setDate={setTempValue} />
         <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
