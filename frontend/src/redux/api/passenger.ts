@@ -1,4 +1,4 @@
-import { Match, RideStatus } from '~/types/data'
+import type { Match, RideStatus } from '~/types/data'
 
 import { apiSlice } from './index'
 
@@ -8,7 +8,7 @@ export const passengerSlice = apiSlice
     endpoints: builder => ({
       createRequest: builder.mutation({
         query: passengerQuery => ({
-          url: `/requests`,
+          url: `/requests/`,
           method: 'POST',
           body: passengerQuery
         })
