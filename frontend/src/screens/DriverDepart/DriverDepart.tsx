@@ -82,8 +82,7 @@ export default function DriverDepartScreen({ navigation }: DriverDepartScreenPro
   const { rideId, rideRoute, rideSchedule, ridePhase } = useDriverState()
   const [updateStatus] = useUpdateStatusMutation()
 
-  const ridePhaseInfo =
-    !rideSchedule || !ridePhase || ridePhase < 0 ? undefined : rideSchedule[ridePhase]
+  const ridePhaseInfo = rideSchedule?.[ridePhase]
 
   useEffect(() => {
     if (rideSchedule && ridePhase === rideSchedule.length) {
