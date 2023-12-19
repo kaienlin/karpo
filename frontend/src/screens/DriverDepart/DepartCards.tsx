@@ -14,6 +14,7 @@ import {
 } from '@ui-kitten/components'
 
 import { Avatar } from '~/components/Avatar'
+import { ContactItems, RatingItem } from '~/components/card/CardComponents'
 import SwipeButton from '~/components/SwipeButton'
 import type { User } from '~/types/data'
 import { displayDatetime } from '~/utils/format'
@@ -88,34 +89,12 @@ const PassengerItem = ({
               gap: 5
             }}
           >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5
-              }}
-            >
-              <Icon style={{ width: 15, height: 15 }} name="star" fill={'#F0C414'} />
-              <Text category="c1">{rating?.toFixed(1)}</Text>
-            </View>
+            <RatingItem rating={rating?.toFixed(1) ?? '5.0'} />
             <Text category="c1">|</Text>
             <Text category="c1">{`${numPassengers} 人`}</Text>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Button
-            onPress={onChat}
-            accessoryLeft={ChatIcon}
-            style={{ borderRadius: 100, width: 40, height: 40 }}
-            status="basic"
-          />
-          <Button
-            onPress={onCall}
-            accessoryLeft={PhoneIcon}
-            style={{ borderRadius: 100, width: 40, height: 40 }}
-            status="basic"
-          />
-        </View>
+        <ContactItems onChat={onChat} onCall={onCall} />
       </View>
     </View>
   )
