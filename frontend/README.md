@@ -28,6 +28,13 @@
 yarn start
 ```
 
+- For Android emulator user:
+  - If your backend is running on a local machine at http://localhost:<port_number>, execute the following command in your terminal:
+    ```bash 
+    adb reverse tcp:<port_number> tcp:<port_number>
+    ```
+    This will expose the corresponding port on your Android device to that on your computer.
+
 ### Build
 - Build on local machine
   ```bash
