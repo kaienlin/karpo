@@ -1,7 +1,6 @@
 import { FlatList, TouchableOpacity, View } from 'react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { Shadow } from 'react-native-shadow-2'
-import { useNavigation } from '@react-navigation/native'
 import {
   Button,
   Divider,
@@ -9,18 +8,15 @@ import {
   StyleService,
   Text,
   useStyleSheet,
-  useTheme,
-  type IconProps
+  useTheme
 } from '@ui-kitten/components'
 
 import { Avatar } from '~/components/Avatar'
 import { ContactItems, RatingItem } from '~/components/card/CardComponents'
 import SwipeButton from '~/components/SwipeButton'
+import { useContact } from '~/hooks/useContact'
 import type { User } from '~/types/data'
 import { displayDatetime } from '~/utils/format'
-
-const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
-const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
 
 interface PassengerItemProps extends User {
   numPassengers: number
@@ -36,12 +32,7 @@ interface AddonBarProps {
   buttonOnPress: () => void
 }
 
-interface PassengerContactAction {
-  handleChat?: (joinId: string, userId: string) => void
-  handleCall?: (phoneNumber: string) => void
-}
-
-interface ReadyCardProps extends PassengerContactAction {
+interface ReadyCardProps {
   time: Date
   origin: string | undefined
   destination: string | undefined
@@ -51,7 +42,7 @@ interface ReadyCardProps extends PassengerContactAction {
   onDepart: () => void
 }
 
-interface StageCardProps extends PassengerContactAction {
+interface StageCardProps {
   location: string
   status: 'pick_up' | 'drop_off'
   passenger: Array<User & { numPassengers: number }>
@@ -108,6 +99,7 @@ export function AddonBar({ text, buttonText, buttonDisabled, buttonOnPress }: Ad
       <Button
         onPress={buttonOnPress}
         disabled={buttonDisabled}
+        appearance={buttonDisabled ? 'ghost' : 'filled'}
         status="basic"
         size="small"
         style={{ borderRadius: 100 }}
@@ -125,16 +117,11 @@ export function ReadyCard({
   passengers,
   isLoading,
   onViewDetail,
-  onDepart,
-  handleChat = () => {},
-  handleCall = () => {}
+  onDepart
 }: ReadyCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
-  const navigation = useNavigation()
-  const handleViewProfile = (userId: string) => {
-    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
-  }
+  const { viewProfile, chat, call } = useContact()
 
   return (
     <Shadow {...shadowPresets.modal}>
@@ -171,13 +158,13 @@ export function ReadyCard({
             <PassengerItem
               {...item}
               onViewProfile={() => {
-                handleViewProfile(item.id)
+                viewProfile(item.id)
               }}
               onChat={() => {
-                handleChat(item.joinId, item.id)
+                chat(item.joinId, item.id)
               }}
               onCall={() => {
-                handleCall(item.phoneNumber)
+                call(item.phoneNumber)
               }}
             />
           )}
@@ -197,24 +184,12 @@ export function ReadyCard({
   )
 }
 
-export function StageCard({
-  location,
-  status,
-  passenger,
-  isLoading,
-  onComplete,
-  handleChat = () => {},
-  handleCall = () => {}
-}: StageCardProps) {
+export function StageCard({ location, status, passenger, isLoading, onComplete }: StageCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
-  const navigation = useNavigation()
-  const handleViewProfile = (userId: string) => {
-    navigation.navigate('UserProfileScreen', { role: 'passenger', userId })
-  }
+  const { viewProfile, chat, call } = useContact()
 
   const { name } = passenger ?? {}
-
   const headerText = status === 'pick_up' ? `正在前往 ${name} 所在位置` : `接近 ${name} 目的地`
   const swipeButtonText = status === 'pick_up' ? `到達 ${name} 起點` : `已到達 ${name} 目的地`
 
@@ -235,13 +210,13 @@ export function StageCard({
           <PassengerItem
             {...passenger}
             onViewProfile={() => {
-              handleViewProfile(passenger.id)
+              viewProfile(passenger.id)
             }}
             onChat={() => {
-              handleChat(passenger.joinId, passenger.id)
+              chat(passenger.joinId, passenger.id)
             }}
             onCall={() => {
-              handleCall(passenger.phoneNumber)
+              call(passenger.phoneNumber)
             }}
           />
         </View>
