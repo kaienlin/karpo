@@ -23,7 +23,7 @@ function ArrivalCard ({ride} : { ride: Match }) {
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   // variables
-  const snapPoints = useMemo(() => ['25%'], []);
+  const snapPoints = useMemo(() => ['30%'], []);
 
   const navigation = useNavigation()
   const handleConfirm = () => {

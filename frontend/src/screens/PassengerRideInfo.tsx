@@ -68,9 +68,9 @@ function PassengerItem({ userId } : { userId: string }) {
             }} 
             style={{ padding: 10 }}
           >
-            <Image 
-              source={{ uri: user.avatar }} 
-              style={{ width: 56, height: 56, borderRadius: 28 }} 
+            <Avatar 
+              source={{ uri: `data:image/png;base64,${user.avatar}` }} 
+              style={{ width: 56, height: 56 }} 
             />
           </View>  
         </TouchableOpacity> 
