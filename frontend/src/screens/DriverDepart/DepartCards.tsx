@@ -102,7 +102,7 @@ const PassengerItem = ({
               <Text category="c1">{rating?.toFixed(1)}</Text>
             </View>
             <Text category="c1">|</Text>
-            <Text category="c1">{`${numPassengers}人`}</Text>
+            <Text category="c1">{`${numPassengers} 人`}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 10 }}>

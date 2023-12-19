@@ -37,7 +37,9 @@ const ReadyInfoSection = ({
     <Animated.View entering={SlideInDown.duration(500).easing(Easing.out(Easing.exp))}>
       <AddonBar
         text={
-          numAvailableSeat > 0 ? `剩餘${numAvailableSeat}座，可與更多乘客共乘` : '已滿車，準備出發'
+          numAvailableSeat > 0
+            ? `剩餘 ${numAvailableSeat} 座，可與更多乘客共乘`
+            : '已滿車，準備出發'
         }
         buttonText="繼續接單"
         buttonDisabled={numAvailableSeat <= 0}
