@@ -1,4 +1,4 @@
-import type { Match, RideStatus } from '~/types/data'
+import type { Match, RideStatus, Schedule } from '~/types/data'
 
 import { apiSlice } from './index'
 
@@ -57,6 +57,12 @@ export const passengerSlice = apiSlice
           url: `/rides/${rideId}/status`,
           method: 'GET'
         })
+      }),
+      getRideSchedule: builder.query<Schedule, string>({
+        query: rideId => ({
+          url: `/rides/${rideId}/schedule`,
+          method: 'GET'
+        })
       })
     })
   })
@@ -66,5 +72,6 @@ export const {
   useGetRequestQuery,
   useGetMatchesQuery,
   useGetRideStatusQuery,
-  useCreateJoinRequestMutation
+  useCreateJoinRequestMutation,
+  useGetRideScheduleQuery
 } = passengerSlice
