@@ -9,6 +9,7 @@ import { Match } from '~/types/data'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { useState } from 'react'
 import TopNavBar from '~/components/nav/TopNavBar'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type WaitingListScreenProps = NativeStackScreenProps<PassengerStackParamList, 'WaitingListScreen'>
 const emptyArray: Array<Match> = []
@@ -47,7 +48,7 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
 
   if (isLoading)
     return (
-      <>
+      <SafeAreaView>
         <TopNavBar 
           title='等待回應'
           onGoBack={() => {
@@ -60,11 +61,11 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Spinner />
         </View>
-      </>
+      </SafeAreaView>
     )
 
   return (
-    <>
+    <SafeAreaView>
       <TopNavBar 
         title='等待回應'
         onGoBack={() => {
@@ -122,6 +123,6 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
           }}
         />
       )} 
-    </>
+    </SafeAreaView>
   )
 }

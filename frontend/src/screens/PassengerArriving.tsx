@@ -16,6 +16,7 @@ import { useGetMatchesQuery, useGetRideScheduleQuery, useGetRideStatusQuery } fr
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useNavigation } from "@react-navigation/native"
 import { useGetMyProfileQuery } from "~/redux/api/users"
+import { SafeAreaView } from "react-native-safe-area-context"
 
 type ArrivingScreenProps = NativeStackScreenProps<PassengerStackParamList, 'ArrivingScreen'>
 
@@ -143,7 +144,7 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
 
   if (ride && driverRoute)
     return (
-      <>
+      <SafeAreaView>
         <MapViewWithRoute
           route={driverRoute?.route}
           edgePadding={{ top: 80, right: 80, left: 80, bottom: 80 }}
@@ -183,16 +184,18 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
           ride={ride}
           phase={phase}
         />      
-      </>
+      </SafeAreaView>
     )
 
   return (
-    <View style={{
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
-      <Spinner />
-    </View>
+    <SafeAreaView>
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <Spinner />
+      </View>
+    </SafeAreaView>
   )
 }

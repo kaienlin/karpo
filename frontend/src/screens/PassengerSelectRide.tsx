@@ -9,6 +9,7 @@ import { Match } from '~/types/data'
 import { PassengerStackParamList } from '~/types/navigation'
 import TopNavBar from '~/components/nav/TopNavBar'
 import { useCancelEventMutation } from '~/redux/api/users'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type SelectRideScreenProps = NativeStackScreenProps<PassengerStackParamList, 'SelectRideScreen'>
 const emptyArray: Array<Match> = []
@@ -81,7 +82,7 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
   }
 
   return (
-    <>
+    <SafeAreaView>
       <TopNavBar 
         title='選擇共乘'
         onGoBack={async () => {
@@ -99,6 +100,6 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
           預  約  清  單
         </Button>
       </View>
-    </>
+    </SafeAreaView>
   )
 }

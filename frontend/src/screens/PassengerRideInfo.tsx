@@ -19,6 +19,7 @@ import type { Match } from '~/types/data'
 import type { PassengerStackParamList } from '~/types/navigation'
 import { displayTime } from '~/utils/format'
 import TopNavBar from '~/components/nav/TopNavBar'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export const LocationIcon = () => {
   const theme = useTheme()
@@ -186,7 +187,7 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
   }
 
   return (
-    <>
+    <SafeAreaView>
       <TopNavBar title='共乘資訊' onGoBack={navigation.goBack} />
       <View style={{ padding: 10 }}>
         <Header
@@ -305,6 +306,6 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
           )}
         </View>
       </View>
-    </>
+    </SafeAreaView>
   )
 }

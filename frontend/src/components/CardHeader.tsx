@@ -1,9 +1,10 @@
 import { StyleSheet, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
-import { Icon, Text, Avatar } from '@ui-kitten/components'
+import { Icon, Text } from '@ui-kitten/components'
 
 import { displayProximity, displayTime } from '~/utils/format'
+import { Avatar } from './Avatar'
 
 interface RideStatusProps {
   rating: number | undefined
@@ -88,10 +89,7 @@ export function Header(props: HeaderProps) {
           }}
           style={{ padding: 10 }}
         >
-          <Avatar 
-            source={{ uri: `data:image/png;base64,${props.avatar}`}} 
-            style={{ height: 56, width: 56 }}
-          />
+          <Avatar base64Uri={props.avatar} />
         </View>
       </TouchableOpacity>
 
