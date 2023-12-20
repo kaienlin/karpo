@@ -1,6 +1,7 @@
 import { forwardRef, useRef, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { captureRef } from 'react-native-view-shot'
 import { useDispatch } from 'react-redux'
@@ -91,13 +92,11 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: 45, alignItems: 'center' }}>
+      <View style={{ paddingHorizontal: 45, paddingBottom: 15, alignItems: 'center' }}>
         <Text category="h1">建立帳戶</Text>
       </View>
 
-      <RandomAvatar ref={avatarRef} />
-
-      <View style={{ paddingHorizontal: 40, gap: 30 }}>
+      <View style={{ flex: 1, paddingHorizontal: 40, gap: 30 }}>
         {isError && (
           <View
             style={{
@@ -121,24 +120,104 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
           </View>
         )}
 
-        <ScrollView style={{ gap: 10 }}>
-          <Controller
-            name="name"
-            control={control}
-            rules={{
-              required: true
-            }}
-            render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
-              return (
+        <KeyboardAwareScrollView
+          showsVerticalScrollIndicator={false}
+          extraHeight={250}
+          keyboardOpeningTime={Number.MAX_VALUE}
+        >
+          <View style={{ gap: 7 }}>
+            <RandomAvatar ref={avatarRef} />
+            <Controller
+              name="name"
+              control={control}
+              rules={{
+                required: true
+              }}
+              render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
+                return (
+                  <Input
+                    testID="registerNameInput"
+                    placeholder="姓名"
+                    ref={ref}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    onSubmitEditing={() => {
+                      setFocus('email')
+                    }}
+                    size="large"
+                    returnKeyType="next"
+                    status={invalid ? 'danger' : 'basic'}
+                    caption={(props: TextProps) =>
+                      invalid && (
+                        <View style={{ paddingLeft: 10, paddingTop: 3 }}>
+                          <Text {...props}>需輸入姓名</Text>
+                        </View>
+                      )
+                    }
+                    style={styles.input}
+                    inputMode="text"
+                    accessoryLeft={AvatarIcon}
+                    blurOnSubmit={false}
+                  />
+                )
+              }}
+            />
+            <Controller
+              name="email"
+              control={control}
+              rules={{
+                required: true,
+                pattern: /\S+@\S+\.\S+/
+              }}
+              render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
+                return (
+                  <Input
+                    testID="registerEmailInput"
+                    placeholder="電子郵件地址"
+                    ref={ref}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    onSubmitEditing={() => {
+                      setFocus('password')
+                    }}
+                    size="large"
+                    returnKeyType="next"
+                    status={invalid ? 'danger' : 'basic'}
+                    caption={(props: TextProps) =>
+                      invalid && (
+                        <View style={{ paddingLeft: 10, paddingTop: 3 }}>
+                          <Text {...props}>電子郵件地址格式不正確</Text>
+                        </View>
+                      )
+                    }
+                    style={styles.input}
+                    autoCapitalize="none"
+                    inputMode="email"
+                    accessoryLeft={EmailIcon}
+                    blurOnSubmit={false}
+                  />
+                )
+              }}
+            />
+            <Controller
+              name="password"
+              control={control}
+              rules={{
+                required: true,
+                pattern: /.{6}/
+              }}
+              render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
                 <Input
-                  testID="registerNameInput"
-                  placeholder="姓名"
+                  testID="registerPasswordInput"
+                  placeholder="密碼"
                   ref={ref}
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   onSubmitEditing={() => {
-                    setFocus('email')
+                    setFocus('passwordConfirm')
                   }}
                   size="large"
                   returnKeyType="next"
@@ -146,140 +225,66 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
                   caption={(props: TextProps) =>
                     invalid && (
                       <View style={{ paddingLeft: 10, paddingTop: 3 }}>
-                        <Text {...props}>需輸入姓名</Text>
-                      </View>
-                    )
-                  }
-                  style={styles.input}
-                  inputMode="text"
-                  accessoryLeft={AvatarIcon}
-                  blurOnSubmit={false}
-                />
-              )
-            }}
-          />
-          <Controller
-            name="email"
-            control={control}
-            rules={{
-              required: true,
-              pattern: /\S+@\S+\.\S+/
-            }}
-            render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
-              return (
-                <Input
-                  testID="registerEmailInput"
-                  placeholder="電子郵件地址"
-                  ref={ref}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  onSubmitEditing={() => {
-                    setFocus('password')
-                  }}
-                  size="large"
-                  returnKeyType="next"
-                  status={invalid ? 'danger' : 'basic'}
-                  caption={(props: TextProps) =>
-                    invalid && (
-                      <View style={{ paddingLeft: 10, paddingTop: 3 }}>
-                        <Text {...props}>電子郵件地址格式不正確</Text>
+                        <Text {...props}>密碼需最少六個字元</Text>
                       </View>
                     )
                   }
                   style={styles.input}
                   autoCapitalize="none"
-                  inputMode="email"
-                  accessoryLeft={EmailIcon}
+                  accessoryLeft={LockIcon}
+                  autoComplete="new-password"
+                  secureTextEntry={true}
                   blurOnSubmit={false}
                 />
-              )
-            }}
-          />
-
-          <Controller
-            name="password"
-            control={control}
-            rules={{
-              required: true,
-              pattern: /.{6}/
-            }}
-            render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
-              <Input
-                testID="registerPasswordInput"
-                placeholder="密碼"
-                ref={ref}
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                onSubmitEditing={() => {
-                  setFocus('passwordConfirm')
-                }}
-                size="large"
-                returnKeyType="next"
-                status={invalid ? 'danger' : 'basic'}
-                caption={(props: TextProps) =>
-                  invalid && (
-                    <View style={{ paddingLeft: 10, paddingTop: 3 }}>
-                      <Text {...props}>密碼需最少六個字元</Text>
-                    </View>
-                  )
+              )}
+            />
+            <Controller
+              name="passwordConfirm"
+              control={control}
+              rules={{
+                required: true,
+                validate: value => {
+                  return value === watch('password')
                 }
-                style={styles.input}
-                autoCapitalize="none"
-                accessoryLeft={LockIcon}
-                secureTextEntry={true}
-                blurOnSubmit={false}
-              />
-            )}
-          />
-
-          <Controller
-            name="passwordConfirm"
-            control={control}
-            rules={{
-              required: true,
-              validate: value => {
-                return value === watch('password')
-              }
-            }}
-            render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
-              <Input
-                testID="registerPasswordConfirmInput"
-                placeholder="確認密碼"
-                ref={ref}
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                size="large"
-                returnKeyType="next"
-                status={invalid ? 'danger' : 'basic'}
-                caption={(props: TextProps) =>
-                  invalid && (
-                    <View style={{ paddingLeft: 10, paddingTop: 3 }}>
-                      <Text {...props}>輸入的密碼不相符</Text>
-                    </View>
-                  )
-                }
-                style={styles.input}
-                autoCapitalize="none"
-                accessoryLeft={LockIcon}
-                secureTextEntry={true}
-              />
-            )}
-          />
-        </ScrollView>
-        <Button
-          accessibilityLabel="註冊"
-          onPress={handleSubmit(onSubmit)}
-          size="large"
-          disabled={isSubmitting}
-          accessoryLeft={<>{isSubmitting && <Spinner status="basic" size="small" />}</>}
-          accessoryRight={ArrowForwardIcon}
-          style={{ borderRadius: 12 }}
-        >
-          註冊
-        </Button>
+              }}
+              render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
+                <Input
+                  testID="registerPasswordConfirmInput"
+                  placeholder="確認密碼"
+                  ref={ref}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  size="large"
+                  returnKeyType="next"
+                  status={invalid ? 'danger' : 'basic'}
+                  caption={(props: TextProps) =>
+                    invalid && (
+                      <View style={{ paddingLeft: 10, paddingTop: 3 }}>
+                        <Text {...props}>輸入的密碼不相符</Text>
+                      </View>
+                    )
+                  }
+                  style={styles.input}
+                  autoCapitalize="none"
+                  accessoryLeft={LockIcon}
+                  secureTextEntry={true}
+                />
+              )}
+            />
+            <Button
+              accessibilityLabel="註冊"
+              onPress={handleSubmit(onSubmit)}
+              size="large"
+              disabled={isSubmitting}
+              accessoryLeft={<>{isSubmitting && <Spinner status="basic" size="small" />}</>}
+              accessoryRight={ArrowForwardIcon}
+              style={{ marginTop: 15, borderRadius: 12 }}
+            >
+              註冊
+            </Button>
+          </View>
+        </KeyboardAwareScrollView>
       </View>
     </SafeAreaView>
   )
