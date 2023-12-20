@@ -1,0 +1,31 @@
+[
+  {
+    "time": "2023-11-30 10:15",
+    "role": "driver",
+    "fare": 300,
+    "origin": "台積電 12 廠",
+    "destination": "竹北市光明六路 16 號"
+  },
+  {
+    "time": "2023-11-30 10:30",
+    "role": "passenger",
+    "fare": 280,
+    "origin": "園區二路 57 號",
+    "destination": "竹北市光明六路 116 號"
+  },
+  {
+    "time": "2023-11-30 10:44",
+    "role": "driver",
+    "arrivalTime": "11:08",
+    "fare": 320,
+    "origin": "實驗中學",
+    "destination": "博愛國小"
+  },
+  {
+    "time": "2023-11-30 10:44",
+    "role": "passenger",
+    "dare": 320,
+    "origin": "實驗中學",
+    "destination": "博愛國小"
+  }
+]

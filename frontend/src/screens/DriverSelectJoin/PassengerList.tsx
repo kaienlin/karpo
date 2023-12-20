@@ -1,8 +1,8 @@
 import { Pressable, TouchableOpacity, View } from 'react-native'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
-import { useNavigation } from '@react-navigation/native'
 import { Button, Icon, Text, useTheme } from '@ui-kitten/components'
 
+import { AnimatedDog } from '~/components/Animation'
 import { Avatar } from '~/components/Avatar'
 import { useContact } from '~/hooks/useContact'
 import type { JoinDetailed } from '~/types/data'
@@ -159,6 +159,23 @@ export const PassengerCardList = ({ data, title, onReject, onSelect }: Passenger
         ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
         ListHeaderComponent={() => <View style={{ height: 8 }} />}
         renderItem={renderItem}
+        ListEmptyComponent={() => (
+          <View
+            style={{
+              gap: 20,
+              paddingTop: 30,
+              paddingHorizontal: 50,
+              alignItems: 'center',
+              opacity: 0.3
+            }}
+          >
+            <AnimatedDog />
+            <View style={{ flex: 1.5, alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 15, fontWeight: '600' }}>目前還沒有乘客請求</Text>
+              <Text style={{ fontSize: 13 }}>正在為您媒合中</Text>
+            </View>
+          </View>
+        )}
       />
     </>
   )

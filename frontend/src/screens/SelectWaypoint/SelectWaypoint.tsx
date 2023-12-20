@@ -56,7 +56,7 @@ export default function SelectWaypoint({ navigation, route }: SelectWaypointScre
   const inputRef = useRef<Input>(null)
   const bottomSheetRef = useRef<BottomSheet>(null)
 
-  const [searchInput, setSearchInput] = useState<string>('')
+  const [searchInput, setSearchInput] = useState<string>(defaultCenter?.description ?? '')
   const [autocompleteResult, setAutocompleteResult] = useState<AutocompleteItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
