@@ -8,7 +8,6 @@ import { Spinner, Text, Button, Card, Modal } from '@ui-kitten/components'
 import { Match } from '~/types/data'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { useState } from 'react'
-import { set } from 'react-hook-form'
 
 type WaitingListScreenProps = NativeStackScreenProps<PassengerStackParamList, 'WaitingListScreen'>
 const emptyArray: Array<Match> = []

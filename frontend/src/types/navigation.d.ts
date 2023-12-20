@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native'
+import { Dispatch } from 'react'
 
 type AuthStackParamList = {
   WelcomeScreen: undefined

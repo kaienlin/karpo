@@ -30,8 +30,6 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
 
   useEffect(() => {
     const generateMessageId = () => Math.floor(Math.random() * 1000000);
-    
-    
 
     if (prevMessages.data && prevMessages.data.length !== 0) {
       // console.log('prev', prevMessages.data)
@@ -53,6 +51,7 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
           },
         };
       });
+      
       setMessages([...initialMessage]);
     }
   }, [prevMessages.data, user2Id, user2Name, user1Name]);
