@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import ViewShot from 'react-native-view-shot'
+import { captureRef } from 'react-native-view-shot'
 import { useDispatch } from 'react-redux'
 import {
   Button,
@@ -32,34 +32,28 @@ interface SignUpForm extends UserCredentials {
   passwordConfirm: string
 }
 
-const RandomAvatar = ({ onChange }: { onChange: (uri: string) => void }) => {
-  const ref = useRef<ViewShot>(null)
+const RandomAvatar = forwardRef<View>(function RandomAvatar(_, ref) {
   const [config, setConfig] = useState(genConfig())
   const generate = () => {
     setConfig(genConfig())
-    ref?.current.capture().then(onChange).catch(console.log)
   }
-
-  useEffect(() => {
-    ref?.current.capture().then(onChange).catch(console.log)
-  }, [])
 
   return (
     <View style={{ alignItems: 'center', marginVertical: 30 }}>
       <Pressable onPress={generate}>
-        <ViewShot ref={ref} options={{ result: 'base64' }}>
+        <View ref={ref}>
           <Avatar size={100} {...config} />
-        </ViewShot>
+        </View>
       </Pressable>
     </View>
   )
-}
+})
 
 export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   const theme = useTheme()
   const dispatch = useDispatch()
+  const avatarRef = useRef<View>(null)
 
-  const [avatar, setAvatar] = useState<string>()
   const {
     control,
     handleSubmit,
@@ -79,8 +73,9 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   const [register, { isError }] = useRegisterMutation()
   const [signInMutation] = useSignInMutation()
 
-  const onSubmit: SubmitHandler<SignUpForm> = async (data) => {
+  const onSubmit: SubmitHandler<SignUpForm> = async data => {
     const { name, email, password } = data
+    const avatar = await captureRef(avatarRef, { result: 'base64' })
     try {
       await register({ name, email, password, avatar })
       const response = await signInMutation({
@@ -100,7 +95,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
         <Text category="h1">建立帳戶</Text>
       </View>
 
-      <RandomAvatar onChange={setAvatar} />
+      <RandomAvatar ref={avatarRef} />
 
       <View style={{ paddingHorizontal: 40, gap: 30 }}>
         {isError && (
@@ -136,6 +131,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
               return (
                 <Input
+                  testID="registerNameInput"
                   placeholder="姓名"
                   ref={ref}
                   value={value}
@@ -172,6 +168,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => {
               return (
                 <Input
+                  testID="registerEmailInput"
                   placeholder="電子郵件地址"
                   ref={ref}
                   value={value}
@@ -209,6 +206,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             }}
             render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
               <Input
+                testID="registerPasswordInput"
                 placeholder="密碼"
                 ref={ref}
                 value={value}
@@ -241,12 +239,13 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             control={control}
             rules={{
               required: true,
-              validate: (value) => {
+              validate: value => {
                 return value === watch('password')
               }
             }}
             render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
               <Input
+                testID="registerPasswordConfirmInput"
                 placeholder="確認密碼"
                 ref={ref}
                 value={value}
