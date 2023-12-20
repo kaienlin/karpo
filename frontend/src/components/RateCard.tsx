@@ -5,7 +5,9 @@ import { Button, Card, Text } from '@ui-kitten/components'
 
 import type { User } from '~/types/data'
 
-const templateComments = ['超級細心', '非常友善', '交到一個新朋友']
+const templateGoodComments = ['超級細心', '非常友善', '交到一個新朋友']
+const templateBadComments = ['未及時到約定地點', '危險駕駛', '態度不佳']
+
 
 interface CardProps {
   userInfo: Pick<User, 'id' | 'name'>
@@ -82,9 +84,9 @@ export default function RateCard({
         <View style={styles.inputContainer}>
           {/* TODO: append button text to comment */}
           <FlatList
-            data={templateComments}
+            data={templateGoodComments}
             horizontal={true}
-            style={{ paddingVertical: 10 }}
+            style={{ paddingTop: 10 }}
             ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
             renderItem={({ item }) => (
               <Button 
@@ -94,6 +96,22 @@ export default function RateCard({
                 style={{ borderRadius: 100 }}
               >
                 {item}
+              </Button>
+            )}
+          />
+          <FlatList
+            data={templateBadComments}
+            horizontal={true}
+            style={{ paddingBottom: 5 }}
+            ItemSeparatorComponent={() => <View style={{ width: 5 }} />}
+            renderItem={({ item }) => (
+              <Button 
+                onPress={() => handleAddTemplateComments(item)}
+                size="small" 
+                appearance="outline" 
+                style={{ borderRadius: 100, borderColor:'#A9A9AF'}}
+              > 
+                {evaProps => <Text {...evaProps} style={{color: '#A9A9AF', fontSize: 12, paddingHorizontal:7}}>{item}</Text>}
               </Button>
             )}
           />
@@ -116,11 +134,8 @@ export default function RateCard({
 
 const styles = StyleSheet.create({
   container: {
-    //   marginVertical: 30,
-    //   alignItems: 'flex-start',
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    // padding: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -148,21 +163,21 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginVertical: 15,
     marginHorizontal: 15,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 5,
   },
   input: {
     borderRadius: 8,
     backgroundColor: '#eeeef1',
     height: 140,
-    //   width: 316,
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'left',
     textAlignVertical: 'top',
     fontWeight: 'normal',
     letterSpacing: 1,
     lineHeight: 22,
     padding: 15,
-    paddingTop: 15,
+    paddingTop: 10,
     alignItems: 'center',
     gap: 15
   },
@@ -173,8 +188,7 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 15,
     borderRadius: 33
-    // backgroundColor: '#f0c414',
-    // marginHorizontal: 10
+
   },
   blacklist: {
     marginLeft: 220,
