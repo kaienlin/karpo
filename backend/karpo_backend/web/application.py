@@ -4,12 +4,11 @@ from pathlib import Path
 from random import uniform
 
 from asyncpg.exceptions import SerializationError
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import UJSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from sqlalchemy.exc import DBAPIError
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from karpo_backend.logging import configure_logging
 from karpo_backend.web.api.router import api_router
@@ -19,18 +18,24 @@ APP_ROOT = Path(__file__).parent.parent
 
 
 class RetryTxnMiddleware:
+    def __init__(self, app):
+        self.app = app
+
     def _retry_exponential_backoff(
         self, retry_count: int, max_backoff: int = 0
     ) -> None:
         sleep_secs = uniform(0, min(max_backoff, 0.1 * (2**retry_count)))
         time.sleep(sleep_secs)
 
-    async def __call__(self, request: Request, call_next):
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":  # pragma: no cover
+            await self.app(scope, receive, send)
+            return
         retry_cnt = 0
         max_retries = 3
         while retry_cnt <= max_retries:
             try:
-                result = await call_next(request)
+                result = await self.app(scope, receive, send)
                 return result
             except DBAPIError as e:
                 if retry_cnt >= max_retries:
@@ -75,6 +80,6 @@ def get_app() -> FastAPI:
         name="static",
     )
 
-    app.add_middleware(BaseHTTPMiddleware, dispatch=RetryTxnMiddleware())
+    app.add_middleware(RetryTxnMiddleware)
 
     return app
