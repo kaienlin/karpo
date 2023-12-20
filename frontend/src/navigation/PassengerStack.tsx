@@ -19,32 +19,18 @@ export default function PassengerStack() {
       <Stack.Screen
         name="SelectRideScreen"
         component={SelectRide}
-        options={{ title: '選擇共乘' }}
       />
       <Stack.Screen 
         name="RideInfoScreen" 
         component={RideInfo} 
-        options={{ title: '共乘資訊' }} 
       />
       <Stack.Screen
         name="WaitingListScreen"
         component={WaitingList}
-        options={({ route, navigation }) => ({
-          title: '等待回應',
-          headerLeft: () => (
-            <View style={{ marginLeft: -12, marginRight: 12 }}>
-              <HeaderBackButton onPress={() => navigation.navigate(
-                'SelectRideScreen',
-                { requestId: route.params.requestId }
-              )} />
-            </View>
-          )
-        })}
       />
       <Stack.Screen 
         name="ArrivingScreen"
         component={Arriving}
-        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   )

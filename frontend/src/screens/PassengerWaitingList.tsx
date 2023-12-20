@@ -8,6 +8,7 @@ import { Spinner, Text, Button, Card, Modal } from '@ui-kitten/components'
 import { Match } from '~/types/data'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { useState } from 'react'
+import TopNavBar from '~/components/nav/TopNavBar'
 
 type WaitingListScreenProps = NativeStackScreenProps<PassengerStackParamList, 'WaitingListScreen'>
 const emptyArray: Array<Match> = []
@@ -46,13 +47,33 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
 
   if (isLoading)
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Spinner />
-      </View>
+      <>
+        <TopNavBar 
+          title='等待回應'
+          onGoBack={() => {
+            navigation.navigate(
+              'SelectRideScreen',
+              { requestId: route.params.requestId }
+            )
+          }}
+        />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Spinner />
+        </View>
+      </>
     )
 
   return (
     <>
+      <TopNavBar 
+        title='等待回應'
+        onGoBack={() => {
+          navigation.navigate(
+            'SelectRideScreen',
+            { requestId: route.params.requestId }
+          )
+        }}
+      />
       <Modal
         visible={visible && acceptedMatches.length !== 0}
         backdropStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}

@@ -7,6 +7,8 @@ import { Button, Spinner, Text } from '@ui-kitten/components'
 import { useGetMatchesQuery, useGetRequestQuery } from '~/redux/api/passenger'
 import { Match } from '~/types/data'
 import { PassengerStackParamList } from '~/types/navigation'
+import TopNavBar from '~/components/nav/TopNavBar'
+import { useCancelEventMutation } from '~/redux/api/users'
 
 type SelectRideScreenProps = NativeStackScreenProps<PassengerStackParamList, 'SelectRideScreen'>
 const emptyArray: Array<Match> = []
@@ -25,6 +27,7 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
       ...rest
     })
   })
+  const [cancelRide] = useCancelEventMutation()
 
   let content
   if (requestRes.isLoading || matchRes.isLoading) {
@@ -79,6 +82,13 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
 
   return (
     <>
+      <TopNavBar 
+        title='選擇共乘'
+        onGoBack={async () => {
+          await cancelRide()
+          navigation?.goBack()
+        }}
+      />
       {content}
       <View style={{ padding: 20 }}>
         <Button
