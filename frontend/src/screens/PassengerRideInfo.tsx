@@ -187,7 +187,7 @@ export default function RideInfo({ route, navigation }: RideInfoScreenProps) {
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <TopNavBar title='共乘資訊' onGoBack={navigation.goBack} />
       <View style={{ padding: 10 }}>
         <Header

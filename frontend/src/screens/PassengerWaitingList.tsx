@@ -65,7 +65,7 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
     )
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <TopNavBar 
         title='等待回應'
         onGoBack={() => {

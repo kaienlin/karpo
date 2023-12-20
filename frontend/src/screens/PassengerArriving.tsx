@@ -124,10 +124,10 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
   const { rideId, requestId } = route.params
  
   const { ride } = useGetMatchesQuery(requestId, {
-    selectFromResult: ({data}) => (
-      { ride: data?.find((match: Match) => match.rideId === rideId) }
-    ),
-    pollingInterval: 5000
+    selectFromResult: ({data}) => ({ 
+      ride: data?.matches?.find((match: Match) => match.rideId === rideId) 
+    }),
+    pollingInterval: 3000
   })
   
   const { driverPosition, phase } = useGetRideStatusQuery(ride.rideId, {
@@ -135,7 +135,7 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
       driverPosition: data?.driverPosition,
       phase: data?.phase
     }),
-    pollingInterval: 5000
+    pollingInterval: 3000
   })
 
   const { data: driverRoute } = useGetRouteQuery(
@@ -144,7 +144,7 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
 
   if (ride && driverRoute)
     return (
-      <SafeAreaView>
+      <SafeAreaView style={{ flex: 1 }}>
         <MapViewWithRoute
           route={driverRoute?.route}
           edgePadding={{ top: 80, right: 80, left: 80, bottom: 80 }}
@@ -188,7 +188,7 @@ export default function Arriving({ route, navigation }: ArrivingScreenProps) {
     )
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <View style={{
         flex: 1,
         justifyContent: 'center',

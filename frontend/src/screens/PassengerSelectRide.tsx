@@ -82,7 +82,7 @@ export default function SelectRide({ route, navigation }: SelectRideScreenProps)
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <TopNavBar 
         title='選擇共乘'
         onGoBack={async () => {
