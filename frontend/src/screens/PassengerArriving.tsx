@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
-import { Button, Icon, IconElement, IconProps, Text } from "@ui-kitten/components"
+import { Button, Icon, IconElement, IconProps, Spinner, Text } from "@ui-kitten/components"
 import { View } from "react-native"
 import { Shadow } from "react-native-shadow-2"
 import { Marker } from "react-native-maps"
@@ -12,7 +12,7 @@ import { LocationIcon } from "./PassengerRideInfo"
 import { Match, ScheduleStep } from "~/types/data"
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useGetRideScheduleQuery, useGetRideStatusQuery } from "~/redux/api/passenger"
+import { useGetMatchesQuery, useGetRideScheduleQuery, useGetRideStatusQuery } from "~/redux/api/passenger"
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useNavigation } from "@react-navigation/native"
 import { useGetMyProfileQuery } from "~/redux/api/users"
@@ -23,8 +23,10 @@ function ArrivalCard ({ ride, phase } : {
   ride: Match,
   phase: number | undefined
 }) {
+
   const { schedule } = useGetRideScheduleQuery(ride.rideId, {
-    selectFromResult: ({data}) => ({ schedule: data?.schedule }) 
+    selectFromResult: ({data}) => ({ schedule: data?.schedule }),
+    pollingInterval: 5000 
   })
   const { data: myProfile } = useGetMyProfileQuery()
 
@@ -60,8 +62,6 @@ function ArrivalCard ({ ride, phase } : {
   )
     
   useEffect(() => {
-    // console.log('phase:', phase)
-    // console.log('arrivingPhase:', arrivingPhase)
     if (typeof phase !== 'undefined') {
       if (phase === arrivingPhase) setContent('您的駕駛即將前往約定地點')
       else if (phase > arrivingPhase) setContent('您的駕駛已抵達約定地點')
@@ -120,60 +120,79 @@ function ArrivalCard ({ ride, phase } : {
 }
 
 export default function Arriving({ route, navigation }: ArrivingScreenProps) {
-  const { ride } = route.params
+  const { rideId, requestId } = route.params
+ 
+  const { ride } = useGetMatchesQuery(requestId, {
+    selectFromResult: ({data}) => (
+      { ride: data?.find((match: Match) => match.rideId === rideId) }
+    ),
+    pollingInterval: 5000
+  })
+  
   const { driverPosition, phase } = useGetRideStatusQuery(ride.rideId, {
-    pollingInterval: 5000,
     selectFromResult: ({ data }) => ({ 
       driverPosition: data?.driverPosition,
       phase: data?.phase
-    })
+    }),
+    pollingInterval: 5000
   })
 
   const { data: driverRoute } = useGetRouteQuery(
-    driverPosition ? [driverPosition, ride.pickUpLocation] : skipToken
+    (driverPosition && ride) ? [driverPosition, ride.pickUpLocation] : skipToken
   )
 
-  return (
-    <>
-      <MapViewWithRoute
-        route={driverRoute?.route}
-        edgePadding={{ top: 80, right: 80, left: 80, bottom: 80 }}
-        fitToRouteButtonPosition={{ left: '86%', bottom: '40%' }}
-      >
-        <Marker coordinate={ride.pickUpLocation}>
-          <LocationIcon />
-        </Marker>
-        
-        {driverPosition && (
-          <Marker 
-            coordinate={driverPosition}
-            icon={require('~/assets/sports-car.png')}              
-          />
-        )}
-        <Marker
-          anchor={{ x: 0.5, y: 2 }}
-          coordinate={ride.pickUpLocation}
+  if (ride && driverRoute)
+    return (
+      <>
+        <MapViewWithRoute
+          route={driverRoute?.route}
+          edgePadding={{ top: 80, right: 80, left: 80, bottom: 80 }}
+          fitToRouteButtonPosition={{ left: '86%', bottom: '40%' }}
         >
-          <Shadow>
-            <View
-              style={{
-                width: 80,
-                alignItems: 'center',
-                backgroundColor: 'white',
-                paddingHorizontal: 10,
-                paddingVertical: 5
-              }}
-            >
-              <Text category="label">上車地點</Text>
-              {/* TODO: indicate duration and distance on polyline <Text category="label">{`步行時間${walkingRoute?.duration}`}</Text> */}
-            </View>
-          </Shadow>
-        </Marker>
-      </MapViewWithRoute>
-      <ArrivalCard 
-        ride={ride}
-        phase={phase}
-      />      
-    </>
+          <Marker coordinate={ride.pickUpLocation}>
+            <LocationIcon />
+          </Marker>
+          
+          {driverPosition && (
+            <Marker 
+              coordinate={driverPosition}
+              icon={require('~/assets/sports-car.png')}              
+            />
+          )}
+          <Marker
+            anchor={{ x: 0.5, y: 2 }}
+            coordinate={ride.pickUpLocation}
+          >
+            <Shadow>
+              <View
+                style={{
+                  width: 80,
+                  alignItems: 'center',
+                  backgroundColor: 'white',
+                  paddingHorizontal: 10,
+                  paddingVertical: 5
+                }}
+              >
+                <Text category="label">上車地點</Text>
+                {/* TODO: indicate duration and distance on polyline <Text category="label">{`步行時間${walkingRoute?.duration}`}</Text> */}
+              </View>
+            </Shadow>
+          </Marker>
+        </MapViewWithRoute>
+        <ArrivalCard 
+          ride={ride}
+          phase={phase}
+        />      
+      </>
+    )
+
+  return (
+    <View style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}>
+      <Spinner />
+    </View>
   )
 }

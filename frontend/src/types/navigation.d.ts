@@ -51,7 +51,8 @@ type PassengerStackParamList = {
     requestId: string
   }
   ArrivingScreen: {
-    ride: Match
+    rideId: string
+    requestId: string
   }
 }
 

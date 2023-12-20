@@ -37,8 +37,10 @@ export default function WaitingList({ route, navigation }: WaitingListScreenProp
   const handleConfirm = () => {
     setVisible(false)
     navigation.navigate(
-      "ArrivingScreen",
-      { ride: acceptedMatches[0] }
+      "ArrivingScreen", { 
+        rideId: acceptedMatches[0].rideId, 
+        requestId: requestId
+      }
     )
   }
 
