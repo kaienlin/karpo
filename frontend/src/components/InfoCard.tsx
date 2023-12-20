@@ -5,6 +5,7 @@ import { Header, HeaderProps } from './CardHeader'
 import { Match } from '~/types/data'
 import { useEffect, useState } from 'react'
 import { MapsAPI } from '~/services/maps'
+import { Shadow } from 'react-native-shadow-2'
 
 const ChatIcon = (props: IconProps) => <Icon {...props} name="message-circle" />
 const PhoneIcon = (props: IconProps) => <Icon {...props} name="phone" />
@@ -69,84 +70,91 @@ export function InfoCard(cardProps: CardProps) {
   }, [])
 
   return (
-    <Card
-      onPress={cardProps.onPress}
-      header={(props) => (
-        <Header
-          {...props}
-          rating={cardProps.driverInfo.rating}
-          numAvailableSeat={cardProps.numAvailableSeat}
-          proximity={cardProps.proximity}
-          pickUpTime={cardProps.pickUpTime.toString()}
-          dropOffTime={cardProps.dropOffTime.toString()}
-          fare={cardProps.fare}
-          userId={cardProps.driverInfo.id}
-          avatar={cardProps.driverInfo.avatar}
-        />
-      )}
-      footer={(props) => (
-        <Footer 
-          {...props} 
-          pickUpDistance={cardProps.pickUpDistance} 
-          dropOffDistance={cardProps.dropOffDistance} 
-        />
-      )}
-      style={{
+    <Shadow
+      stretch={true}
+      containerStyle={{
         marginHorizontal: 20,
-        marginVertical: 10,
-        padding: 10,
-        elevation: 5,
-        borderRadius: 10
+        marginVertical: 10
       }}
     >
-      <View
+      <Card
+        onPress={cardProps.onPress}
+        header={(props) => (
+          <Header
+            {...props}
+            rating={cardProps.driverInfo.rating}
+            numAvailableSeat={cardProps.numAvailableSeat}
+            proximity={cardProps.proximity}
+            pickUpTime={cardProps.pickUpTime.toString()}
+            dropOffTime={cardProps.dropOffTime.toString()}
+            fare={cardProps.fare}
+            userId={cardProps.driverInfo.id}
+            avatar={cardProps.driverInfo.avatar}
+          />
+        )}
+        footer={(props) => (
+          <Footer 
+            {...props} 
+            pickUpDistance={cardProps.pickUpDistance} 
+            dropOffDistance={cardProps.dropOffDistance} 
+          />
+        )}
         style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginHorizontal: -16
+          // marginHorizontal: 20,
+          // marginVertical: 10,
+          padding: 10,
+          borderRadius: 10
         }}
       >
-        <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
-            <Icon name="radio-button-on" style={{ width: 24, height: 24 }} fill={'#F0C414'} />
-            <View style={{ marginHorizontal: 10 }}>
-              <Text style={styles.lightText}>
-                {pickupDescription}
-              </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginHorizontal: -16
+          }}
+        >
+          <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
+              <Icon name="radio-button-on" style={{ width: 24, height: 24 }} fill={'#F0C414'} />
+              <View style={{ marginHorizontal: 10 }}>
+                <Text style={styles.lightText}>
+                  {pickupDescription}
+                </Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
+              <Icon name="pin-outline" style={{ width: 24, height: 24 }} />
+              <View style={{ marginHorizontal: 10 }}>
+                <Text style={styles.lightText}>
+                  {dropoffDescription}
+                </Text>
+              </View>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
-            <Icon name="pin-outline" style={{ width: 24, height: 24 }} />
-            <View style={{ marginHorizontal: 10 }}>
-              <Text style={styles.lightText}>
-                {dropoffDescription}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={{ flex: 1, flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
-          {cardProps.status === 'pending' && (
+          <View style={{ flex: 1, flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
+            {cardProps.status === 'pending' && (
+              <Button
+                accessoryLeft={TrashIcon}
+                style={{ borderRadius: 100, width: 40, height: 40 }}
+                status="danger"
+              />
+            )}
             <Button
-              accessoryLeft={TrashIcon}
-              style={{ borderRadius: 100, width: 40, height: 40 }}
-              status="danger"
-            />
-          )}
-          <Button
-            accessoryLeft={ChatIcon}
-            style={{ borderRadius: 100, width: 40, height: 40 }}
-            status="basic"
-          />
-          {cardProps.status === 'unasked' && (
-            <Button
-              accessoryLeft={PhoneIcon}
+              accessoryLeft={ChatIcon}
               style={{ borderRadius: 100, width: 40, height: 40 }}
               status="basic"
             />
-          )}
+            {cardProps.status === 'unasked' && (
+              <Button
+                accessoryLeft={PhoneIcon}
+                style={{ borderRadius: 100, width: 40, height: 40 }}
+                status="basic"
+              />
+            )}
+          </View>
         </View>
-      </View>
-    </Card>
+      </Card>
+    </Shadow>
   )
 }
