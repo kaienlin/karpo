@@ -12,6 +12,7 @@ type CommonScreensParamList = {
   RateScreen: { userIds: string[], rideId: string}
   SelectWaypointScreen: { waypointIndex: number; waypoint: Waypoint }
   RideCompleteScreen: { userIds: string[], rideId: string }
+  RideDetailScreen: { rideId: string, ridePhase: number, passengers: UserInSchedule[] }
 }
 
 type MainStackParamList = AuthStackParamList &
@@ -36,7 +37,7 @@ type DriverStackParamList = {
   }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
-  RideDetailScreen: {rideId: string, ridePhase: number, passengers: [] }
+  RideDetailScreen: { rideId: string, ridePhase: number, passengers: UserInSchedule[] }
 }
 
 type PassengerStackParamList = {
