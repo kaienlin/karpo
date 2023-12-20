@@ -36,6 +36,7 @@ type DriverStackParamList = {
   }
   DriverSelectJoinScreen: undefined
   DriverDepartScreen: undefined
+  RideDetailScreen: {rideId: string, ridePhase: number, passengers: [] }
 }
 
 type PassengerStackParamList = {
