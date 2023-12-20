@@ -102,6 +102,7 @@ export default function SignInScreen({ navigation }: SignInScreenProps) {
             }}
             render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
               <Input
+                testID="loginEmailInput"
                 placeholder="電子郵件地址"
                 ref={ref}
                 value={value}
@@ -137,6 +138,7 @@ export default function SignInScreen({ navigation }: SignInScreenProps) {
             }}
             render={({ field: { onChange, onBlur, value, ref }, fieldState: { invalid } }) => (
               <Input
+                testID="loginPasswordInput"
                 placeholder="密碼"
                 ref={ref}
                 value={value}
@@ -161,6 +163,7 @@ export default function SignInScreen({ navigation }: SignInScreenProps) {
           />
         </View>
         <Button
+          testID="loginSubmitButton"
           accessibilityLabel="登入"
           onPress={handleSubmit(onSubmit)}
           size="large"

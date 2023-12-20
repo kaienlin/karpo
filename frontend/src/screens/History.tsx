@@ -1,94 +1,104 @@
-import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, Text, TextInput, FlatList } from 'react-native';
-import { Button } from "@ui-kitten/components";
-import { SafeAreaView } from "react-native-safe-area-context";
-import HistoryCard from '../components/HistoryCard';
-import { type NativeStackScreenProps } from '@react-navigation/native-stack'
+import { FlatList, View } from 'react-native'
+import { Button, Divider, Icon, ListItem, Text, useTheme } from '@ui-kitten/components'
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
+import { Image } from 'expo-image'
 
+import historyTemplate from '~/assets/templates/history.json'
 
-const rideInfoList = [
-  {
-    departTime: '2023-11-30 10:15',
-    userStatus: '司機',
-    arrivalTime: '10:35',
-    price: 300,
-    rating: 5.0,
-    vacuumSeat: 1,
-    rideStatus: '很順路',
-    driverOrigin: '台積電 12 廠',
-    driverDestination: '竹北市光明六路 16 號',
-    origin2route: 0.3,
-    destination2route: 0.7
-  },
-  {
-    departTime: '2023-11-30 10:30',
-    userStatus: '乘客',
-    arrivalTime: '10:56',
-    price: 280,
-    rating: 4.8,
-    vacuumSeat: 1,
-    rideStatus: '非常順路',
-    driverOrigin: '園區二路 57 號',
-    driverDestination: '竹北市光明六路 116 號',
-    origin2route: 0.3,
-    destination2route: 0.7
-  },
-  {
-    departTime: '2023-11-30 10:44',
-    userStatus: '司機',
-    arrivalTime: '11:08',
-    price: 320,
-    rating: 4.5,
-    vacuumSeat: 1,
-    rideStatus: '有點繞路',
-    driverOrigin: '實驗中學',
-    driverDestination: '博愛國小',
-    origin2route: 0.3,
-    destination2route: 0.7
-  },
-  {
-    departTime: '2023-11-30 10:44',
-    userStatus: '司機',
-    arrivalTime: '11:08',
-    price: 320,
-    rating: 4.5,
-    vacuumSeat: 1,
-    rideStatus: '有點繞路',
-    driverOrigin: '實驗中學',
-    driverDestination: '博愛國小',
-    origin2route: 0.3,
-    destination2route: 0.7
-  }
-]
+const icons = {
+  driver: require('~/assets/icons/hatchback.png'),
+  passenger: require('~/assets/icons/dog.png')
+}
 
+const MiniLocationItem = ({
+  description,
+  icon,
+  iconColor
+}: {
+  description: string
+  icon: string
+  iconColor: string
+}) => (
+  <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+    <Icon name={icon} style={{ width: 15, height: 15 }} fill={iconColor} />
+    <Text style={{ color: '#5A5A5A', fontSize: 12.5, fontWeight: '500' }}>{description}</Text>
+  </View>
+)
 
-export default function HistoryScreen () {
+interface HistoryCardProps {
+  role: 'driver' | 'passenger'
+  origin: string
+  destination: string
+  time: Date
+  onViewDetail?: () => void
+  onBookAgain?: () => void
+}
+
+function HistoryCard({
+  role,
+  origin,
+  destination,
+  time,
+  onViewDetail,
+  onBookAgain
+}: HistoryCardProps) {
+  const theme = useTheme()
+
   return (
-    <>
-      <FlatList
-        data={rideInfoList}
-        renderItem={({ item }) => <HistoryCard {...item} /> }
-      />
-    </>
+    <ListItem
+      onPress={onViewDetail}
+      style={{ paddingHorizontal: 13, paddingVertical: 13, gap: 10 }}
+    >
+      <View
+        style={{
+          width: 65,
+          height: 65,
+          padding: 10,
+          borderRadius: 7,
+          backgroundColor: theme['color-basic-default']
+        }}
+      >
+        <Image source={icons[role]} style={{ height: '100%' }} contentFit="contain" />
+      </View>
+      <View style={{ gap: 5 }}>
+        <MiniLocationItem
+          description={origin}
+          icon="radio-button-on"
+          iconColor={theme['color-primary-default']}
+        />
+        <MiniLocationItem
+          description={destination}
+          icon="pin"
+          iconColor={theme['color-basic-700']}
+        />
+        <Text category="c1" style={{ color: theme['text-hint-color'] }}>
+          {format(time, 'LLLdo ⋅ p', { locale: zhTW })}
+        </Text>
+      </View>
+      <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
+        <Button onPress={onBookAgain} status="basic" size="small" style={{ borderRadius: 20 }}>
+          重新預訂
+        </Button>
+      </View>
+    </ListItem>
   )
 }
 
+export default function HistoryScreen() {
+  const historyRides = historyTemplate.map(({ time, ...rest }) => ({
+    time: new Date(time),
+    ...rest
+  }))
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  //   alignItems: 'center',
-  //   justifyContent: 'flex-start',
-  },
-  headerContainer: {
-    paddingHorizontal: 20, // 調整 padding
-    marginBottom: 5,
-    alignSelf: 'flex-start', // 左上角對齊
-  },
-  headerText: {
-    fontSize: 25, 
-    fontWeight: 'bold', 
-    marginTop: 20,
-  },
-});
-  
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={historyRides}
+        ItemSeparatorComponent={() => <Divider />}
+        ListFooterComponent={() => <Divider />}
+        renderItem={({ item }) => <HistoryCard {...item} />}
+      />
+    </View>
+  )
+}
