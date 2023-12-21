@@ -47,6 +47,7 @@ interface StageCardProps {
   status: 'pick_up' | 'drop_off'
   passenger: Array<User & { numPassengers: number }>
   isLoading: boolean
+  onViewDetail?: () => void
   onComplete: () => void
 }
 
@@ -193,7 +194,14 @@ export function ReadyCard({
   )
 }
 
-export function StageCard({ location, status, passenger, isLoading, onComplete }: StageCardProps) {
+export function StageCard({
+  location,
+  status,
+  passenger,
+  isLoading,
+  onComplete,
+  onViewDetail
+}: StageCardProps) {
   const theme = useTheme()
   const styles = useStyleSheet(themedStyles)
   const { viewProfile, chat, call } = useContact()
@@ -210,7 +218,7 @@ export function StageCard({ location, status, passenger, isLoading, onComplete }
             <Text category="h5">{headerText}</Text>
             <Text style={{ fontSize: 14, color: theme['text-hint-color'] }}>{location}</Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={onViewDetail}>
             <Text style={{ color: theme['color-primary-default'] }}>行程詳情</Text>
           </TouchableOpacity>
         </View>

@@ -61,11 +61,16 @@ const PhaseInfoSection = ({
   isLoading: boolean
   onProceed: () => void
 }) => {
+  const navigation = useNavigation()
   const { rideId, ridePhase, passengers } = useDriverState()
   const { schedule } = useGetScheduleQuery(rideId ?? skipToken, {
     selectFromResult: ({ data, ...rest }) => ({ schedule: data?.schedule?.[ridePhase], ...rest })
   })
   const passenger = passengers?.find(passenger => passenger.id === schedule?.passengerId)
+
+  const onViewDetail = () => {
+    navigation.navigate('RideDetailScreen', { rideId, ridePhase, passengers })
+  }
 
   return (
     <Animated.View entering={SlideInDown.duration(500).easing(Easing.out(Easing.exp))}>
@@ -75,6 +80,7 @@ const PhaseInfoSection = ({
         passenger={passenger}
         isLoading={isLoading}
         onComplete={onProceed}
+        onViewDetail={onViewDetail}
       />
     </Animated.View>
   )
