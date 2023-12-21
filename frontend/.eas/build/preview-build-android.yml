@@ -1,0 +1,16 @@
+build:
+  name: Production build Android
+  steps:
+    - eas/checkout
+
+    - eas/install_node_modules
+
+    - eas/prebuild:
+        inputs:
+          clean: true
+
+    - eas/inject_android_credentials
+
+    - eas/run_gradle
+
+    - eas/find_and_upload_build_artifacts

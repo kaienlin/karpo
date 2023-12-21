@@ -1,0 +1,27 @@
+{
+  "cli": {
+    "version": ">= 5.9.1"
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "developmentClient": true,
+      "android": {},
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "android": {
+        "config": "preview-build-android.yml"
+      },
+      "ios": {
+        "simulator": true,
+        "config": "preview-build-ios.yml"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
