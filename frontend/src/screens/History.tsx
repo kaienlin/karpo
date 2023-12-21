@@ -5,6 +5,7 @@ import { zhTW } from 'date-fns/locale'
 import { Image } from 'expo-image'
 
 import historyTemplate from '~/assets/templates/history.json'
+import { useGetHistoryQuery } from '~/redux/api/users'
 
 const icons = {
   driver: require('~/assets/icons/hatchback.png'),
@@ -86,10 +87,12 @@ function HistoryCard({
 }
 
 export default function HistoryScreen() {
-  const historyRides = historyTemplate.map(({ time, ...rest }) => ({
-    time: new Date(time),
-    ...rest
-  }))
+  // const historyRides = historyTemplate.map(({ time, ...rest }) => ({
+  //   time: new Date(time),
+  //   ...rest
+  // }))
+
+  const { data: historyRides } = useGetHistoryQuery(undefined)
 
   return (
     <View style={{ flex: 1 }}>
@@ -97,7 +100,14 @@ export default function HistoryScreen() {
         data={historyRides}
         ItemSeparatorComponent={() => <Divider />}
         ListFooterComponent={() => <Divider />}
-        renderItem={({ item }) => <HistoryCard {...item} />}
+        renderItem={({ item: { role, time, origin, destination } }) => (
+          <HistoryCard
+            role={role}
+            time={new Date(time)}
+            origin={origin.description}
+            destination={destination.description}
+          />
+        )}
       />
     </View>
   )

@@ -1,0 +1,18 @@
+[
+  {
+    "time": "2023-12-21T07:00:00.000Z",
+    "num_passengers": 1,
+    "origin": {
+      "description": "汀州路三段40號",
+      "latitude": 25.016395369969043,
+      "longitude": 121.52977282181382,
+      "id": "5561e430-d2ee-4f89-96bd-f16fb5f56b03"
+    },
+    "destination": {
+      "description": "金山南路一段110巷10號",
+      "latitude": 25.0351385906342,
+      "longitude": 121.5267781354487,
+      "id": "159c515d-a638-4466-b098-addb3bff4de8"
+    }
+  }
+]

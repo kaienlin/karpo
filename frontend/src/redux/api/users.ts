@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-invalid-void-type: 0 */
 
-import type { ActivityItems, DriverActivity, SavedRide, User, UserProfile } from '~/types/data'
+import type { DriverActivity, SavedRide, User, UserProfile } from '~/types/data'
 
 import { apiSlice } from './index'
 
@@ -49,6 +49,30 @@ export const usersSlice = apiSlice
           url: `/users/me/data`,
           method: 'DELETE'
         })
+      }),
+      // TODO: add correct typing
+      getHistory: builder.query<string, void>({
+        queryFn: async (arg, api, extraOptions, baseQuery) => {
+          const {
+            data: { id }
+          } = await api.dispatch(usersSlice.endpoints.getMyProfile.initiate())
+          const { data: rides } = await baseQuery(`/rides/saved_rides/${id}`)
+          const { data: requests } = await baseQuery(`/requests/saved_requests/${id}`)
+          const savedRides =
+            rides?.savedRides?.map(({ departureTime, ...rest }) => ({
+              role: 'driver',
+              time: departureTime,
+              ...rest
+            })) ?? []
+          const savedRequests =
+            requests?.savedRequests?.map(({ time, ...rest }) => ({
+              role: 'passenger',
+              time,
+              ...rest
+            })) ?? []
+
+          return { data: [...savedRides, ...savedRequests] }
+        }
       })
     })
   })
@@ -61,7 +85,8 @@ export const {
   useUpdateUserProfileMutation,
   useGetSavedRidesQuery,
   useGetUserProfileBatchQuery,
-  useCancelEventMutation
+  useCancelEventMutation,
+  useGetHistoryQuery
 } = usersSlice
 
 export const transformSavedRide = (savedRide: SavedRide) => {
