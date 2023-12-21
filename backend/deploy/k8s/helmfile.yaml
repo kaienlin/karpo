@@ -1,0 +1,48 @@
+environments:
+  default:
+    secrets:
+      - ./secrets.yaml
+    values:
+      - ./values.yaml
+---
+helmDefaults:
+  createNamespace: true
+
+repositories:
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: cockroachdb
+    url: https://charts.cockroachdb.com/
+
+releases:
+  - name: ingress-nginx
+    namespace: ingress-nginx
+    chart: ingress-nginx/ingress-nginx
+    values:
+      - ./ingress-nginx/values.yaml
+    wait: true
+  - name: monitoring
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    values:
+      - ./kube-prometheus-stack/values.yaml.gotmpl
+    wait: true
+    disableValidationOnInstall: true
+  - name: cockroachdb
+    namespace: karpo
+    chart: cockroachdb/cockroachdb
+    values:
+      - ./cockroachdb/values.yaml.gotmpl
+  - name: redis
+    namespace: karpo
+    chart: oci://registry-1.docker.io/bitnamicharts/redis
+    version: 18.5.0
+    values:
+      - ./redis/values.yaml
+  - name: karpo-api
+    namespace: karpo
+    chart: ./karpo-backend
+    values:
+      - ./karpo-backend/values.yaml.gotmpl

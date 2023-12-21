@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "karpo_backend.fullname" . }}
+  labels:
+    {{- include "karpo_backend.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "karpo_backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "karpo_backend.labels" . | nindent 8 }}
+	{{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "karpo_backend.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: KARPO_BACKEND_HOST
+            value: "0.0.0.0"
+          - name: KARPO_BACKEND_PORT
+            value: "80"
+          - name: KARPO_BACKEND_WORKERS_COUNT
+            value: "{{ .Values.karpo_backend.workers_count }}"
+          - name: KARPO_BACKEND_ENVIRONMENT
+            value: "prod"
+          - name: KARPO_BACKEND_LOG_LEVEL
+            value: {{ .Values.karpo_backend.log_level }}
+          - name: USERS_SECRET
+            value: {{ .Values.karpo_backend.user_secret }}
+          - name: KARPO_BACKEND_DB_HOST
+            value: {{ .Values.karpo_backend.db_host }}
+          - name: KARPO_BACKEND_DB_PASS
+            value: {{ .Values.karpo_backend.db_pass }}
+          - name: KARPO_BACKEND_REDIS_HOST
+            value: {{ .Values.karpo_backend.redis_host }}
+          - name: KARPO_BACKEND_REDIS_PASS
+            valueFrom:
+              secretKeyRef:
+                name: redis
+                key: redis-password
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          env:
+          - name: KARPO_BACKEND_HOST
+            value: "0.0.0.0"
+          - name: KARPO_BACKEND_PORT
+            value: "80"
+          - name: KARPO_BACKEND_DB_HOST
+            value: {{ .Values.karpo_backend.db_host }}
+          - name: KARPO_BACKEND_DB_PASS
+            value: {{ .Values.karpo_backend.db_pass }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "karpo_backend.fullname" . }}
+  labels:
+    {{- include "karpo_backend.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "karpo_backend.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: /metrics
+  namespaceSelector:
+    any: true
