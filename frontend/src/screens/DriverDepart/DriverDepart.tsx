@@ -23,7 +23,11 @@ const ReadyInfoSection = ({
   onProceed: () => void
 }) => {
   const navigation = useNavigation()
-  const { ride, passengers, numAvailableSeat } = useDriverState()
+  const { ride, passengers, numAvailableSeat, rideId, ridePhase } = useDriverState()
+
+  const onViewDetail = () => {
+    navigation.navigate('RideDetailScreen', { rideId, ridePhase, passengers })
+  }
 
   return (
     <Animated.View entering={SlideInDown.duration(500).easing(Easing.out(Easing.exp))}>
@@ -44,6 +48,7 @@ const ReadyInfoSection = ({
         passengers={passengers}
         isLoading={isLoading}
         onDepart={onProceed}
+        onViewDetail={onViewDetail}
       />
     </Animated.View>
   )
