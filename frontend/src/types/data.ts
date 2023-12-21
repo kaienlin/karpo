@@ -20,6 +20,20 @@ export interface UserProfile {
   numRides: number
 }
 
+export interface UserInSchedule {
+  joinId: string
+  numPassengers: number
+  id: string
+  email: string
+  isActive?: boolean | undefined
+  isSuperuser?: boolean | undefined
+  isVerified?: boolean | undefined
+  name: string
+  phoneNumber: string
+  rating: number
+  avatar: string
+}
+
 export interface UserEditable
   extends Partial<Pick<User, 'name' | 'email' | 'phoneNumber' | 'avatar'>> {}
 
@@ -143,6 +157,10 @@ export interface JoinDetailed extends Join {
   passengerInfo: User
 }
 
+export interface ScheduleDetailed extends ScheduleStep {
+  passengerInfo: UserInSchedule
+}
+
 export interface RideStatus {
   driverPosition: {
     latitude: number
@@ -163,4 +181,18 @@ export interface Message {
   userId: string
   content: string
   time: Date
+}
+
+export interface RideDetailInfo {
+    joinId: string
+    type: string
+    completeType: string
+    passengerActionType: string
+    passengerName: string
+    passengerCount: number
+    location: string | undefined
+    time: Date
+    iconName: string
+    iconFilledColor: string
+  
 }

@@ -52,6 +52,11 @@ export type DriverDepartScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParamList>
 >
 
+export type RideDetailScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<DriverStackParamList, 'RideDetailScreen'>,
+  NativeStackScreenProps<MainStackParamList>
+>
+
 // Passenger stack
 
 // History stack

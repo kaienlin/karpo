@@ -11,16 +11,13 @@ import {
 } from '@ui-kitten/components'
 
 import RateCard from '~/components/RateCard'
-import { useGetCurrentActivityQuery, useGetUserProfileBatchQuery } from '~/redux/api/users'
+import { useGetUserProfileBatchQuery } from '~/redux/api/users'
 import { useCreateCommentMutation } from '~/redux/comment'
 import type { MainStackParamList } from '~/types/navigation'
 
 type RateScreenProps = NativeStackScreenProps<MainStackParamList, 'RateScreen'>
 
 export default function RateScreen({ navigation, route }: RateScreenProps) {
-  // const { rideId } = useGetCurrentActivityQuery(undefined, {
-  //   selectFromResult: ({ data }) => ({ rideId: data?.driverState.rideId })
-  // })
 
   const { userIds, rideId } = route.params
 
@@ -31,6 +28,7 @@ export default function RateScreen({ navigation, route }: RateScreenProps) {
   //   "a28202cb-be1b-450e-8970-b8ab138d5314",
   //   "c2545b36-44cb-48dd-a6f1-a08068e91d1a"
   // ]
+  // const rideId = '12345'
 
   const { data: users, isSuccess } = useGetUserProfileBatchQuery(userIds ?? skipToken)
 
@@ -59,9 +57,6 @@ export default function RateScreen({ navigation, route }: RateScreenProps) {
           />
         )}
       />
-      {/* <View>
-        <Text>{users[0]}</Text>
-      </View> */}
       {isSuccess && (
         <FlatList
           data={users}
