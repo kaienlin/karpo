@@ -8,7 +8,13 @@ export function Avatar({
   base64Uri: string
   size?: 'mini' | 'small' | 'large'
 }) {
-  return <Image source={{ uri: `data:image/png;base64,${base64Uri}` }} style={styles[size]} />
+  return (
+    <Image
+      source={{ uri: `data:image/png;base64,${base64Uri}` }}
+      style={styles[size]}
+      cachePolicy="memory-disk"
+    />
+  )
 }
 
 const styles = StyleSheet.create({
